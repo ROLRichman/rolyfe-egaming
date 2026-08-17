@@ -8,391 +8,459 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   >
 
-  <title>RO’Lyfe Pool 🎱</title>
+  <title>RO’Lyfe Pool™</title>
 
   <meta
     name="description"
-    content="RO’Lyfe Gaming Pool — 8-Ball, 9-Ball, Practice, Player vs Player, Player vs AI, AI vs AI and Challenge Mode."
+    content="RO’Lyfe Gaming Pool — 8-Ball, 9-Ball, Practice, AI and Challenge Mode."
   >
 
-  <link rel="stylesheet" href="pool.css">
+  <!-- =====================================================
+       RO'LYFE POOL STYLES
+       ===================================================== -->
+
+  <link rel="stylesheet" href="../../shared/game-ui.css">
+  <link rel="stylesheet" href="../../shared/theme-engine.css">
+  <link rel="stylesheet" href="./pool.css">
+
 </head>
 
 <body>
 
-<!-- =========================================================
-     RO'LYFE POOL APP
-========================================================= -->
+  <!-- =====================================================
+       APPLICATION
+       ===================================================== -->
 
-<div id="rolyfePoolApp">
+  <main id="poolApp" class="pool-app">
 
-  <!-- =======================================================
-       HEADER
-  ======================================================== -->
+    <!-- ===================================================
+         HEADER
+         =================================================== -->
 
-  <header class="pool-header">
+    <header class="pool-header">
 
-    <div class="brand-area">
+      <div class="brand">
 
-      <div class="brand-title">
-        🎱 RO’LYFE POOL
+        <div class="brand-icon">🎱</div>
+
+        <div>
+          <h1>RO’LYFE POOL</h1>
+          <p>RO’Lyfe Gaming™</p>
+        </div>
+
       </div>
 
-      <div class="brand-subtitle">
-        RO’Lyfe Gaming
+      <div class="header-actions">
+
+        <button
+          id="soundBtn"
+          class="icon-button"
+          type="button"
+          aria-label="Toggle sound"
+        >
+          🔊
+        </button>
+
+        <button
+          id="fullscreenBtn"
+          class="icon-button"
+          type="button"
+          aria-label="Fullscreen"
+        >
+          ⛶
+        </button>
+
       </div>
 
-    </div>
+    </header>
 
-    <div class="header-actions">
 
-      <button
-        id="soundBtn"
-        class="icon-btn"
-        type="button"
-        title="Toggle sound"
+    <!-- ===================================================
+         GAME SETTINGS
+         =================================================== -->
+
+    <section class="pool-settings">
+
+      <div class="setting-group">
+
+        <label for="poolGame">
+          Game
+        </label>
+
+        <select id="poolGame">
+
+          <option value="8ball">
+            🎱 8-Ball
+          </option>
+
+          <option value="9ball">
+            🎱 9-Ball
+          </option>
+
+          <option value="practice">
+            🎯 Practice
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="setting-group">
+
+        <label for="poolMode">
+          Mode
+        </label>
+
+        <select id="poolMode">
+
+          <option value="pvp">
+            👥 Player vs Player
+          </option>
+
+          <option value="pvai">
+            🤖 Player vs AI
+          </option>
+
+          <option value="aivai">
+            🤖 AI vs AI
+          </option>
+
+          <option value="challenge">
+            🏆 Challenge Mode
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="setting-group">
+
+        <label for="poolAILevel">
+          AI Level
+        </label>
+
+        <select id="poolAILevel">
+
+          <option value="1">
+            START-UP
+          </option>
+
+          <option value="2">
+            INVESTOR
+          </option>
+
+          <option value="3">
+            EMG
+          </option>
+
+          <option value="4">
+            ACE
+          </option>
+
+          <option value="5">
+            7FIGURES
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="setting-group">
+
+        <label for="poolTheme">
+          Board
+        </label>
+
+        <select id="poolTheme">
+
+          <option value="rolyfe">
+            RO’Lyfe
+          </option>
+
+          <option value="emg">
+            EMG
+          </option>
+
+          <option value="ace">
+            ACE
+          </option>
+
+          <option value="business">
+            BUSINESS
+          </option>
+
+          <option value="real-estate">
+            REAL ESTATE
+          </option>
+
+          <option value="capital">
+            CAPITAL
+          </option>
+
+          <option value="7figures">
+            7FIGURES
+          </option>
+
+        </select>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         PLAYER AREA
+         =================================================== -->
+
+    <section class="players">
+
+      <!-- PLAYER 1 -->
+
+      <article
+        class="player-card active"
+        data-player="0"
       >
-        🔊
-      </button>
 
-      <button
-        id="fullscreenBtn"
-        class="icon-btn"
-        type="button"
-        title="Fullscreen"
+        <div class="player-card-header">
+
+          <div>
+
+            <span class="player-label">
+              PLAYER 1
+            </span>
+
+            <h2 class="player-name">
+              Player 1
+            </h2>
+
+          </div>
+
+          <div class="player-score">
+            0
+          </div>
+
+        </div>
+
+        <div class="player-time">
+
+          Time
+          <strong class="player-timer">
+            10:00
+          </strong>
+
+        </div>
+
+        <div class="player-group">
+          Open Table
+        </div>
+
+      </article>
+
+
+      <!-- PLAYER 2 -->
+
+      <article
+        class="player-card"
+        data-player="1"
       >
-        ⛶
-      </button>
 
-    </div>
+        <div class="player-card-header">
 
-  </header>
+          <div>
 
+            <span class="player-label">
+              PLAYER 2 / AI
+            </span>
 
-  <!-- =======================================================
-       GAME CONTROL PANEL
-  ======================================================== -->
+            <h2 class="player-name">
+              Player 2
+            </h2>
 
-  <section class="pool-controls">
+          </div>
 
-    <div class="control-group">
+          <div class="player-score">
+            0
+          </div>
 
-      <label for="gameMode">
-        Game
-      </label>
+        </div>
 
-      <select id="gameMode">
+        <div class="player-time">
 
-        <option value="8ball">
-          🎱 8-Ball
-        </option>
+          Time
+          <strong class="player-timer">
+            10:00
+          </strong>
 
-        <option value="9ball">
-          🎯 9-Ball
-        </option>
+        </div>
 
-        <option value="practice">
-          🧪 Practice
-        </option>
+        <div class="player-group">
+          Open Table
+        </div>
 
-      </select>
+      </article>
 
-    </div>
-
-
-    <div class="control-group">
-
-      <label for="playMode">
-        Mode
-      </label>
-
-      <select id="playMode">
-
-        <option value="pvp">
-          👥 Player vs Player
-        </option>
-
-        <option value="pvai">
-          🤖 Player vs AI
-        </option>
-
-        <option value="aivai">
-          🤖 AI vs AI
-        </option>
-
-        <option value="challenge">
-          🏆 Challenge Mode
-        </option>
-
-      </select>
-
-    </div>
+    </section>
 
 
-    <div class="control-group">
+    <!-- ===================================================
+         TURN STATUS
+         =================================================== -->
 
-      <label for="aiLevel">
-        AI Level
-      </label>
+    <section class="turn-status">
 
-      <select id="aiLevel">
+      <div class="turn-indicator">
 
-        <option value="1">
-          START-UP
-        </option>
-
-        <option value="2">
-          INVESTOR
-        </option>
-
-        <option value="3">
-          EMG
-        </option>
-
-        <option value="4">
-          ACE
-        </option>
-
-        <option value="5">
-          7-FIGURES
-        </option>
-
-      </select>
-
-    </div>
-
-
-    <div class="control-group">
-
-      <label for="themeSelect">
-        Board
-      </label>
-
-      <select id="themeSelect">
-
-        <option value="rolyfe">
-          RO’Lyfe
-        </option>
-
-        <option value="emg">
-          EMG
-        </option>
-
-        <option value="ace">
-          ACE
-        </option>
-
-        <option value="classic">
-          Classic
-        </option>
-
-        <option value="business">
-          Business
-        </option>
-
-        <option value="realestate">
-          Real Estate
-        </option>
-
-      </select>
-
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
-       PLAYER / SCOREBOARD
-  ======================================================== -->
-
-  <section class="scoreboard">
-
-    <!-- PLAYER 1 -->
-
-    <div
-      id="player1Card"
-      class="player-card active-player"
-    >
-
-      <div class="player-name">
-
-        <span class="player-color-ball">
-          ●
+        <span class="turn-label">
+          CURRENT TURN
         </span>
 
-        <span id="player1Name">
+        <strong
+          id="turnValue"
+          class="turn-value"
+        >
           Player 1
-        </span>
-
-      </div>
-
-      <div class="player-score">
-
-        <span>
-          Score
-        </span>
-
-        <strong id="player1Score">
-          0
         </strong>
 
       </div>
 
-      <div class="player-time">
+      <div class="pool-timer-box">
 
         <span>
-          Time
+          ⏱️ TIME
         </span>
 
-        <strong id="player1Timer">
+        <strong
+          id="poolTimer"
+          class="pool-timer"
+        >
           10:00
         </strong>
 
       </div>
 
-    </div>
+    </section>
 
 
-    <!-- CENTER STATUS -->
+    <!-- ===================================================
+         GAME MESSAGE
+         =================================================== -->
 
-    <div class="game-status">
+    <section class="message-panel">
 
-      <div id="turnIndicator">
-        PLAYER 1 TURN
-      </div>
-
-      <div id="gameMessage">
+      <div
+        id="poolMessage"
+        class="pool-message"
+      >
         Break the rack!
       </div>
 
-    </div>
+    </section>
 
 
-    <!-- PLAYER 2 -->
+    <!-- ===================================================
+         POOL TABLE
+         =================================================== -->
 
-    <div
-      id="player2Card"
-      class="player-card"
-    >
-
-      <div class="player-name">
-
-        <span class="player-color-ball">
-          ●
-        </span>
-
-        <span id="player2Name">
-          Player 2
-        </span>
-
-      </div>
-
-      <div class="player-score">
-
-        <span>
-          Score
-        </span>
-
-        <strong id="player2Score">
-          0
-        </strong>
-
-      </div>
-
-      <div class="player-time">
-
-        <span>
-          Time
-        </span>
-
-        <strong id="player2Timer">
-          10:00
-        </strong>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
-       PLAYER NAME SETTINGS
-  ======================================================== -->
-
-  <section class="player-settings">
-
-    <div>
-
-      <label for="player1Input">
-        Player 1
-      </label>
-
-      <input
-        id="player1Input"
-        type="text"
-        maxlength="20"
-        value="Player 1"
-        placeholder="Enter player name"
-      >
-
-    </div>
-
-
-    <div>
-
-      <label for="player2Input">
-        Player 2 / AI
-      </label>
-
-      <input
-        id="player2Input"
-        type="text"
-        maxlength="20"
-        value="Player 2"
-        placeholder="Enter player name"
-      >
-
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
-       TABLE AREA
-  ======================================================== -->
-
-  <main class="pool-main">
-
-    <div
-      id="poolTableContainer"
-      class="pool-table-container"
-    >
-
-      <canvas
-        id="poolCanvas"
-        aria-label="RO’Lyfe Pool Table"
-      ></canvas>
-
-      <!-- Aim guide -->
+    <section class="table-section">
 
       <div
-        id="aimGuide"
-        class="aim-guide hidden"
-      ></div>
-
-      <!-- Power meter -->
-
-      <div
-        id="powerMeter"
-        class="power-meter"
+        id="poolTable"
+        class="pool-table"
       >
 
-        <div class="power-label">
-          POWER
+        <!-- TOP RAIL -->
+
+        <div class="table-rail rail-top"></div>
+
+        <!-- BOTTOM RAIL -->
+
+        <div class="table-rail rail-bottom"></div>
+
+        <!-- LEFT RAIL -->
+
+        <div class="table-rail rail-left"></div>
+
+        <!-- RIGHT RAIL -->
+
+        <div class="table-rail rail-right"></div>
+
+
+        <!-- =================================================
+             POCKETS
+             ================================================= -->
+
+        <div class="pocket pocket-tl"></div>
+
+        <div class="pocket pocket-tc"></div>
+
+        <div class="pocket pocket-tr"></div>
+
+        <div class="pocket pocket-bl"></div>
+
+        <div class="pocket pocket-bc"></div>
+
+        <div class="pocket pocket-br"></div>
+
+
+        <!-- =================================================
+             PLAYING SURFACE
+             ================================================= -->
+
+        <div class="table-surface">
+
+          <!-- AIMING / BALL LAYER -->
+
+          <div
+            id="ballLayer"
+            class="ball-layer"
+          >
+
+          </div>
+
         </div>
 
-        <div class="power-track">
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         POWER CONTROL
+         =================================================== -->
+
+    <section class="power-section">
+
+      <div class="power-header">
+
+        <span>
+          POWER
+        </span>
+
+        <span
+          id="powerValue"
+          class="power-value"
+        >
+          55%
+        </span>
+
+      </div>
+
+
+      <div class="power-controls">
+
+        <button
+          id="powerDown"
+          type="button"
+          class="control-button"
+        >
+          −
+        </button>
+
+
+        <div class="power-meter">
 
           <div
             id="powerFill"
@@ -401,446 +469,1067 @@
 
         </div>
 
+
+        <button
+          id="powerUp"
+          type="button"
+          class="control-button"
+        >
+          +
+        </button>
+
       </div>
 
-    </div>
-
-  </main>
+    </section>
 
 
-  <!-- =======================================================
-       SHOOTING CONTROLS
-  ======================================================== -->
+    <!-- ===================================================
+         SHOOT CONTROLS
+         =================================================== -->
 
-  <section class="shot-controls">
-
-    <div class="aim-controls">
+    <section class="shoot-controls">
 
       <button
-        id="aimLeftBtn"
+        id="aimLeft"
+        class="direction-button"
         type="button"
+        aria-label="Aim left"
       >
         ◀
       </button>
 
-      <button
-        id="aimRightBtn"
-        type="button"
-      >
-        ▶
-      </button>
-
-    </div>
-
-
-    <div class="power-controls">
-
-      <button
-        id="powerDownBtn"
-        type="button"
-      >
-        −
-      </button>
 
       <button
         id="shootBtn"
-        class="shoot-btn"
+        class="shoot-button"
         type="button"
       >
         🎱 SHOOT
       </button>
 
-      <button
-        id="powerUpBtn"
-        type="button"
-      >
-        +
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
-       GAME ACTIONS
-  ======================================================== -->
-
-  <section class="game-actions">
-
-    <button
-      id="newGameBtn"
-      type="button"
-    >
-      🆕 New Game
-    </button>
-
-    <button
-      id="rackBtn"
-      type="button"
-    >
-      🎱 New Rack
-    </button>
-
-    <button
-      id="pauseBtn"
-      type="button"
-    >
-      ⏸ Pause
-    </button>
-
-    <button
-      id="rulesBtn"
-      type="button"
-    >
-      📖 Rules
-    </button>
-
-  </section>
-
-
-  <!-- =======================================================
-       CHALLENGE PANEL
-  ======================================================== -->
-
-  <section
-    id="challengePanel"
-    class="challenge-panel hidden"
-  >
-
-    <div class="challenge-title">
-      🏆 RO’Lyfe Challenge Mode
-    </div>
-
-    <div id="challengeText">
-      Complete the challenge to advance.
-    </div>
-
-    <div class="challenge-progress">
-
-      <div
-        id="challengeProgressFill"
-        class="challenge-progress-fill"
-      ></div>
-
-    </div>
-
-    <div id="challengeScore">
-      Challenge Score: 0
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
-       GAME INFORMATION
-  ======================================================== -->
-
-  <section class="game-info">
-
-    <div class="info-box">
-
-      <span>
-        Game
-      </span>
-
-      <strong id="gameTypeDisplay">
-        8-Ball
-      </strong>
-
-    </div>
-
-
-    <div class="info-box">
-
-      <span>
-        Mode
-      </span>
-
-      <strong id="modeDisplay">
-        Player vs Player
-      </strong>
-
-    </div>
-
-
-    <div class="info-box">
-
-      <span>
-        AI
-      </span>
-
-      <strong id="aiDisplay">
-        START-UP
-      </strong>
-
-    </div>
-
-
-    <div class="info-box">
-
-      <span>
-        Shots
-      </span>
-
-      <strong id="shotCount">
-        0
-      </strong>
-
-    </div>
-
-  </section>
-
-
-  <!-- =======================================================
-       RULES MODAL
-  ======================================================== -->
-
-  <div
-    id="rulesModal"
-    class="modal hidden"
-  >
-
-    <div class="modal-content">
 
       <button
-        id="closeRulesBtn"
-        class="modal-close"
+        id="aimRight"
+        class="direction-button"
         type="button"
+        aria-label="Aim right"
       >
-        ✕
+        ▶
       </button>
 
-      <h2>
-        🎱 RO’Lyfe Pool Rules
-      </h2>
-
-      <div id="rulesContent">
-
-        <h3>
-          8-Ball
-        </h3>
-
-        <p>
-          Sink your assigned group of balls and finish by legally
-          sinking the 8-ball.
-        </p>
+    </section>
 
 
-        <h3>
-          9-Ball
-        </h3>
+    <!-- ===================================================
+         MAIN GAME CONTROLS
+         =================================================== -->
 
-        <p>
-          Hit the lowest numbered ball first and legally sink the
-          9-ball to win.
-        </p>
+    <section class="game-controls">
 
-
-        <h3>
-          Practice
-        </h3>
-
-        <p>
-          Practice shots without normal competitive restrictions.
-        </p>
+      <button
+        id="resetPool"
+        class="game-button primary"
+        type="button"
+      >
+        🆕 New Game
+      </button>
 
 
-        <h3>
-          Challenge Mode
-        </h3>
-
-        <p>
-          Complete increasingly difficult pool challenges while
-          building your RO’Lyfe score.
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
+      <button
+        id="newRackBtn"
+        class="game-button"
+        type="button"
+      >
+        🎱 New Rack
+      </button>
 
 
-  <!-- =======================================================
-       GAME OVER MODAL
-  ======================================================== -->
+      <button
+        id="pauseBtn"
+        class="game-button"
+        type="button"
+      >
+        ⏸ Pause
+      </button>
 
-  <div
-    id="gameOverModal"
-    class="modal hidden"
-  >
 
-    <div class="modal-content game-over-content">
+      <button
+        id="rulesBtn"
+        class="game-button"
+        type="button"
+      >
+        📖 Rules
+      </button>
 
-      <div class="game-over-icon">
+    </section>
+
+
+    <!-- ===================================================
+         CHALLENGE MODE
+         =================================================== -->
+
+    <section
+      id="challengePanel"
+      class="challenge-panel"
+    >
+
+      <div class="challenge-icon">
         🏆
       </div>
 
-      <h2 id="gameOverTitle">
-        Game Over
-      </h2>
+      <div class="challenge-content">
 
-      <div id="winnerText">
-        Player 1 Wins!
+        <h2>
+          RO’Lyfe Challenge Mode
+        </h2>
+
+        <p>
+          Complete the challenge to advance.
+        </p>
+
+        <div class="challenge-stats">
+
+          <span>
+            Challenge Score:
+          </span>
+
+          <strong id="challengeScore">
+            0
+          </strong>
+
+        </div>
+
       </div>
 
-      <div id="finalScore">
-        Final Score
+    </section>
+
+
+    <!-- ===================================================
+         GAME STATISTICS
+         =================================================== -->
+
+    <section class="game-stats">
+
+      <div class="stat">
+
+        <span>
+          Game
+        </span>
+
+        <strong id="statGame">
+          8-Ball
+        </strong>
+
       </div>
 
-      <button
-        id="playAgainBtn"
-        type="button"
-      >
-        🔄 Play Again
-      </button>
 
-    </div>
+      <div class="stat">
 
-  </div>
+        <span>
+          Mode
+        </span>
 
+        <strong id="statMode">
+          Player vs Player
+        </strong>
 
-  <!-- =======================================================
-       LOADING / AI THINKING
-  ======================================================== -->
-
-  <div
-    id="aiThinkingOverlay"
-    class="ai-thinking-overlay hidden"
-  >
-
-    <div class="ai-thinking-box">
-
-      <div class="ai-icon">
-        🤖
       </div>
 
-      <div id="aiThinkingText">
-        AI is calculating the shot...
+
+      <div class="stat">
+
+        <span>
+          AI
+        </span>
+
+        <strong id="statAI">
+          START-UP
+        </strong>
+
       </div>
 
-    </div>
 
-  </div>
+      <div class="stat">
+
+        <span>
+          Shots
+        </span>
+
+        <strong id="shotCount">
+          0
+        </strong>
+
+      </div>
+
+    </section>
 
 
-  <!-- =======================================================
-       MOBILE TOUCH CONTROLS
-  ======================================================== -->
+    <!-- ===================================================
+         RULES MODAL
+         =================================================== -->
 
-  <section class="mobile-controls">
-
-    <button
-      id="mobileAimLeft"
-      type="button"
+    <div
+      id="rulesModal"
+      class="pool-modal"
+      aria-hidden="true"
     >
-      ↶
-    </button>
 
-    <button
-      id="mobileShoot"
-      type="button"
-    >
-      🎱
-    </button>
+      <div class="modal-content">
 
-    <button
-      id="mobileAimRight"
-      type="button"
-    >
-      ↷
-    </button>
-
-  </section>
+        <button
+          id="closeRules"
+          class="modal-close"
+          type="button"
+          aria-label="Close rules"
+        >
+          ✕
+        </button>
 
 
-  <!-- =======================================================
-       FOOTER
-  ======================================================== -->
+        <h2>
+          🎱 RO’Lyfe Pool Rules
+        </h2>
 
-  <footer class="pool-footer">
 
-    <div>
-      🎮 RO’Lyfe Gaming
+        <div class="rules-list">
+
+          <article>
+
+            <h3>
+              8-Ball
+            </h3>
+
+            <p>
+              Sink your assigned group of balls
+              and legally sink the 8-ball to win.
+            </p>
+
+          </article>
+
+
+          <article>
+
+            <h3>
+              9-Ball
+            </h3>
+
+            <p>
+              Hit the lowest numbered ball first
+              and legally sink the 9-ball to win.
+            </p>
+
+          </article>
+
+
+          <article>
+
+            <h3>
+              Practice
+            </h3>
+
+            <p>
+              Practice shots without normal
+              competitive restrictions.
+            </p>
+
+          </article>
+
+
+          <article>
+
+            <h3>
+              Challenge Mode
+            </h3>
+
+            <p>
+              Complete increasingly difficult
+              pool challenges while building
+              your RO’Lyfe score.
+            </p>
+
+          </article>
+
+        </div>
+
+      </div>
+
     </div>
 
-    <div>
-      Built for Competition • Strategy • Skill
+
+    <!-- ===================================================
+         GAME OVER
+         =================================================== -->
+
+    <div
+      id="gameOver"
+      class="pool-game-over"
+    >
+
+      <div class="game-over-content">
+
+        <div class="game-over-icon">
+          🏆
+        </div>
+
+        <h2>
+          Player 1 Wins!
+        </h2>
+
+        <p>
+          Final Score
+        </p>
+
+        <div
+          id="finalScore"
+          class="final-score"
+        >
+          0 - 0
+        </div>
+
+        <button
+          id="playAgainBtn"
+          class="game-button primary"
+          type="button"
+        >
+          🔄 Play Again
+        </button>
+
+      </div>
+
     </div>
 
-  </footer>
 
-</div>
+    <!-- ===================================================
+         AI STATUS
+         =================================================== -->
 
+    <div
+      id="aiStatus"
+      class="ai-status"
+    >
 
-<!-- =========================================================
-     SHARED RO'LYFE ENGINES
-========================================================= -->
+      🤖 AI is calculating the shot...
 
-<script src="../../shared/timer.js"></script>
-
-<script src="../../shared/audio.js"></script>
-
-<script src="../../shared/theme-engine.js"></script>
-
-<script src="../../shared/player-system.js"></script>
-
-<script src="../../shared/ai-engine.js"></script>
-
-<script src="../../shared/game-ui.js"></script>
-
-<script src="../../shared/physics-engine.js"></script>
+    </div>
 
 
-<!-- =========================================================
-     POOL THEME SYSTEM
-========================================================= -->
+    <!-- ===================================================
+         FOOTER
+         =================================================== -->
 
-<script src="themes.js"></script>
+    <footer class="pool-footer">
+
+      <div>
+        🎮 RO’Lyfe Gaming™
+      </div>
+
+      <span>
+        Built for Competition • Strategy • Skill
+      </span>
+
+    </footer>
+
+  </main>
 
 
-<!-- =========================================================
-     POOL GAME ENGINE
-========================================================= -->
+  <!-- =====================================================
+       SHARED SYSTEMS
+       ===================================================== -->
 
-<script src="pool.js"></script>
+  <script src="../../shared/timer.js"></script>
+
+  <script src="../../shared/audio.js"></script>
+
+  <script src="../../shared/theme-engine.js"></script>
+
+  <script src="../../shared/player-system.js"></script>
+
+  <script src="../../shared/ai-engine.js"></script>
+
+  <script src="../../shared/game-ui.js"></script>
+
+  <script src="../../shared/physics-engine.js"></script>
 
 
-<!-- =========================================================
-     INITIALIZE RO'LYFE POOL
-========================================================= -->
+  <!-- =====================================================
+       POOL THEME
+       ===================================================== -->
 
-<script>
+  <script src="./themes.js"></script>
 
-document.addEventListener("DOMContentLoaded", function(){
 
-  /*
-   * The actual pool engine lives inside pool.js.
-   * This initialization layer allows the game to work even
-   * if optional shared engines are unavailable.
-   */
+  <!-- =====================================================
+       POOL ENGINE
+       ===================================================== -->
 
-  try{
+  <script src="./pool.js"></script>
 
-    if(typeof window.ROLyfePoolInit === "function"){
 
-      window.ROLyfePoolInit();
+  <!-- =====================================================
+       POOL UI HELPERS
+       ===================================================== -->
 
-    }
+  <script>
 
-  }catch(error){
+    document.addEventListener("DOMContentLoaded", () => {
 
-    console.error(
-      "RO’Lyfe Pool initialization error:",
-      error
-    );
+      /* ================================================
+         RULES MODAL
+         ================================================ */
 
-  }
+      const rulesBtn =
+        document.getElementById("rulesBtn");
 
-});
+      const rulesModal =
+        document.getElementById("rulesModal");
 
-</script>
+      const closeRules =
+        document.getElementById("closeRules");
+
+
+      function openRules() {
+
+        if (!rulesModal) return;
+
+        rulesModal.classList.add("show");
+
+        rulesModal.setAttribute(
+          "aria-hidden",
+          "false"
+        );
+
+      }
+
+
+      function closeRulesModal() {
+
+        if (!rulesModal) return;
+
+        rulesModal.classList.remove("show");
+
+        rulesModal.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+
+      }
+
+
+      if (rulesBtn) {
+
+        rulesBtn.addEventListener(
+          "click",
+          openRules
+        );
+
+      }
+
+
+      if (closeRules) {
+
+        closeRules.addEventListener(
+          "click",
+          closeRulesModal
+        );
+
+      }
+
+
+      if (rulesModal) {
+
+        rulesModal.addEventListener(
+          "click",
+          event => {
+
+            if (
+              event.target === rulesModal
+            ) {
+
+              closeRulesModal();
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         FULLSCREEN
+         ================================================ */
+
+      const fullscreenBtn =
+        document.getElementById(
+          "fullscreenBtn"
+        );
+
+
+      if (fullscreenBtn) {
+
+        fullscreenBtn.addEventListener(
+          "click",
+          async () => {
+
+            try {
+
+              if (
+                !document.fullscreenElement
+              ) {
+
+                await document.documentElement
+                  .requestFullscreen();
+
+              } else {
+
+                await document.exitFullscreen();
+
+              }
+
+            } catch (error) {
+
+              console.log(
+                "Fullscreen unavailable:",
+                error
+              );
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         POWER CONTROL
+         ================================================ */
+
+      const powerUp =
+        document.getElementById(
+          "powerUp"
+        );
+
+      const powerDown =
+        document.getElementById(
+          "powerDown"
+        );
+
+      const powerFill =
+        document.getElementById(
+          "powerFill"
+        );
+
+      const powerValue =
+        document.getElementById(
+          "powerValue"
+        );
+
+
+      let power =
+        0.55;
+
+
+      function updatePower() {
+
+        power =
+          Math.max(
+            0.05,
+            Math.min(
+              1,
+              power
+            )
+          );
+
+
+        if (powerFill) {
+
+          powerFill.style.width =
+            `${power * 100}%`;
+
+        }
+
+
+        if (powerValue) {
+
+          powerValue.textContent =
+            `${Math.round(power * 100)}%`;
+
+        }
+
+
+        if (
+          window.ROLYFE_POOL &&
+          window.ROLYFE_POOL.state
+        ) {
+
+          window.ROLYFE_POOL.state.power =
+            power;
+
+        }
+
+      }
+
+
+      if (powerUp) {
+
+        powerUp.addEventListener(
+          "click",
+          () => {
+
+            power += 0.05;
+
+            updatePower();
+
+          }
+        );
+
+      }
+
+
+      if (powerDown) {
+
+        powerDown.addEventListener(
+          "click",
+          () => {
+
+            power -= 0.05;
+
+            updatePower();
+
+          }
+        );
+
+      }
+
+
+      updatePower();
+
+
+      /* ================================================
+         AIM ROTATION
+         ================================================ */
+
+      const aimLeft =
+        document.getElementById(
+          "aimLeft"
+        );
+
+      const aimRight =
+        document.getElementById(
+          "aimRight"
+        );
+
+
+      function rotateAim(amount) {
+
+        const game =
+          window.ROLYFE_POOL;
+
+
+        if (
+          !game ||
+          !game.state ||
+          !game.state.cueBall
+        ) {
+
+          return;
+
+        }
+
+
+        const state =
+          game.state;
+
+        const cue =
+          state.cueBall;
+
+
+        let dx =
+          state.aimX - cue.x;
+
+        let dy =
+          state.aimY - cue.y;
+
+
+        if (
+          !dx &&
+          !dy
+        ) {
+
+          dx = 250;
+
+          dy = 0;
+
+        }
+
+
+        const angle =
+          Math.atan2(
+            dy,
+            dx
+          ) + amount;
+
+
+        const distance =
+          250;
+
+
+        state.aimX =
+          cue.x +
+          Math.cos(angle) *
+          distance;
+
+
+        state.aimY =
+          cue.y +
+          Math.sin(angle) *
+          distance;
+
+      }
+
+
+      if (aimLeft) {
+
+        aimLeft.addEventListener(
+          "click",
+          () => {
+
+            rotateAim(
+              -Math.PI / 36
+            );
+
+          }
+        );
+
+      }
+
+
+      if (aimRight) {
+
+        aimRight.addEventListener(
+          "click",
+          () => {
+
+            rotateAim(
+              Math.PI / 36
+            );
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         NEW RACK
+         ================================================ */
+
+      const newRack =
+        document.getElementById(
+          "newRackBtn"
+        );
+
+
+      if (newRack) {
+
+        newRack.addEventListener(
+          "click",
+          () => {
+
+            if (
+              window.ROLYFE_POOL
+            ) {
+
+              window.ROLYFE_POOL.resetGame();
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         PLAY AGAIN
+         ================================================ */
+
+      const playAgain =
+        document.getElementById(
+          "playAgainBtn"
+        );
+
+
+      if (playAgain) {
+
+        playAgain.addEventListener(
+          "click",
+          () => {
+
+            const overlay =
+              document.getElementById(
+                "gameOver"
+              );
+
+
+            if (overlay) {
+
+              overlay.classList.remove(
+                "show"
+              );
+
+            }
+
+
+            if (
+              window.ROLYFE_POOL
+            ) {
+
+              window.ROLYFE_POOL.resetGame();
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         PAUSE
+         ================================================ */
+
+      const pauseBtn =
+        document.getElementById(
+          "pauseBtn"
+        );
+
+
+      let paused = false;
+
+
+      if (pauseBtn) {
+
+        pauseBtn.addEventListener(
+          "click",
+          () => {
+
+            paused =
+              !paused;
+
+
+            if (paused) {
+
+              pauseBtn.textContent =
+                "▶ Resume";
+
+              document.body.classList.add(
+                "game-paused"
+              );
+
+            } else {
+
+              pauseBtn.textContent =
+                "⏸ Pause";
+
+              document.body.classList.remove(
+                "game-paused"
+              );
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         SOUND BUTTON
+         ================================================ */
+
+      const soundBtn =
+        document.getElementById(
+          "soundBtn"
+        );
+
+
+      let soundOn =
+        true;
+
+
+      if (soundBtn) {
+
+        soundBtn.addEventListener(
+          "click",
+          () => {
+
+            soundOn =
+              !soundOn;
+
+
+            soundBtn.textContent =
+              soundOn
+                ? "🔊"
+                : "🔇";
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         GAME STAT DISPLAY
+         ================================================ */
+
+      const gameSelect =
+        document.getElementById(
+          "poolGame"
+        );
+
+      const modeSelect =
+        document.getElementById(
+          "poolMode"
+        );
+
+      const aiSelect =
+        document.getElementById(
+          "poolAILevel"
+        );
+
+
+      const statGame =
+        document.getElementById(
+          "statGame"
+        );
+
+      const statMode =
+        document.getElementById(
+          "statMode"
+        );
+
+      const statAI =
+        document.getElementById(
+          "statAI"
+        );
+
+
+      function updateStats() {
+
+        if (statGame && gameSelect) {
+
+          statGame.textContent =
+            gameSelect.options[
+              gameSelect.selectedIndex
+            ].textContent.trim();
+
+        }
+
+
+        if (statMode && modeSelect) {
+
+          statMode.textContent =
+            modeSelect.options[
+              modeSelect.selectedIndex
+            ].textContent.trim();
+
+        }
+
+
+        if (statAI && aiSelect) {
+
+          statAI.textContent =
+            aiSelect.options[
+              aiSelect.selectedIndex
+            ].textContent.trim();
+
+        }
+
+      }
+
+
+      if (gameSelect) {
+
+        gameSelect.addEventListener(
+          "change",
+          updateStats
+        );
+
+      }
+
+
+      if (modeSelect) {
+
+        modeSelect.addEventListener(
+          "change",
+          updateStats
+        );
+
+      }
+
+
+      if (aiSelect) {
+
+        aiSelect.addEventListener(
+          "change",
+          updateStats
+        );
+
+      }
+
+
+      updateStats();
+
+
+      /* ================================================
+         THEME SELECTOR
+         ================================================ */
+
+      const themeSelect =
+        document.getElementById(
+          "poolTheme"
+        );
+
+
+      if (themeSelect) {
+
+        themeSelect.addEventListener(
+          "change",
+          () => {
+
+            const theme =
+              themeSelect.value;
+
+
+            document.documentElement
+              .setAttribute(
+                "data-pool-theme",
+                theme
+              );
+
+          }
+        );
+
+      }
+
+
+      /* ================================================
+         INITIAL THEME
+         ================================================ */
+
+      document.documentElement
+        .setAttribute(
+          "data-pool-theme",
+          themeSelect
+            ? themeSelect.value
+            : "rolyfe"
+        );
+
+    });
+
+  </script>
 
 </body>
   </html>
