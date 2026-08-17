@@ -1,40 +1,29 @@
 /* =========================================================
    RO'LYFE GAMING — POOL
-   pool.css
-   ========================================================= */
-
-/* =========================================================
-   GLOBAL
+   Pool / 8-Ball / 9-Ball / Practice / AI
+   Main stylesheet
    ========================================================= */
 
 :root {
-  --bg-main: #07110c;
-  --bg-panel: #0d1b13;
-  --bg-panel-2: #12251a;
-
-  --text-main: #f4f7f5;
-  --text-muted: #aebdb3;
-
-  --accent: #22c55e;
-  --accent-2: #84cc16;
-  --gold: #facc15;
-
-  --danger: #ef4444;
-  --blue: #38bdf8;
-
-  --rail-dark: #25150b;
-  --rail-mid: #633816;
-  --felt: #075b32;
-
-  --shadow:
-    0 12px 35px rgba(0,0,0,.45);
-
-  --radius: 18px;
+  --rl-bg: #05080d;
+  --rl-panel: #0b1220;
+  --rl-panel-2: #101a2b;
+  --rl-border: rgba(255,255,255,.10);
+  --rl-text: #f8fafc;
+  --rl-muted: #94a3b8;
+  --rl-green: #00ff88;
+  --rl-yellow: #facc15;
+  --rl-red: #ef4444;
+  --rl-blue: #38bdf8;
+  --rl-shadow: 0 15px 45px rgba(0,0,0,.45);
 }
+
+/* ---------------------------------------------------------
+   PAGE
+   --------------------------------------------------------- */
 
 * {
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -43,27 +32,14 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100%;
-
   background:
-    radial-gradient(
-      circle at top,
-      #173b26 0%,
-      #07110c 55%,
-      #030705 100%
-    );
-
-  color: var(--text-main);
-
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
-
-  overflow-x: hidden;
+    radial-gradient(circle at top, #10251c 0%, #05080d 45%, #020409 100%);
+  color: var(--rl-text);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 button,
@@ -72,688 +48,281 @@ input {
   font: inherit;
 }
 
-button {
-  cursor: pointer;
-  user-select: none;
-}
-
-.hidden {
-  display: none !important;
-}
-
-
-/* =========================================================
-   APP
-   ========================================================= */
+/* ---------------------------------------------------------
+   MAIN APP
+   --------------------------------------------------------- */
 
 #poolApp {
   width: 100%;
-  min-height: 100vh;
-
-  display: flex;
-  flex-direction: column;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 16px;
 }
 
-
-/* =========================================================
+/* ---------------------------------------------------------
    HEADER
-   ========================================================= */
+   --------------------------------------------------------- */
 
-.game-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-
-  width: 100%;
-
-  min-height: 72px;
-
-  display: grid;
-  grid-template-columns: 60px 1fr 60px;
+.pool-header {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 15px 18px;
+  margin-bottom: 15px;
 
+  background: rgba(11,18,32,.92);
+  border: 1px solid var(--rl-border);
+  border-radius: 16px;
+
+  box-shadow: var(--rl-shadow);
+  backdrop-filter: blur(10px);
+}
+
+.brand-block h1 {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 34px);
+  color: var(--rl-green);
+  letter-spacing: .5px;
+}
+
+.brand-block p {
+  margin: 4px 0 0;
+  color: var(--rl-muted);
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------
+   GAME MODE CONTROLS
+   --------------------------------------------------------- */
+
+.pool-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--rl-border);
+  border-radius: 12px;
+}
+
+.pool-controls label {
+  color: var(--rl-muted);
+  font-size: 12px;
+}
+
+.pool-controls select,
+.pool-controls button {
+  min-height: 40px;
   padding: 8px 12px;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(10,28,18,.98),
-      rgba(5,15,10,.96)
-    );
-
-  border-bottom:
-    1px solid rgba(255,255,255,.08);
-
-  box-shadow:
-    0 5px 25px rgba(0,0,0,.35);
-}
-
-.header-button {
-  width: 48px;
-  height: 48px;
+  color: var(--rl-text);
+  background: #111827;
 
   border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
 
-  border-radius: 14px;
-
-  background:
-    rgba(255,255,255,.06);
-
-  color: white;
-
-  font-size: 28px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  transition:
-    transform .15s ease,
-    background .15s ease;
+  cursor: pointer;
 }
 
-.header-button:hover {
-  background:
-    rgba(255,255,255,.12);
+.pool-controls select:focus,
+.pool-controls button:focus {
+  outline: 2px solid var(--rl-green);
+  outline-offset: 2px;
 }
 
-.header-button:active {
-  transform: scale(.92);
+.pool-controls button:hover {
+  border-color: var(--rl-green);
 }
 
-.brand-block {
-  text-align: center;
-  line-height: 1;
-}
+/* ---------------------------------------------------------
+   SCORE / PLAYER PANEL
+   --------------------------------------------------------- */
 
-.brand-title {
-  font-size: 14px;
-
-  font-weight: 900;
-
-  letter-spacing: 3px;
-
-  color: var(--accent);
-}
-
-.game-title {
-  margin-top: 5px;
-
-  font-size: 25px;
-
-  font-weight: 900;
-
-  letter-spacing: 4px;
-
-  text-shadow:
-    0 2px 8px rgba(34,197,94,.25);
-}
-
-
-/* =========================================================
-   SETUP SCREEN
-   ========================================================= */
-
-.setup-panel {
-  width: min(900px, 94%);
-
-  margin:
-    28px auto 40px;
-
-  padding: 24px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(20,43,29,.96),
-      rgba(8,20,13,.98)
-    );
-
-  border:
-    1px solid rgba(255,255,255,.09);
-
-  border-radius:
-    var(--radius);
-
-  box-shadow:
-    var(--shadow);
-}
-
-.section-title {
-  margin:
-    8px 0 14px;
-
-  font-size: 13px;
-
-  font-weight: 900;
-
-  letter-spacing: 2px;
-
-  color:
-    var(--text-muted);
-}
-
-
-/* =========================================================
-   GAME MODE CARDS
-   ========================================================= */
-
-.mode-grid {
+.pool-scoreboard {
   display: grid;
-
-  grid-template-columns:
-    repeat(4, 1fr);
-
+  grid-template-columns: 1fr auto 1fr;
   gap: 12px;
-
-  margin-bottom: 26px;
+  align-items: stretch;
+  margin-bottom: 15px;
 }
 
-.mode-card {
-  min-height: 125px;
-
-  padding: 15px 8px;
-
-  border:
-    1px solid rgba(255,255,255,.09);
-
-  border-radius: 15px;
-
-  background:
-    rgba(255,255,255,.035);
-
-  color: white;
-
-  display: flex;
-
-  flex-direction: column;
-
-  justify-content: center;
-
-  align-items: center;
-
-  gap: 5px;
-
-  transition:
-    transform .18s ease,
-    border .18s ease,
-    background .18s ease,
-    box-shadow .18s ease;
-}
-
-.mode-card:hover {
-  transform: translateY(-3px);
-
-  background:
-    rgba(255,255,255,.07);
-}
-
-.mode-card.active {
-  border-color:
-    var(--accent);
-
-  background:
-    rgba(34,197,94,.12);
-
-  box-shadow:
-    0 0 20px rgba(34,197,94,.12);
-}
-
-.mode-icon {
-  font-size: 30px;
-
-  line-height: 1;
-
-  margin-bottom: 5px;
-}
-
-.mode-name {
-  font-size: 14px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-}
-
-.mode-description {
-  font-size: 11px;
-
-  color:
-    var(--text-muted);
-}
-
-
-/* =========================================================
-   PLAYER MODES
-   ========================================================= */
-
-.player-mode-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, 1fr);
-
-  gap: 10px;
-
-  margin-bottom: 20px;
-}
-
-.player-mode {
-  padding: 13px 8px;
-
-  border:
-    1px solid rgba(255,255,255,.09);
-
-  border-radius: 12px;
-
-  background:
-    rgba(255,255,255,.035);
-
-  color: white;
-
-  font-size: 13px;
-
-  font-weight: 700;
-
-  transition: .18s ease;
-}
-
-.player-mode:hover {
-  background:
-    rgba(255,255,255,.08);
-}
-
-.player-mode.active {
-  background:
-    rgba(56,189,248,.12);
-
-  border-color:
-    var(--blue);
-
-  box-shadow:
-    0 0 16px rgba(56,189,248,.10);
-}
-
-
-/* =========================================================
-   SELECT SETTINGS
-   ========================================================= */
-
-.ai-settings,
-.theme-settings {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  gap: 15px;
-
-  padding: 12px 0;
-
-  border-bottom:
-    1px solid rgba(255,255,255,.06);
-}
-
-.ai-settings label,
-.theme-settings label {
-  font-size: 12px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  color:
-    var(--text-muted);
-}
-
-select {
-  min-width: 190px;
-
-  padding: 10px 12px;
-
-  border:
-    1px solid rgba(255,255,255,.12);
-
-  border-radius: 10px;
-
-  background:
-    #0b1710;
-
-  color: white;
-
-  outline: none;
-}
-
-select:focus {
-  border-color:
-    var(--accent);
-}
-
-
-/* =========================================================
-   PRIMARY BUTTON
-   ========================================================= */
-
-.primary-button {
-  width: 100%;
-
-  margin-top: 22px;
-
-  min-height: 54px;
-
-  border: none;
-
+.player-card {
+  position: relative;
+  padding: 14px;
+
+  background: linear-gradient(
+    145deg,
+    rgba(16,26,43,.96),
+    rgba(7,12,22,.96)
+  );
+
+  border: 1px solid var(--rl-border);
   border-radius: 14px;
 
-  background:
-    linear-gradient(
-      135deg,
-      #22c55e,
-      #15803d
-    );
+  box-shadow: 0 8px 25px rgba(0,0,0,.3);
+}
 
-  color: white;
+.player-card.active {
+  border-color: var(--rl-green);
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,.25),
+    0 0 25px rgba(0,255,136,.12);
+}
 
+.player-name {
   font-size: 16px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  box-shadow:
-    0 8px 22px rgba(34,197,94,.22);
-
-  transition:
-    transform .15s ease,
-    box-shadow .15s ease;
+  font-weight: bold;
 }
 
-.primary-button:hover {
-  box-shadow:
-    0 10px 30px rgba(34,197,94,.32);
+.player-status {
+  margin-top: 4px;
+  color: var(--rl-muted);
+  font-size: 12px;
 }
 
-.primary-button:active {
-  transform: scale(.98);
+.player-score {
+  margin-top: 8px;
+  font-size: 25px;
+  font-weight: bold;
+  color: var(--rl-green);
 }
 
+.pool-center-status {
+  min-width: 140px;
 
-/* =========================================================
-   GAME AREA
-   ========================================================= */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
-.game-area {
+  padding: 10px;
+
+  background: rgba(0,0,0,.35);
+  border: 1px solid var(--rl-border);
+  border-radius: 14px;
+}
+
+.turn-label {
+  color: var(--rl-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.turn-value {
+  margin-top: 4px;
+  color: var(--rl-green);
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* ---------------------------------------------------------
+   TIMER
+   --------------------------------------------------------- */
+
+.pool-timer {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.pool-timer.warning {
+  color: var(--rl-yellow);
+}
+
+.pool-timer.danger {
+  color: var(--rl-red);
+}
+
+/* ---------------------------------------------------------
+   TABLE AREA
+   --------------------------------------------------------- */
+
+.pool-stage {
+  position: relative;
+
   width: 100%;
-
   max-width: 1250px;
 
   margin: 0 auto;
 
-  padding:
-    14px 14px 35px;
-}
-
-
-/* =========================================================
-   STATUS BAR
-   ========================================================= */
-
-.status-bar {
-  display: grid;
-
-  grid-template-columns:
-    1fr auto 1fr;
-
-  align-items: center;
-
-  gap: 12px;
-
-  margin-bottom: 10px;
-}
-
-.player-status {
-  padding: 10px 14px;
-
-  border-radius: 12px;
-
-  background:
-    rgba(255,255,255,.045);
-
-  border:
-    1px solid rgba(255,255,255,.07);
-}
-
-.player-status:last-child {
-  text-align: right;
-}
-
-.player-label {
-  display: block;
-
-  font-size: 9px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  color:
-    var(--text-muted);
-}
-
-.player-name {
-  display: block;
-
-  margin-top: 3px;
-
-  font-size: 15px;
-
-  font-weight: 900;
-}
-
-.turn-status {
-  min-width: 110px;
-
-  padding: 8px 12px;
-
-  text-align: center;
-
-  border-radius: 12px;
-
-  background:
-    rgba(34,197,94,.12);
-
-  border:
-    1px solid rgba(34,197,94,.35);
-}
-
-.turn-label {
-  display: block;
-
-  font-size: 8px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  color:
-    var(--text-muted);
-}
-
-#turnIndicator {
-  display: block;
-
-  margin-top: 3px;
-
-  font-size: 13px;
-
-  color:
-    var(--accent);
-}
-
-
-/* =========================================================
-   GAME INFORMATION
-   ========================================================= */
-
-.game-info {
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, 1fr);
-
-  gap: 8px;
-
-  margin-bottom: 14px;
-}
-
-.score-box,
-.timer-box,
-.mode-display {
-  padding: 9px;
-
-  text-align: center;
-
-  border-radius: 10px;
-
-  background:
-    rgba(255,255,255,.035);
-
-  border:
-    1px solid rgba(255,255,255,.06);
-}
-
-.score-box span,
-.timer-box span,
-.mode-display span {
-  display: block;
-
-  font-size: 8px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  color:
-    var(--text-muted);
-}
-
-.score-box strong,
-.timer-box strong,
-.mode-display strong {
-  display: block;
-
-  margin-top: 3px;
-
-  font-size: 15px;
-}
-
-.timer-box strong {
-  color:
-    var(--gold);
-}
-
-
-/* =========================================================
-   POOL TABLE
-   ========================================================= */
-
-.table-container {
-  width: 100%;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  padding: 10px;
-}
-
-.pool-table {
-  width: 100%;
-
-  max-width: 1100px;
-
-  position: relative;
-
-  padding:
-    34px 42px;
-
-  border-radius: 18px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #74421d,
-      #321b0d 50%,
-      #74421d
-    );
-
-  box-shadow:
-    0 25px 55px rgba(0,0,0,.55),
-    inset 0 0 0 5px rgba(255,255,255,.04);
-
-  border:
-    3px solid #1b0e07;
-}
-
-.table-rail {
-  position: relative;
-
-  width: 100%;
-
-  aspect-ratio: 2 / 1;
-
-  overflow: hidden;
-
-  border-radius: 12px;
+  padding: clamp(18px, 3vw, 35px);
 
   background:
     radial-gradient(
       ellipse at center,
-      #0b6f3d 0%,
-      #07582f 60%,
-      #064a29 100%
+      #164f2d 0%,
+      #0b321e 50%,
+      #06190f 100%
     );
 
+  border: 2px solid #1c3d2b;
+  border-radius: 28px;
+
   box-shadow:
-    inset 0 0 35px rgba(0,0,0,.4);
+    inset 0 0 50px rgba(0,0,0,.55),
+    0 25px 70px rgba(0,0,0,.55);
 }
 
+/* ---------------------------------------------------------
+   POOL TABLE
+   --------------------------------------------------------- */
 
-/* =========================================================
-   CANVAS
-   ========================================================= */
-
-#poolCanvas {
-  display: block;
+.pool-table {
+  position: relative;
 
   width: 100%;
 
-  height: 100%;
+  /*
+    2:1 pool table ratio.
+  */
+  aspect-ratio: 2 / 1;
 
-  position: absolute;
+  background:
+    radial-gradient(
+      ellipse at center,
+      #08783a 0%,
+      #075c2d 58%,
+      #04421f 100%
+    );
 
-  inset: 0;
+  border: clamp(12px, 2vw, 28px) solid #4a2b16;
 
-  touch-action: none;
+  border-radius: 18px;
 
-  cursor:
-    crosshair;
+  box-shadow:
+    inset 0 0 35px rgba(0,0,0,.75),
+    0 15px 30px rgba(0,0,0,.5);
 }
 
+/* ---------------------------------------------------------
+   TABLE RAIL
+   --------------------------------------------------------- */
 
-/* =========================================================
+.pool-table::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+
+  border: 4px solid #76502b;
+  border-radius: 18px;
+
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------
    POCKETS
-   ========================================================= */
+   --------------------------------------------------------- */
 
 .pocket {
   position: absolute;
 
-  width: 8%;
-
-  aspect-ratio: 1;
+  width: clamp(25px, 4vw, 55px);
+  height: clamp(25px, 4vw, 55px);
 
   border-radius: 50%;
 
@@ -762,852 +331,500 @@ select:focus {
       circle,
       #000 0%,
       #020202 65%,
-      #151515 100%
+      #111 100%
     );
 
   box-shadow:
     inset 0 4px 8px rgba(255,255,255,.05),
-    0 3px 7px rgba(0,0,0,.55);
+    0 2px 8px rgba(0,0,0,.8);
 
   z-index: 5;
+}
+
+.pocket.tl {
+  top: -2%;
+  left: -2%;
+}
+
+.pocket.tc {
+  top: -3%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pocket.tr {
+  top: -2%;
+  right: -2%;
+}
+
+.pocket.bl {
+  bottom: -2%;
+  left: -2%;
+}
+
+.pocket.bc {
+  bottom: -3%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pocket.br {
+  bottom: -2%;
+  right: -2%;
+}
+
+/* ---------------------------------------------------------
+   BALL LAYER
+   --------------------------------------------------------- */
+
+.ball-layer {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+
+  border-radius: 5px;
+
+  touch-action: none;
+}
+
+/* ---------------------------------------------------------
+   BALL
+   --------------------------------------------------------- */
+
+.ball {
+  position: absolute;
+
+  width: clamp(16px, 2.2vw, 30px);
+  height: clamp(16px, 2.2vw, 30px);
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translate(-50%, -50%);
+
+  font-size: clamp(7px, 1vw, 11px);
+  font-weight: bold;
+
+  color: #111;
+
+  box-shadow:
+    inset -3px -3px 5px rgba(0,0,0,.45),
+    inset 3px 3px 5px rgba(255,255,255,.35),
+    0 3px 5px rgba(0,0,0,.5);
+
+  user-select: none;
+
+  z-index: 10;
+}
+
+.ball.dragging {
+  z-index: 100;
+  cursor: grabbing;
+}
+
+.ball.white {
+  background: #f8fafc;
+}
+
+.ball.cue {
+  border: 1px solid #d1d5db;
+}
+
+/* ---------------------------------------------------------
+   BALL COLORS
+   --------------------------------------------------------- */
+
+.ball.ball-1 {
+  background: #facc15;
+}
+
+.ball.ball-2 {
+  background: #2563eb;
+  color: #fff;
+}
+
+.ball.ball-3 {
+  background: #dc2626;
+  color: #fff;
+}
+
+.ball.ball-4 {
+  background: #7c3aed;
+  color: #fff;
+}
+
+.ball.ball-5 {
+  background: #f97316;
+}
+
+.ball.ball-6 {
+  background: #16a34a;
+  color: #fff;
+}
+
+.ball.ball-7 {
+  background: #7f1d1d;
+  color: #fff;
+}
+
+.ball.ball-8 {
+  background: #020617;
+  color: #fff;
+}
+
+.ball.ball-9 {
+  background: #fde047;
+}
+
+.ball.ball-10 {
+  background: #2563eb;
+  color: #fff;
+}
+
+.ball.ball-11 {
+  background: #dc2626;
+  color: #fff;
+}
+
+.ball.ball-12 {
+  background: #7c3aed;
+  color: #fff;
+}
+
+.ball.ball-13 {
+  background: #f97316;
+}
+
+.ball.ball-14 {
+  background: #16a34a;
+  color: #fff;
+}
+
+.ball.ball-15 {
+  background: #7f1d1d;
+  color: #fff;
+}
+
+/* ---------------------------------------------------------
+   AIMING SYSTEM
+   --------------------------------------------------------- */
+
+.aim-line {
+  position: absolute;
+
+  height: 2px;
+
+  transform-origin: left center;
+
+  background: rgba(255,255,255,.8);
 
   pointer-events: none;
+
+  z-index: 8;
+
+  box-shadow: 0 0 5px rgba(255,255,255,.35);
 }
 
-.pocket-tl {
-  left: -1.5%;
-  top: -2%;
+.aim-line.power {
+  background: var(--rl-green);
 }
 
-.pocket-tm {
-  left: 46%;
-  top: -2%;
+/* ---------------------------------------------------------
+   POWER BAR
+   --------------------------------------------------------- */
+
+.pool-power-panel {
+  margin-top: 15px;
+
+  padding: 12px;
+
+  background: rgba(0,0,0,.35);
+
+  border: 1px solid var(--rl-border);
+
+  border-radius: 12px;
 }
 
-.pocket-tr {
-  right: -1.5%;
-  top: -2%;
+.power-label {
+  display: flex;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+
+  color: var(--rl-muted);
+  font-size: 12px;
 }
 
-.pocket-bl {
-  left: -1.5%;
-  bottom: -2%;
-}
-
-.pocket-bm {
-  left: 46%;
-  bottom: -2%;
-}
-
-.pocket-br {
-  right: -1.5%;
-  bottom: -2%;
-}
-
-
-/* =========================================================
-   SHOT CONTROLS
-   ========================================================= */
-
-.shot-controls {
-  max-width: 850px;
-
-  margin:
-    14px auto 0;
-
-  padding: 15px;
-
-  border-radius: 15px;
-
-  background:
-    rgba(255,255,255,.04);
-
-  border:
-    1px solid rgba(255,255,255,.07);
-}
-
-.power-control {
-  display: grid;
-
-  grid-template-columns:
-    auto 1fr auto;
-
-  align-items: center;
-
-  gap: 12px;
-
-  margin-bottom: 15px;
-}
-
-.power-control label {
-  font-size: 10px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  color:
-    var(--text-muted);
-}
-
-#powerRange {
+.power-track {
   width: 100%;
+  height: 12px;
 
-  accent-color:
-    var(--accent);
+  overflow: hidden;
+
+  background: #020617;
+
+  border-radius: 999px;
+}
+
+.power-fill {
+  width: 0%;
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    #22c55e,
+    #facc15,
+    #ef4444
+  );
+
+  border-radius: inherit;
+
+  transition: width .08s linear;
+}
+
+/* ---------------------------------------------------------
+   ACTION BAR
+   --------------------------------------------------------- */
+
+.pool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 15px;
+}
+
+.pool-actions button {
+  min-width: 120px;
+
+  padding: 10px 14px;
+
+  color: #fff;
+
+  background: #111827;
+
+  border: 1px solid rgba(255,255,255,.12);
+
+  border-radius: 8px;
+
+  font-weight: bold;
 
   cursor: pointer;
 }
 
-#powerValue {
-  min-width: 45px;
-
-  text-align: right;
-
-  font-size: 12px;
-
-  font-weight: 900;
-
-  color:
-    var(--accent);
+.pool-actions button:hover {
+  border-color: var(--rl-green);
+  transform: translateY(-1px);
 }
 
+.pool-actions button.primary {
+  color: #00150b;
+  background: var(--rl-green);
+  border-color: var(--rl-green);
+}
 
-/* =========================================================
-   CONTROL BUTTONS
-   ========================================================= */
+/* ---------------------------------------------------------
+   GAME MESSAGE
+   --------------------------------------------------------- */
 
-.control-buttons {
+.pool-message {
+  min-height: 24px;
+
+  margin-top: 12px;
+
+  text-align: center;
+
+  color: var(--rl-muted);
+
+  font-size: 13px;
+}
+
+.pool-message.success {
+  color: var(--rl-green);
+}
+
+.pool-message.warning {
+  color: var(--rl-yellow);
+}
+
+.pool-message.error {
+  color: var(--rl-red);
+}
+
+/* ---------------------------------------------------------
+   MODE / AI INFORMATION
+   --------------------------------------------------------- */
+
+.pool-info {
   display: grid;
 
-  grid-template-columns:
-    70px 1fr 70px;
+  grid-template-columns: repeat(3, 1fr);
 
   gap: 10px;
+
+  margin-top: 15px;
 }
 
-.control-button,
-.shoot-button {
-  min-height: 48px;
+.info-card {
+  padding: 12px;
+
+  background: rgba(11,18,32,.8);
+
+  border: 1px solid var(--rl-border);
 
   border-radius: 12px;
-
-  font-weight: 900;
 }
 
-.control-button {
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.06);
-
-  color: white;
-
-  font-size: 20px;
+.info-card-title {
+  color: var(--rl-muted);
+  font-size: 11px;
+  text-transform: uppercase;
 }
 
-.control-button:active {
-  transform: scale(.96);
-}
+.info-card-value {
+  margin-top: 4px;
 
-.shoot-button {
-  border: none;
-
-  background:
-    linear-gradient(
-      135deg,
-      #facc15,
-      #eab308
-    );
-
-  color:
-    #241800;
+  color: var(--rl-text);
 
   font-size: 15px;
-
-  letter-spacing: 1px;
-
-  box-shadow:
-    0 6px 18px rgba(250,204,21,.18);
+  font-weight: bold;
 }
 
-.shoot-button:active {
-  transform: scale(.98);
-}
+/* ---------------------------------------------------------
+   GAME OVER
+   --------------------------------------------------------- */
 
-.mobile-hint {
-  text-align: center;
-
-  margin-top: 10px;
-
-  font-size: 10px;
-
-  color:
-    var(--text-muted);
-}
-
-
-/* =========================================================
-   GAME ACTIONS
-   ========================================================= */
-
-.game-actions {
-  display: flex;
-
-  justify-content: center;
-
-  flex-wrap: wrap;
-
-  gap: 9px;
-
-  margin-top: 14px;
-}
-
-.game-actions button {
-  padding:
-    10px 15px;
-
-  border:
-    1px solid rgba(255,255,255,.08);
-
-  border-radius: 10px;
-
-  background:
-    rgba(255,255,255,.045);
-
-  color:
-    var(--text-muted);
-
-  font-size: 11px;
-
-  font-weight: 800;
-
-  transition: .15s ease;
-}
-
-.game-actions button:hover {
-  background:
-    rgba(255,255,255,.09);
-
-  color: white;
-}
-
-
-/* =========================================================
-   GAME MESSAGE
-   ========================================================= */
-
-.game-message {
-  width: fit-content;
-
-  max-width: 90%;
-
-  margin:
-    13px auto 0;
-
-  padding:
-    9px 16px;
-
-  text-align: center;
-
-  border-radius: 20px;
-
-  background:
-    rgba(34,197,94,.08);
-
-  border:
-    1px solid rgba(34,197,94,.15);
-
-  color:
-    var(--text-muted);
-
-  font-size: 11px;
-}
-
-
-/* =========================================================
-   MODALS
-   ========================================================= */
-
-.modal {
-  position: fixed;
+.pool-game-over {
+  position: absolute;
 
   inset: 0;
 
-  z-index: 200;
-
-  display: flex;
+  display: none;
 
   align-items: center;
-
   justify-content: center;
 
   padding: 20px;
 
-  background:
-    rgba(0,0,0,.72);
+  background: rgba(0,0,0,.72);
 
-  backdrop-filter:
-    blur(8px);
+  backdrop-filter: blur(6px);
+
+  border-radius: inherit;
+
+  z-index: 500;
 }
 
-.modal-content {
-  width: min(450px, 94vw);
+.pool-game-over.show {
+  display: flex;
+}
 
-  position: relative;
+.game-over-card {
+  width: min(420px, 90%);
 
   padding: 25px;
 
-  border-radius: 20px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #14271b,
-      #08110c
-    );
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  box-shadow:
-    0 30px 80px rgba(0,0,0,.65);
-}
-
-.modal-content h2 {
-  margin:
-    0 0 20px;
-
   text-align: center;
 
-  font-size: 21px;
+  background: #0b1220;
 
-  letter-spacing: 1px;
+  border: 1px solid rgba(0,255,136,.35);
+
+  border-radius: 18px;
+
+  box-shadow: var(--rl-shadow);
 }
 
-.modal-close {
-  position: absolute;
+.game-over-card h2 {
+  margin-top: 0;
 
-  right: 13px;
-
-  top: 10px;
-
-  width: 38px;
-
-  height: 38px;
-
-  border: none;
-
-  border-radius: 10px;
-
-  background:
-    rgba(255,255,255,.05);
-
-  color: white;
-
-  font-size: 25px;
+  color: var(--rl-green);
 }
 
-.setting-row {
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: center;
-
-  gap: 15px;
-
-  padding:
-    13px 0;
-
-  border-bottom:
-    1px solid rgba(255,255,255,.06);
-}
-
-.setting-row label {
-  font-size: 13px;
-
-  font-weight: 700;
-}
-
-.setting-row input[type="checkbox"] {
-  width: 20px;
-
-  height: 20px;
-
-  accent-color:
-    var(--accent);
-}
-
-
-/* =========================================================
-   GAME OVER
-   ========================================================= */
-
-.game-over {
-  text-align: center;
-}
-
-.game-over-icon {
-  font-size: 55px;
-
-  margin-bottom: 5px;
-}
-
-.game-over h2 {
-  color:
-    var(--gold);
-}
-
-.game-over p {
-  color:
-    var(--text-muted);
-}
-
-.final-score {
-  margin:
-    20px 0;
-
-  font-size: 38px;
-
-  font-weight: 900;
-
-  color:
-    var(--accent);
-}
-
-.secondary-button {
-  width: 100%;
-
-  margin-top: 10px;
-
-  min-height: 48px;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  border-radius: 12px;
-
-  background:
-    rgba(255,255,255,.05);
-
-  color: white;
-
-  font-weight: 800;
-}
-
-
-/* =========================================================
-   LOADING SCREEN
-   ========================================================= */
-
-.loading-screen {
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 999;
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-
-  justify-content: center;
-
-  background:
-    radial-gradient(
-      circle at center,
-      #164827,
-      #07110c 65%
-    );
-
-  transition:
-    opacity .35s ease;
-}
-
-.loading-logo {
-  font-size: 30px;
-
-  font-weight: 900;
-
-  letter-spacing: 4px;
-
-  color:
-    var(--accent);
-}
-
-.loading-game {
-  margin-top: 4px;
-
-  font-size: 13px;
-
-  letter-spacing: 6px;
-
-  color:
-    var(--text-muted);
-}
-
-.loading-pool {
-  margin-top: 30px;
-
-  font-size: 32px;
-
-  font-weight: 900;
-}
-
-.loading-text {
-  margin-top: 14px;
-
-  color:
-    var(--text-muted);
-
-  font-size: 12px;
-}
-
-
-/* =========================================================
-   TABLE ACTIVE STATE
-   ========================================================= */
-
-.pool-table.player-turn {
-  box-shadow:
-    0 25px 55px rgba(0,0,0,.55),
-    0 0 0 2px rgba(34,197,94,.35);
-}
-
-.pool-table.ai-turn {
-  box-shadow:
-    0 25px 55px rgba(0,0,0,.55),
-    0 0 0 2px rgba(56,189,248,.35);
-}
-
-
-/* =========================================================
-   DISABLED STATES
-   ========================================================= */
-
-button:disabled {
-  opacity: .45;
-
-  cursor:
-    not-allowed;
-
-  transform: none !important;
-}
-
-#poolCanvas.disabled {
-  pointer-events: none;
-
-  opacity: .65;
-}
-
-
-/* =========================================================
-   RESPONSIVE — TABLET
-   ========================================================= */
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
 
 @media (max-width: 850px) {
 
-  .setup-panel {
-    padding: 18px;
+  #poolApp {
+    padding: 8px;
   }
 
-  .mode-grid {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
-
-  .player-mode-grid {
-    grid-template-columns:
-      1fr;
-  }
-
-  .pool-table {
-    padding:
-      27px 32px;
-  }
-
-}
-
-
-/* =========================================================
-   RESPONSIVE — PHONE
-   ========================================================= */
-
-@media (max-width: 600px) {
-
-  .game-header {
-    min-height: 62px;
-
-    grid-template-columns:
-      50px 1fr 50px;
-  }
-
-  .header-button {
-    width: 42px;
-    height: 42px;
-
-    font-size: 24px;
-  }
-
-  .game-title {
-    font-size: 20px;
-
-    letter-spacing: 3px;
-  }
-
-  .setup-panel {
-    width: 94%;
-
-    margin-top: 15px;
-
-    padding: 15px;
-  }
-
-  .mode-grid {
-    gap: 8px;
-  }
-
-  .mode-card {
-    min-height: 105px;
-  }
-
-  .mode-icon {
-    font-size: 25px;
-  }
-
-  .mode-name {
-    font-size: 12px;
-  }
-
-  .mode-description {
-    font-size: 9px;
-  }
-
-  .ai-settings,
-  .theme-settings {
+  .pool-header {
     flex-direction: column;
-
     align-items: stretch;
   }
 
-  select {
-    width: 100%;
+  .pool-scoreboard {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .game-area {
-    padding:
-      8px 5px 25px;
+  .pool-center-status {
+    grid-column: 1 / -1;
+    grid-row: 1;
   }
 
-  .status-bar {
-    gap: 5px;
-  }
-
-  .player-status {
-    padding:
-      8px 6px;
-  }
-
-  .player-name {
-    font-size: 12px;
-  }
-
-  .turn-status {
-    min-width: 85px;
-
-    padding:
-      7px 5px;
-  }
-
-  #turnIndicator {
-    font-size: 10px;
-  }
-
-  .game-info {
-    gap: 5px;
-  }
-
-  .score-box,
-  .timer-box,
-  .mode-display {
-    padding: 7px 3px;
-  }
-
-  .score-box strong,
-  .timer-box strong,
-  .mode-display strong {
-    font-size: 12px;
-  }
-
-  .table-container {
-    padding:
-      4px 0;
-  }
-
-  .pool-table {
-    padding:
-      20px 25px;
-
-    border-radius: 13px;
-  }
-
-  .shot-controls {
-    padding: 11px;
-  }
-
-  .power-control {
-    grid-template-columns:
-      1fr auto;
-
-    gap: 8px;
-  }
-
-  .power-control input {
-    grid-column:
-      1 / -1;
-
+  .player-card {
     grid-row: 2;
   }
 
-  .power-control label {
-    font-size: 9px;
-  }
-
-  .control-buttons {
-    grid-template-columns:
-      55px 1fr 55px;
-  }
-
-  .control-button,
-  .shoot-button {
-    min-height: 46px;
-  }
-
-  .game-actions {
-    gap: 5px;
-  }
-
-  .game-actions button {
-    padding:
-      8px 10px;
-
-    font-size: 10px;
+  .pool-info {
+    grid-template-columns: 1fr;
   }
 
 }
 
+@media (max-width: 600px) {
 
-/* =========================================================
-   VERY SMALL PHONES
-   ========================================================= */
-
-@media (max-width: 380px) {
-
-  .mode-grid {
-    grid-template-columns:
-      1fr 1fr;
-  }
-
-  .mode-card {
-    min-height: 95px;
+  .pool-stage {
+    padding: 12px;
+    border-radius: 18px;
   }
 
   .pool-table {
-    padding:
-      16px 20px;
+    border-width: 14px;
+    border-radius: 12px;
   }
 
-  .control-buttons {
-    grid-template-columns:
-      48px 1fr 48px;
+  .pool-controls {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-}
-
-
-/* =========================================================
-   LANDSCAPE MOBILE
-   ========================================================= */
-
-@media (
-  max-height: 600px
-) and (
-  orientation: landscape
-) {
-
-  .game-header {
-    min-height: 52px;
+  .pool-controls select,
+  .pool-controls button {
+    width: 100%;
   }
 
-  .header-button {
-    width: 38px;
-    height: 38px;
+  .pool-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
-  .game-area {
-    padding-top: 5px;
-  }
-
-  .status-bar {
-    margin-bottom: 5px;
-  }
-
-  .game-info {
-    margin-bottom: 5px;
-  }
-
-  .pool-table {
-    max-width: 850px;
-  }
-
-  .shot-controls {
-    margin-top: 6px;
-  }
-
-  .game-message {
-    margin-top: 5px;
+  .pool-actions button {
+    width: 100%;
+    min-width: 0;
   }
 
 }
 
-
-/* =========================================================
+/* ---------------------------------------------------------
    ACCESSIBILITY
-   ========================================================= */
+   --------------------------------------------------------- */
 
-button:focus-visible,
-select:focus-visible,
-input:focus-visible {
-  outline:
-    2px solid var(--accent);
-
-  outline-offset:
-    2px;
+button:disabled,
+select:disabled {
+  opacity: .45;
+  cursor: not-allowed;
 }
 
-
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
-
-@media (
-  prefers-reduced-motion: reduce
-) {
-
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-
-    transition:
-      none !important;
-
-    animation:
-      none !important;
-  }
-
-  }
+[hidden] {
+  display: none !important;
+   }
