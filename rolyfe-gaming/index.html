@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RO’Lyfe Gaming™</title>
+
+<meta name="description"
+content="RO’Lyfe Gaming™ — Play. Compete. Think. Build Your Level.">
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:
+        radial-gradient(circle at top,#18284a 0%,#080d18 45%,#03060c 100%);
+    color:#fff;
+    min-height:100vh;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header{
+    padding:28px 20px 18px;
+    text-align:center;
+    border-bottom:1px solid rgba(255,255,255,.1);
+    background:rgba(5,10,20,.85);
+    backdrop-filter:blur(10px);
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+
+.logo{
+    font-size:clamp(34px,7vw,64px);
+    font-weight:900;
+    letter-spacing:-2px;
+}
+
+.logo span{
+    color:#20a7ff;
+}
+
+.tagline{
+    margin-top:8px;
+    color:#aebbd0;
+    font-size:clamp(14px,3vw,19px);
+    font-weight:bold;
+}
+
+/* =========================
+   HERO
+========================= */
+
+.hero{
+    max-width:1100px;
+    margin:auto;
+    padding:55px 20px 35px;
+    text-align:center;
+}
+
+.hero h1{
+    font-size:clamp(30px,6vw,58px);
+    line-height:1.05;
+    margin-bottom:15px;
+}
+
+.hero p{
+    max-width:700px;
+    margin:auto;
+    color:#b9c5d8;
+    line-height:1.7;
+    font-size:17px;
+}
+
+.hero-buttons{
+    margin-top:28px;
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    display:inline-block;
+    padding:14px 24px;
+    border-radius:12px;
+    text-decoration:none;
+    font-weight:900;
+    border:1px solid rgba(255,255,255,.15);
+    transition:.2s;
+}
+
+.btn-primary{
+    background:#168cff;
+    color:white;
+}
+
+.btn-secondary{
+    background:#151d2c;
+    color:white;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+/* =========================
+   SECTION
+========================= */
+
+.section{
+    max-width:1100px;
+    margin:auto;
+    padding:25px 20px 50px;
+}
+
+.section-title{
+    font-size:28px;
+    margin-bottom:8px;
+}
+
+.section-subtitle{
+    color:#8796ad;
+    margin-bottom:25px;
+}
+
+/* =========================
+   GAME GRID
+========================= */
+
+.games-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:18px;
+}
+
+.game-card{
+    position:relative;
+    overflow:hidden;
+    min-height:230px;
+    border-radius:20px;
+    padding:24px;
+    background:
+        linear-gradient(145deg,#18243b,#0d1422);
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 15px 40px rgba(0,0,0,.3);
+    transition:.25s;
+}
+
+.game-card:hover{
+    transform:translateY(-5px);
+    border-color:rgba(32,167,255,.6);
+}
+
+.game-icon{
+    font-size:55px;
+    margin-bottom:15px;
+}
+
+.game-card h3{
+    font-size:25px;
+    margin-bottom:8px;
+}
+
+.game-card p{
+    color:#9eabc0;
+    line-height:1.5;
+    font-size:14px;
+}
+
+.play-button{
+    display:inline-block;
+    margin-top:20px;
+    padding:10px 18px;
+    border-radius:10px;
+    background:#168cff;
+    color:#fff;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+/* =========================
+   MODES
+========================= */
+
+.mode-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+}
+
+.mode{
+    padding:20px;
+    background:#101827;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:15px;
+}
+
+.mode strong{
+    display:block;
+    margin-bottom:7px;
+}
+
+.mode span{
+    color:#8d9bb0;
+    font-size:13px;
+}
+
+/* =========================
+   LEVEL SYSTEM
+========================= */
+
+.levels{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+}
+
+.level{
+    padding:20px;
+    border-radius:15px;
+    background:#101827;
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.level h3{
+    margin-bottom:7px;
+}
+
+.level p{
+    color:#8d9bb0;
+    font-size:13px;
+}
+
+/* =========================
+   FEATURES
+========================= */
+
+.features{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:14px;
+}
+
+.feature{
+    padding:20px;
+    border-radius:15px;
+    background:#0d1523;
+    border:1px solid rgba(255,255,255,.07);
+}
+
+.feature-icon{
+    font-size:28px;
+    margin-bottom:10px;
+}
+
+.feature h3{
+    margin-bottom:7px;
+}
+
+.feature p{
+    color:#8d9bb0;
+    font-size:13px;
+    line-height:1.5;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+footer{
+    border-top:1px solid rgba(255,255,255,.08);
+    text-align:center;
+    padding:35px 20px;
+    color:#68778e;
+    font-size:13px;
+}
+
+.brand{
+    color:#20a7ff;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="header">
+
+    <div class="logo">
+        🎮 RO’Lyfe <span>Gaming™</span>
+    </div>
+
+    <div class="tagline">
+        Play. Compete. Think. Build Your Level.
+    </div>
+
+</header>
+
+
+<!-- =========================
+     HERO
+========================= -->
+
+<section class="hero">
+
+    <h1>
+        Welcome to the<br>
+        RO’Lyfe Gaming Arena
+    </h1>
+
+    <p>
+        A growing browser-based gaming platform built under
+        the RO’Lyfe ecosystem. Classic games, strategy,
+        competition, AI opponents, customizable themes,
+        timers, player systems and more.
+    </p>
+
+    <div class="hero-buttons">
+
+        <a href="#games" class="btn btn-primary">
+            🎮 PLAY GAMES
+        </a>
+
+        <a href="#features" class="btn btn-secondary">
+            ⚙️ EXPLORE SYSTEM
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     GAMES
+========================= -->
+
+<section class="section" id="games">
+
+    <h2 class="section-title">
+        🎮 Game Arena
+    </h2>
+
+    <p class="section-subtitle">
+        Choose your battlefield.
+    </p>
+
+
+    <div class="games-grid">
+
+
+        <!-- CHESS -->
+
+        <div class="game-card">
+
+            <div class="game-icon">♟️</div>
+
+            <h3>Chess</h3>
+
+            <p>
+                Strategy, tactics and calculated moves.
+                Challenge another player or take on AI.
+            </p>
+
+            <a href="games/chess/" class="play-button">
+                PLAY CHESS →
+            </a>
+
+        </div>
+
+
+        <!-- CHECKERS -->
+
+        <div class="game-card">
+
+            <div class="game-icon">⚫</div>
+
+            <h3>Checkers</h3>
+
+            <p>
+                Classic board strategy with competitive
+                player and AI modes.
+            </p>
+
+            <a href="games/checkers/" class="play-button">
+                PLAY CHECKERS →
+            </a>
+
+        </div>
+
+
+        <!-- CONNECT FOUR -->
+
+        <div class="game-card">
+
+            <div class="game-icon">🔴</div>
+
+            <h3>Connect Four</h3>
+
+            <p>
+                Think ahead, control the board and connect
+                four before your opponent.
+            </p>
+
+            <a href="games/connect-four/" class="play-button">
+                PLAY CONNECT FOUR →
+            </a>
+
+        </div>
+
+
+        <!-- TIC TAC TOE -->
+
+        <div class="game-card">
+
+            <div class="game-icon">❌</div>
+
+            <h3>Tic-Tac-Toe</h3>
+
+            <p>
+                Simple to learn. Surprisingly difficult
+                to master.
+            </p>
+
+            <a href="games/tic-tac-toe/" class="play-button">
+                PLAY TIC-TAC-TOE →
+            </a>
+
+        </div>
+
+
+        <!-- MONOPOLY -->
+
+        <div class="game-card">
+
+            <div class="game-icon">🏦</div>
+
+            <h3>Monopoly</h3>
+
+            <p>
+                Buy property, manage money and build your
+                empire.
+            </p>
+
+            <a href="games/monopoly/" class="play-button">
+                PLAY MONOPOLY →
+            </a>
+
+        </div>
+
+
+        <!-- POOL -->
+
+        <div class="game-card">
+
+            <div class="game-icon">🎱</div>
+
+            <h3>Pool</h3>
+
+            <p>
+                8-Ball, 9-Ball, Practice, Challenge and
+                competitive modes.
+            </p>
+
+            <a href="games/pool/" class="play-button">
+                PLAY POOL →
+            </a>
+
+        </div>
+
+
+        <!-- FUTURE -->
+
+        <div class="game-card">
+
+            <div class="game-icon">🚀</div>
+
+            <h3>Future Games</h3>
+
+            <p>
+                The arena is expanding. More games,
+                challenges and experiences are coming.
+            </p>
+
+            <a href="#future" class="play-button">
+                COMING SOON
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     GAME MODES
+========================= -->
+
+<section class="section">
+
+    <h2 class="section-title">
+        🤖 Game Modes
+    </h2>
+
+    <p class="section-subtitle">
+        Different ways to compete.
+    </p>
+
+    <div class="mode-grid">
+
+        <div class="mode">
+            <strong>👥 Player vs Player</strong>
+            <span>Challenge another player.</span>
+        </div>
+
+        <div class="mode">
+            <strong>🧠 Player vs AI</strong>
+            <span>Test yourself against the machine.</span>
+        </div>
+
+        <div class="mode">
+            <strong>🤖 AI vs AI</strong>
+            <span>Watch different AI levels compete.</span>
+        </div>
+
+        <div class="mode">
+            <strong>🏆 Challenge Mode</strong>
+            <span>Special objectives and game challenges.</span>
+        </div>
+
+        <div class="mode">
+            <strong>⏱️ Timed Games</strong>
+            <span>Race the clock and manage your time.</span>
+        </div>
+
+        <div class="mode">
+            <strong>🎯 Practice</strong>
+            <span>Learn without competitive pressure.</span>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     LEVEL SYSTEM
+========================= -->
+
+<section class="section">
+
+    <h2 class="section-title">
+        🧠 RO’Lyfe Intelligence Levels
+    </h2>
+
+    <p class="section-subtitle">
+        Your game doesn't just have difficulty. It has identity.
+    </p>
+
+
+    <div class="levels">
+
+        <div class="level">
+            <h3>🌱 Start-Up</h3>
+            <p>Beginner-level competition.</p>
+        </div>
+
+        <div class="level">
+            <h3>💼 Business</h3>
+            <p>Strategic thinking and decision-making.</p>
+        </div>
+
+        <div class="level">
+            <h3>🏠 Real Estate</h3>
+            <p>Advanced strategy and calculated risk.</p>
+        </div>
+
+        <div class="level">
+            <h3>📈 Investor</h3>
+            <p>Stronger AI and deeper decision logic.</p>
+        </div>
+
+        <div class="level">
+            <h3>🔥 7Figures</h3>
+            <p>Expert-level challenge.</p>
+        </div>
+
+        <div class="level">
+            <h3>⚡ ACE</h3>
+            <p>Elite competitive experience.</p>
+        </div>
+
+        <div class="level">
+            <h3>👑 EMG</h3>
+            <p>High-level branded competitive mode.</p>
+        </div>
+
+        <div class="level">
+            <h3>🏆 RO’Lyfe</h3>
+            <p>The ultimate platform challenge.</p>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     FEATURES
+========================= -->
+
+<section class="section" id="features">
+
+    <h2 class="section-title">
+        ⚙️ RO’Lyfe Gaming Engine
+    </h2>
+
+    <p class="section-subtitle">
+        One gaming platform. Shared systems underneath.
+    </p>
+
+
+    <div class="features">
+
+        <div class="feature">
+            <div class="feature-icon">⏱️</div>
+            <h3>Game Timer</h3>
+            <p>
+                Shared timing system for competitive games.
+            </p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🤖</div>
+            <h3>AI Engine</h3>
+            <p>
+                Multiple AI difficulty levels and game-specific logic.
+            </p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🎨</div>
+            <h3>Theme Engine</h3>
+            <p>
+                Different boards, pieces, visual styles and branded themes.
+            </p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">👤</div>
+            <h3>Player System</h3>
+            <p>
+                Designed for player identity, progression and statistics.
+            </p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🔊</div>
+            <h3>Audio Engine</h3>
+            <p>
+                Sound effects and game feedback across supported games.
+            </p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">📊</div>
+            <h3>Statistics</h3>
+            <p>
+                Wins, losses, scores, streaks and future player analytics.
+            </p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🎱</div>
+            <h3>Physics Engine</h3>
+            <p>
+                Shared physics foundation for games such as Pool and future games.
+            </p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">📱</div>
+            <h3>Mobile First</h3>
+            <p>
+                Built to work across phones, tablets and desktop browsers.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     FUTURE
+========================= -->
+
+<section class="section" id="future">
+
+    <h2 class="section-title">
+        🚀 The Arena Is Still Growing
+    </h2>
+
+    <p class="section-subtitle">
+        RO’Lyfe Gaming™ is being built as a platform,
+        not just a single game.
+    </p>
+
+</section>
+
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer>
+
+    <div>
+        🎮 <span class="brand">RO’Lyfe Gaming™</span>
+    </div>
+
+    <br>
+
+    Play. Compete. Think. Build Your Level.
+
+    <br><br>
+
+    Part of the RO’Lyfe ecosystem.
+
+</footer>
+
+</body>
+  </html>
