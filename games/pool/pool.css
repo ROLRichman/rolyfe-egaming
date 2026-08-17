@@ -1,1 +1,1613 @@
+/* =========================================================
+   RO'LYFE GAMING — POOL
+   pool.css
+   ========================================================= */
 
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+:root {
+  --bg-main: #07110c;
+  --bg-panel: #0d1b13;
+  --bg-panel-2: #12251a;
+
+  --text-main: #f4f7f5;
+  --text-muted: #aebdb3;
+
+  --accent: #22c55e;
+  --accent-2: #84cc16;
+  --gold: #facc15;
+
+  --danger: #ef4444;
+  --blue: #38bdf8;
+
+  --rail-dark: #25150b;
+  --rail-mid: #633816;
+  --felt: #075b32;
+
+  --shadow:
+    0 12px 35px rgba(0,0,0,.45);
+
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+
+  background:
+    radial-gradient(
+      circle at top,
+      #173b26 0%,
+      #07110c 55%,
+      #030705 100%
+    );
+
+  color: var(--text-main);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  user-select: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* =========================================================
+   APP
+   ========================================================= */
+
+#poolApp {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.game-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  width: 100%;
+
+  min-height: 72px;
+
+  display: grid;
+  grid-template-columns: 60px 1fr 60px;
+  align-items: center;
+
+  padding: 8px 12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10,28,18,.98),
+      rgba(5,15,10,.96)
+    );
+
+  border-bottom:
+    1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 5px 25px rgba(0,0,0,.35);
+}
+
+.header-button {
+  width: 48px;
+  height: 48px;
+
+  border: 1px solid rgba(255,255,255,.12);
+
+  border-radius: 14px;
+
+  background:
+    rgba(255,255,255,.06);
+
+  color: white;
+
+  font-size: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    transform .15s ease,
+    background .15s ease;
+}
+
+.header-button:hover {
+  background:
+    rgba(255,255,255,.12);
+}
+
+.header-button:active {
+  transform: scale(.92);
+}
+
+.brand-block {
+  text-align: center;
+  line-height: 1;
+}
+
+.brand-title {
+  font-size: 14px;
+
+  font-weight: 900;
+
+  letter-spacing: 3px;
+
+  color: var(--accent);
+}
+
+.game-title {
+  margin-top: 5px;
+
+  font-size: 25px;
+
+  font-weight: 900;
+
+  letter-spacing: 4px;
+
+  text-shadow:
+    0 2px 8px rgba(34,197,94,.25);
+}
+
+
+/* =========================================================
+   SETUP SCREEN
+   ========================================================= */
+
+.setup-panel {
+  width: min(900px, 94%);
+
+  margin:
+    28px auto 40px;
+
+  padding: 24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,43,29,.96),
+      rgba(8,20,13,.98)
+    );
+
+  border:
+    1px solid rgba(255,255,255,.09);
+
+  border-radius:
+    var(--radius);
+
+  box-shadow:
+    var(--shadow);
+}
+
+.section-title {
+  margin:
+    8px 0 14px;
+
+  font-size: 13px;
+
+  font-weight: 900;
+
+  letter-spacing: 2px;
+
+  color:
+    var(--text-muted);
+}
+
+
+/* =========================================================
+   GAME MODE CARDS
+   ========================================================= */
+
+.mode-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 12px;
+
+  margin-bottom: 26px;
+}
+
+.mode-card {
+  min-height: 125px;
+
+  padding: 15px 8px;
+
+  border:
+    1px solid rgba(255,255,255,.09);
+
+  border-radius: 15px;
+
+  background:
+    rgba(255,255,255,.035);
+
+  color: white;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 5px;
+
+  transition:
+    transform .18s ease,
+    border .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+.mode-card:hover {
+  transform: translateY(-3px);
+
+  background:
+    rgba(255,255,255,.07);
+}
+
+.mode-card.active {
+  border-color:
+    var(--accent);
+
+  background:
+    rgba(34,197,94,.12);
+
+  box-shadow:
+    0 0 20px rgba(34,197,94,.12);
+}
+
+.mode-icon {
+  font-size: 30px;
+
+  line-height: 1;
+
+  margin-bottom: 5px;
+}
+
+.mode-name {
+  font-size: 14px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+.mode-description {
+  font-size: 11px;
+
+  color:
+    var(--text-muted);
+}
+
+
+/* =========================================================
+   PLAYER MODES
+   ========================================================= */
+
+.player-mode-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 10px;
+
+  margin-bottom: 20px;
+}
+
+.player-mode {
+  padding: 13px 8px;
+
+  border:
+    1px solid rgba(255,255,255,.09);
+
+  border-radius: 12px;
+
+  background:
+    rgba(255,255,255,.035);
+
+  color: white;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  transition: .18s ease;
+}
+
+.player-mode:hover {
+  background:
+    rgba(255,255,255,.08);
+}
+
+.player-mode.active {
+  background:
+    rgba(56,189,248,.12);
+
+  border-color:
+    var(--blue);
+
+  box-shadow:
+    0 0 16px rgba(56,189,248,.10);
+}
+
+
+/* =========================================================
+   SELECT SETTINGS
+   ========================================================= */
+
+.ai-settings,
+.theme-settings {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 12px 0;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.06);
+}
+
+.ai-settings label,
+.theme-settings label {
+  font-size: 12px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  color:
+    var(--text-muted);
+}
+
+select {
+  min-width: 190px;
+
+  padding: 10px 12px;
+
+  border:
+    1px solid rgba(255,255,255,.12);
+
+  border-radius: 10px;
+
+  background:
+    #0b1710;
+
+  color: white;
+
+  outline: none;
+}
+
+select:focus {
+  border-color:
+    var(--accent);
+}
+
+
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+.primary-button {
+  width: 100%;
+
+  margin-top: 22px;
+
+  min-height: 54px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #15803d
+    );
+
+  color: white;
+
+  font-size: 16px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  box-shadow:
+    0 8px 22px rgba(34,197,94,.22);
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease;
+}
+
+.primary-button:hover {
+  box-shadow:
+    0 10px 30px rgba(34,197,94,.32);
+}
+
+.primary-button:active {
+  transform: scale(.98);
+}
+
+
+/* =========================================================
+   GAME AREA
+   ========================================================= */
+
+.game-area {
+  width: 100%;
+
+  max-width: 1250px;
+
+  margin: 0 auto;
+
+  padding:
+    14px 14px 35px;
+}
+
+
+/* =========================================================
+   STATUS BAR
+   ========================================================= */
+
+.status-bar {
+  display: grid;
+
+  grid-template-columns:
+    1fr auto 1fr;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 10px;
+}
+
+.player-status {
+  padding: 10px 14px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(255,255,255,.045);
+
+  border:
+    1px solid rgba(255,255,255,.07);
+}
+
+.player-status:last-child {
+  text-align: right;
+}
+
+.player-label {
+  display: block;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  color:
+    var(--text-muted);
+}
+
+.player-name {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 15px;
+
+  font-weight: 900;
+}
+
+.turn-status {
+  min-width: 110px;
+
+  padding: 8px 12px;
+
+  text-align: center;
+
+  border-radius: 12px;
+
+  background:
+    rgba(34,197,94,.12);
+
+  border:
+    1px solid rgba(34,197,94,.35);
+}
+
+.turn-label {
+  display: block;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  color:
+    var(--text-muted);
+}
+
+#turnIndicator {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 13px;
+
+  color:
+    var(--accent);
+}
+
+
+/* =========================================================
+   GAME INFORMATION
+   ========================================================= */
+
+.game-info {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 8px;
+
+  margin-bottom: 14px;
+}
+
+.score-box,
+.timer-box,
+.mode-display {
+  padding: 9px;
+
+  text-align: center;
+
+  border-radius: 10px;
+
+  background:
+    rgba(255,255,255,.035);
+
+  border:
+    1px solid rgba(255,255,255,.06);
+}
+
+.score-box span,
+.timer-box span,
+.mode-display span {
+  display: block;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  color:
+    var(--text-muted);
+}
+
+.score-box strong,
+.timer-box strong,
+.mode-display strong {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 15px;
+}
+
+.timer-box strong {
+  color:
+    var(--gold);
+}
+
+
+/* =========================================================
+   POOL TABLE
+   ========================================================= */
+
+.table-container {
+  width: 100%;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 10px;
+}
+
+.pool-table {
+  width: 100%;
+
+  max-width: 1100px;
+
+  position: relative;
+
+  padding:
+    34px 42px;
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #74421d,
+      #321b0d 50%,
+      #74421d
+    );
+
+  box-shadow:
+    0 25px 55px rgba(0,0,0,.55),
+    inset 0 0 0 5px rgba(255,255,255,.04);
+
+  border:
+    3px solid #1b0e07;
+}
+
+.table-rail {
+  position: relative;
+
+  width: 100%;
+
+  aspect-ratio: 2 / 1;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      #0b6f3d 0%,
+      #07582f 60%,
+      #064a29 100%
+    );
+
+  box-shadow:
+    inset 0 0 35px rgba(0,0,0,.4);
+}
+
+
+/* =========================================================
+   CANVAS
+   ========================================================= */
+
+#poolCanvas {
+  display: block;
+
+  width: 100%;
+
+  height: 100%;
+
+  position: absolute;
+
+  inset: 0;
+
+  touch-action: none;
+
+  cursor:
+    crosshair;
+}
+
+
+/* =========================================================
+   POCKETS
+   ========================================================= */
+
+.pocket {
+  position: absolute;
+
+  width: 8%;
+
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #000 0%,
+      #020202 65%,
+      #151515 100%
+    );
+
+  box-shadow:
+    inset 0 4px 8px rgba(255,255,255,.05),
+    0 3px 7px rgba(0,0,0,.55);
+
+  z-index: 5;
+
+  pointer-events: none;
+}
+
+.pocket-tl {
+  left: -1.5%;
+  top: -2%;
+}
+
+.pocket-tm {
+  left: 46%;
+  top: -2%;
+}
+
+.pocket-tr {
+  right: -1.5%;
+  top: -2%;
+}
+
+.pocket-bl {
+  left: -1.5%;
+  bottom: -2%;
+}
+
+.pocket-bm {
+  left: 46%;
+  bottom: -2%;
+}
+
+.pocket-br {
+  right: -1.5%;
+  bottom: -2%;
+}
+
+
+/* =========================================================
+   SHOT CONTROLS
+   ========================================================= */
+
+.shot-controls {
+  max-width: 850px;
+
+  margin:
+    14px auto 0;
+
+  padding: 15px;
+
+  border-radius: 15px;
+
+  background:
+    rgba(255,255,255,.04);
+
+  border:
+    1px solid rgba(255,255,255,.07);
+}
+
+.power-control {
+  display: grid;
+
+  grid-template-columns:
+    auto 1fr auto;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 15px;
+}
+
+.power-control label {
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  color:
+    var(--text-muted);
+}
+
+#powerRange {
+  width: 100%;
+
+  accent-color:
+    var(--accent);
+
+  cursor: pointer;
+}
+
+#powerValue {
+  min-width: 45px;
+
+  text-align: right;
+
+  font-size: 12px;
+
+  font-weight: 900;
+
+  color:
+    var(--accent);
+}
+
+
+/* =========================================================
+   CONTROL BUTTONS
+   ========================================================= */
+
+.control-buttons {
+  display: grid;
+
+  grid-template-columns:
+    70px 1fr 70px;
+
+  gap: 10px;
+}
+
+.control-button,
+.shoot-button {
+  min-height: 48px;
+
+  border-radius: 12px;
+
+  font-weight: 900;
+}
+
+.control-button {
+  border:
+    1px solid rgba(255,255,255,.1);
+
+  background:
+    rgba(255,255,255,.06);
+
+  color: white;
+
+  font-size: 20px;
+}
+
+.control-button:active {
+  transform: scale(.96);
+}
+
+.shoot-button {
+  border: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      #facc15,
+      #eab308
+    );
+
+  color:
+    #241800;
+
+  font-size: 15px;
+
+  letter-spacing: 1px;
+
+  box-shadow:
+    0 6px 18px rgba(250,204,21,.18);
+}
+
+.shoot-button:active {
+  transform: scale(.98);
+}
+
+.mobile-hint {
+  text-align: center;
+
+  margin-top: 10px;
+
+  font-size: 10px;
+
+  color:
+    var(--text-muted);
+}
+
+
+/* =========================================================
+   GAME ACTIONS
+   ========================================================= */
+
+.game-actions {
+  display: flex;
+
+  justify-content: center;
+
+  flex-wrap: wrap;
+
+  gap: 9px;
+
+  margin-top: 14px;
+}
+
+.game-actions button {
+  padding:
+    10px 15px;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  border-radius: 10px;
+
+  background:
+    rgba(255,255,255,.045);
+
+  color:
+    var(--text-muted);
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  transition: .15s ease;
+}
+
+.game-actions button:hover {
+  background:
+    rgba(255,255,255,.09);
+
+  color: white;
+}
+
+
+/* =========================================================
+   GAME MESSAGE
+   ========================================================= */
+
+.game-message {
+  width: fit-content;
+
+  max-width: 90%;
+
+  margin:
+    13px auto 0;
+
+  padding:
+    9px 16px;
+
+  text-align: center;
+
+  border-radius: 20px;
+
+  background:
+    rgba(34,197,94,.08);
+
+  border:
+    1px solid rgba(34,197,94,.15);
+
+  color:
+    var(--text-muted);
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+
+.modal {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 200;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 20px;
+
+  background:
+    rgba(0,0,0,.72);
+
+  backdrop-filter:
+    blur(8px);
+}
+
+.modal-content {
+  width: min(450px, 94vw);
+
+  position: relative;
+
+  padding: 25px;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #14271b,
+      #08110c
+    );
+
+  border:
+    1px solid rgba(255,255,255,.1);
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.65);
+}
+
+.modal-content h2 {
+  margin:
+    0 0 20px;
+
+  text-align: center;
+
+  font-size: 21px;
+
+  letter-spacing: 1px;
+}
+
+.modal-close {
+  position: absolute;
+
+  right: 13px;
+
+  top: 10px;
+
+  width: 38px;
+
+  height: 38px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background:
+    rgba(255,255,255,.05);
+
+  color: white;
+
+  font-size: 25px;
+}
+
+.setting-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 15px;
+
+  padding:
+    13px 0;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.06);
+}
+
+.setting-row label {
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+.setting-row input[type="checkbox"] {
+  width: 20px;
+
+  height: 20px;
+
+  accent-color:
+    var(--accent);
+}
+
+
+/* =========================================================
+   GAME OVER
+   ========================================================= */
+
+.game-over {
+  text-align: center;
+}
+
+.game-over-icon {
+  font-size: 55px;
+
+  margin-bottom: 5px;
+}
+
+.game-over h2 {
+  color:
+    var(--gold);
+}
+
+.game-over p {
+  color:
+    var(--text-muted);
+}
+
+.final-score {
+  margin:
+    20px 0;
+
+  font-size: 38px;
+
+  font-weight: 900;
+
+  color:
+    var(--accent);
+}
+
+.secondary-button {
+  width: 100%;
+
+  margin-top: 10px;
+
+  min-height: 48px;
+
+  border:
+    1px solid rgba(255,255,255,.1);
+
+  border-radius: 12px;
+
+  background:
+    rgba(255,255,255,.05);
+
+  color: white;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   LOADING SCREEN
+   ========================================================= */
+
+.loading-screen {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 999;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at center,
+      #164827,
+      #07110c 65%
+    );
+
+  transition:
+    opacity .35s ease;
+}
+
+.loading-logo {
+  font-size: 30px;
+
+  font-weight: 900;
+
+  letter-spacing: 4px;
+
+  color:
+    var(--accent);
+}
+
+.loading-game {
+  margin-top: 4px;
+
+  font-size: 13px;
+
+  letter-spacing: 6px;
+
+  color:
+    var(--text-muted);
+}
+
+.loading-pool {
+  margin-top: 30px;
+
+  font-size: 32px;
+
+  font-weight: 900;
+}
+
+.loading-text {
+  margin-top: 14px;
+
+  color:
+    var(--text-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   TABLE ACTIVE STATE
+   ========================================================= */
+
+.pool-table.player-turn {
+  box-shadow:
+    0 25px 55px rgba(0,0,0,.55),
+    0 0 0 2px rgba(34,197,94,.35);
+}
+
+.pool-table.ai-turn {
+  box-shadow:
+    0 25px 55px rgba(0,0,0,.55),
+    0 0 0 2px rgba(56,189,248,.35);
+}
+
+
+/* =========================================================
+   DISABLED STATES
+   ========================================================= */
+
+button:disabled {
+  opacity: .45;
+
+  cursor:
+    not-allowed;
+
+  transform: none !important;
+}
+
+#poolCanvas.disabled {
+  pointer-events: none;
+
+  opacity: .65;
+}
+
+
+/* =========================================================
+   RESPONSIVE — TABLET
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+  .setup-panel {
+    padding: 18px;
+  }
+
+  .mode-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .player-mode-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .pool-table {
+    padding:
+      27px 32px;
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — PHONE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .game-header {
+    min-height: 62px;
+
+    grid-template-columns:
+      50px 1fr 50px;
+  }
+
+  .header-button {
+    width: 42px;
+    height: 42px;
+
+    font-size: 24px;
+  }
+
+  .game-title {
+    font-size: 20px;
+
+    letter-spacing: 3px;
+  }
+
+  .setup-panel {
+    width: 94%;
+
+    margin-top: 15px;
+
+    padding: 15px;
+  }
+
+  .mode-grid {
+    gap: 8px;
+  }
+
+  .mode-card {
+    min-height: 105px;
+  }
+
+  .mode-icon {
+    font-size: 25px;
+  }
+
+  .mode-name {
+    font-size: 12px;
+  }
+
+  .mode-description {
+    font-size: 9px;
+  }
+
+  .ai-settings,
+  .theme-settings {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  select {
+    width: 100%;
+  }
+
+  .game-area {
+    padding:
+      8px 5px 25px;
+  }
+
+  .status-bar {
+    gap: 5px;
+  }
+
+  .player-status {
+    padding:
+      8px 6px;
+  }
+
+  .player-name {
+    font-size: 12px;
+  }
+
+  .turn-status {
+    min-width: 85px;
+
+    padding:
+      7px 5px;
+  }
+
+  #turnIndicator {
+    font-size: 10px;
+  }
+
+  .game-info {
+    gap: 5px;
+  }
+
+  .score-box,
+  .timer-box,
+  .mode-display {
+    padding: 7px 3px;
+  }
+
+  .score-box strong,
+  .timer-box strong,
+  .mode-display strong {
+    font-size: 12px;
+  }
+
+  .table-container {
+    padding:
+      4px 0;
+  }
+
+  .pool-table {
+    padding:
+      20px 25px;
+
+    border-radius: 13px;
+  }
+
+  .shot-controls {
+    padding: 11px;
+  }
+
+  .power-control {
+    grid-template-columns:
+      1fr auto;
+
+    gap: 8px;
+  }
+
+  .power-control input {
+    grid-column:
+      1 / -1;
+
+    grid-row: 2;
+  }
+
+  .power-control label {
+    font-size: 9px;
+  }
+
+  .control-buttons {
+    grid-template-columns:
+      55px 1fr 55px;
+  }
+
+  .control-button,
+  .shoot-button {
+    min-height: 46px;
+  }
+
+  .game-actions {
+    gap: 5px;
+  }
+
+  .game-actions button {
+    padding:
+      8px 10px;
+
+    font-size: 10px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .mode-grid {
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .mode-card {
+    min-height: 95px;
+  }
+
+  .pool-table {
+    padding:
+      16px 20px;
+  }
+
+  .control-buttons {
+    grid-template-columns:
+      48px 1fr 48px;
+  }
+
+}
+
+
+/* =========================================================
+   LANDSCAPE MOBILE
+   ========================================================= */
+
+@media (
+  max-height: 600px
+) and (
+  orientation: landscape
+) {
+
+  .game-header {
+    min-height: 52px;
+  }
+
+  .header-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .game-area {
+    padding-top: 5px;
+  }
+
+  .status-bar {
+    margin-bottom: 5px;
+  }
+
+  .game-info {
+    margin-bottom: 5px;
+  }
+
+  .pool-table {
+    max-width: 850px;
+  }
+
+  .shot-controls {
+    margin-top: 6px;
+  }
+
+  .game-message {
+    margin-top: 5px;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline:
+    2px solid var(--accent);
+
+  outline-offset:
+    2px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (
+  prefers-reduced-motion: reduce
+) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    transition:
+      none !important;
+
+    animation:
+      none !important;
+  }
+
+  }
