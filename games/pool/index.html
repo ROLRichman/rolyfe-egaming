@@ -1,1 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <meta name="theme-color" content="#07110c">
+
+  <meta
+    name="description"
+    content="RO'Lyfe Gaming Pool — 8-Ball, 9-Ball, Practice, AI, Challenge Mode and more."
+  >
+
+  <title>RO'Lyfe Gaming — Pool</title>
+
+  <!-- GAME STYLES -->
+  <link rel="stylesheet" href="pool.css">
+
+</head>
+
+<body>
+
+  <!-- =========================================================
+       RO'LYFE GAMING POOL APP
+       ========================================================= -->
+
+  <div id="poolApp">
+
+    <!-- =======================================================
+         HEADER
+         ======================================================= -->
+
+    <header class="game-header">
+
+      <button
+        id="backButton"
+        class="header-button"
+        type="button"
+        aria-label="Back to RO'Lyfe Gaming"
+      >
+        ←
+      </button>
+
+      <div class="brand-block">
+
+        <div class="brand-title">
+          RO'Lyfe
+        </div>
+
+        <div class="game-title">
+          POOL
+        </div>
+
+      </div>
+
+      <button
+        id="settingsButton"
+        class="header-button"
+        type="button"
+        aria-label="Pool settings"
+      >
+        ⚙
+      </button>
+
+    </header>
+
+
+    <!-- =======================================================
+         GAME MODE SELECTOR
+         ======================================================= -->
+
+    <section id="gameSetup" class="setup-panel">
+
+      <div class="section-title">
+        CHOOSE YOUR GAME
+      </div>
+
+
+      <div class="mode-grid">
+
+        <button
+          class="mode-card active"
+          data-mode="8ball"
+          type="button"
+        >
+          <span class="mode-icon">🎱</span>
+          <span class="mode-name">8-BALL</span>
+          <span class="mode-description">
+            Classic pool
+          </span>
+        </button>
+
+
+        <button
+          class="mode-card"
+          data-mode="9ball"
+          type="button"
+        >
+          <span class="mode-icon">9</span>
+          <span class="mode-name">9-BALL</span>
+          <span class="mode-description">
+            Fast competition
+          </span>
+        </button>
+
+
+        <button
+          class="mode-card"
+          data-mode="practice"
+          type="button"
+        >
+          <span class="mode-icon">🎯</span>
+          <span class="mode-name">PRACTICE</span>
+          <span class="mode-description">
+            Train your shot
+          </span>
+        </button>
+
+
+        <button
+          class="mode-card"
+          data-mode="challenge"
+          type="button"
+        >
+          <span class="mode-icon">🏆</span>
+          <span class="mode-name">CHALLENGE</span>
+          <span class="mode-description">
+            Beat the clock
+          </span>
+        </button>
+
+      </div>
+
+
+      <!-- PLAYER MODE -->
+
+      <div class="section-title">
+        PLAYER MODE
+      </div>
+
+
+      <div class="player-mode-grid">
+
+        <button
+          class="player-mode active"
+          data-player-mode="pvp"
+          type="button"
+        >
+          👥 Player vs Player
+        </button>
+
+
+        <button
+          class="player-mode"
+          data-player-mode="pvai"
+          type="button"
+        >
+          🤖 Player vs AI
+        </button>
+
+
+        <button
+          class="player-mode"
+          data-player-mode="aivai"
+          type="button"
+        >
+          🤖 AI vs AI
+        </button>
+
+      </div>
+
+
+      <!-- AI LEVEL -->
+
+      <div
+        id="aiSettings"
+        class="ai-settings"
+      >
+
+        <label for="aiLevel">
+          AI LEVEL
+        </label>
+
+        <select id="aiLevel">
+
+          <option value="1">
+            START-UP — Beginner
+          </option>
+
+          <option value="2">
+            INVESTOR — Intermediate
+          </option>
+
+          <option value="3">
+            BUSINESS — Advanced
+          </option>
+
+          <option value="4">
+            REAL ESTATE — Expert
+          </option>
+
+          <option value="5">
+            7 FIGURES — Elite
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- THEME -->
+
+      <div class="theme-settings">
+
+        <label for="themeSelect">
+          TABLE THEME
+        </label>
+
+        <select id="themeSelect">
+
+          <option value="rolyfe">
+            RO'Lyfe Classic
+          </option>
+
+          <option value="emg">
+            EMG
+          </option>
+
+          <option value="ace">
+            ACE
+          </option>
+
+          <option value="business">
+            Business
+          </option>
+
+          <option value="realestate">
+            Real Estate
+          </option>
+
+          <option value="classic">
+            Classic Pool
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- START -->
+
+      <button
+        id="startGameButton"
+        class="primary-button"
+        type="button"
+      >
+        🎱 START GAME
+      </button>
+
+    </section>
+
+
+    <!-- =======================================================
+         GAME AREA
+         ======================================================= -->
+
+    <main
+      id="gameArea"
+      class="game-area hidden"
+    >
+
+      <!-- STATUS BAR -->
+
+      <section class="status-bar">
+
+        <div class="player-status">
+
+          <span class="player-label">
+            PLAYER 1
+          </span>
+
+          <span
+            id="player1Name"
+            class="player-name"
+          >
+            YOU
+          </span>
+
+        </div>
+
+
+        <div class="turn-status">
+
+          <span class="turn-label">
+            TURN
+          </span>
+
+          <strong id="turnIndicator">
+            PLAYER 1
+          </strong>
+
+        </div>
+
+
+        <div class="player-status">
+
+          <span class="player-label">
+            PLAYER 2
+          </span>
+
+          <span
+            id="player2Name"
+            class="player-name"
+          >
+            PLAYER 2
+          </span>
+
+        </div>
+
+      </section>
+
+
+      <!-- SCORE / TIMER -->
+
+      <section class="game-info">
+
+        <div class="score-box">
+
+          <span>
+            SCORE
+          </span>
+
+          <strong id="scoreDisplay">
+            0 — 0
+          </strong>
+
+        </div>
+
+
+        <div class="timer-box">
+
+          <span>
+            TIME
+          </span>
+
+          <strong id="timerDisplay">
+            10:00
+          </strong>
+
+        </div>
+
+
+        <div class="mode-display">
+
+          <span>
+            MODE
+          </span>
+
+          <strong id="currentMode">
+            8-BALL
+          </strong>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           POOL TABLE
+           ===================================================== -->
+
+      <section
+        id="tableContainer"
+        class="table-container"
+      >
+
+        <div
+          id="poolTable"
+          class="pool-table"
+        >
+
+          <!-- TABLE RAIL -->
+
+          <div class="table-rail">
+
+            <!-- POCKETS -->
+
+            <div
+              class="pocket pocket-tl"
+              data-pocket="0"
+            ></div>
+
+            <div
+              class="pocket pocket-tm"
+              data-pocket="1"
+            ></div>
+
+            <div
+              class="pocket pocket-tr"
+              data-pocket="2"
+            ></div>
+
+            <div
+              class="pocket pocket-bl"
+              data-pocket="3"
+            ></div>
+
+            <div
+              class="pocket pocket-bm"
+              data-pocket="4"
+            ></div>
+
+            <div
+              class="pocket pocket-br"
+              data-pocket="5"
+            ></div>
+
+
+            <!-- CANVAS -->
+
+            <canvas
+              id="poolCanvas"
+              width="1000"
+              height="500"
+            >
+            </canvas>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           SHOT CONTROLS
+           ===================================================== -->
+
+      <section
+        id="shotControls"
+        class="shot-controls"
+      >
+
+        <div class="power-control">
+
+          <label for="powerRange">
+            SHOT POWER
+          </label>
+
+          <input
+            id="powerRange"
+            type="range"
+            min="1"
+            max="100"
+            value="50"
+          >
+
+          <span id="powerValue">
+            50%
+          </span>
+
+        </div>
+
+
+        <div class="control-buttons">
+
+          <button
+            id="aimLeftButton"
+            class="control-button"
+            type="button"
+          >
+            ◀
+          </button>
+
+          <button
+            id="shootButton"
+            class="shoot-button"
+            type="button"
+          >
+            SHOOT
+          </button>
+
+          <button
+            id="aimRightButton"
+            class="control-button"
+            type="button"
+          >
+            ▶
+          </button>
+
+        </div>
+
+
+        <div class="mobile-hint">
+
+          Drag the cue to aim • Adjust power • Shoot
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           GAME ACTIONS
+           ===================================================== -->
+
+      <section class="game-actions">
+
+        <button
+          id="newGameButton"
+          type="button"
+        >
+          🔄 New Game
+        </button>
+
+        <button
+          id="pauseButton"
+          type="button"
+        >
+          ⏸ Pause
+        </button>
+
+        <button
+          id="exitGameButton"
+          type="button"
+        >
+          🏠 Game Menu
+        </button>
+
+      </section>
+
+
+      <!-- =====================================================
+           EVENT / MESSAGE PANEL
+           ===================================================== -->
+
+      <section
+        id="gameMessage"
+        class="game-message"
+        aria-live="polite"
+      >
+        Break shot — good luck!
+      </section>
+
+    </main>
+
+
+    <!-- =======================================================
+         SETTINGS MODAL
+         ======================================================= -->
+
+    <div
+      id="settingsModal"
+      class="modal hidden"
+    >
+
+      <div class="modal-content">
+
+        <button
+          id="closeSettings"
+          class="modal-close"
+          type="button"
+        >
+          ×
+        </button>
+
+        <h2>
+          RO'Lyfe Pool Settings
+        </h2>
+
+
+        <div class="setting-row">
+
+          <label for="soundToggle">
+            🔊 Sound
+          </label>
+
+          <input
+            id="soundToggle"
+            type="checkbox"
+            checked
+          >
+
+        </div>
+
+
+        <div class="setting-row">
+
+          <label for="musicToggle">
+            🎵 Music
+          </label>
+
+          <input
+            id="musicToggle"
+            type="checkbox"
+          >
+
+        </div>
+
+
+        <div class="setting-row">
+
+          <label for="timerSelect">
+            ⏱️ Game Timer
+          </label>
+
+          <select id="timerSelect">
+
+            <option value="300">
+              5 Minutes
+            </option>
+
+            <option value="600" selected>
+              10 Minutes
+            </option>
+
+            <option value="900">
+              15 Minutes
+            </option>
+
+            <option value="1800">
+              30 Minutes
+            </option>
+
+            <option value="0">
+              No Timer
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <button
+          id="saveSettings"
+          class="primary-button"
+          type="button"
+        >
+          SAVE SETTINGS
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         GAME OVER MODAL
+         ======================================================= -->
+
+    <div
+      id="gameOverModal"
+      class="modal hidden"
+    >
+
+      <div class="modal-content game-over">
+
+        <div class="game-over-icon">
+          🏆
+        </div>
+
+        <h2 id="gameOverTitle">
+          GAME OVER
+        </h2>
+
+        <p id="gameOverMessage">
+          Great game!
+        </p>
+
+
+        <div
+          id="finalScore"
+          class="final-score"
+        >
+          0 — 0
+        </div>
+
+
+        <button
+          id="playAgainButton"
+          class="primary-button"
+          type="button"
+        >
+          🎱 PLAY AGAIN
+        </button>
+
+
+        <button
+          id="returnMenuButton"
+          class="secondary-button"
+          type="button"
+        >
+          GAME MENU
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         LOADING SCREEN
+         ======================================================= -->
+
+    <div
+      id="loadingScreen"
+      class="loading-screen"
+    >
+
+      <div class="loading-logo">
+        RO'Lyfe
+      </div>
+
+      <div class="loading-game">
+        GAMING
+      </div>
+
+      <div class="loading-pool">
+        🎱 POOL
+      </div>
+
+      <div class="loading-text">
+        Loading table...
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       SHARED RO'LYFE GAMING ENGINE
+       IMPORTANT:
+       Paths are relative to /games/pool/
+       ========================================================= -->
+
+  <script src="../../shared/timer.js"></script>
+
+  <script src="../../shared/audio.js"></script>
+
+  <script src="../../shared/theme-engine.js"></script>
+
+  <script src="../../shared/player-system.js"></script>
+
+  <script src="../../shared/ai-engine.js"></script>
+
+  <script src="../../shared/game-ui.js"></script>
+
+  <script src="../../shared/physics-engine.js"></script>
+
+
+  <!-- =========================================================
+       POOL GAME MODULES
+       ========================================================= -->
+
+  <script src="themes.js"></script>
+
+  <script src="pool.js"></script>
+
+
+  <!-- =========================================================
+       PAGE BOOTSTRAP
+       ========================================================= -->
+
+  <script>
+
+    /*
+     * RO'Lyfe Gaming
+     * Pool Bootstrap
+     *
+     * This file intentionally contains only
+     * interface / initialization logic.
+     *
+     * Pool gameplay belongs in pool.js.
+     */
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+      /*
+       * Hide loading screen after the game
+       * modules have had time to initialize.
+       */
+
+      const loadingScreen =
+        document.getElementById("loadingScreen");
+
+      setTimeout(function () {
+
+        if (loadingScreen) {
+
+          loadingScreen.classList.add("hidden");
+
+        }
+
+      }, 500);
+
+
+      /*
+       * Back button
+       */
+
+      const backButton =
+        document.getElementById("backButton");
+
+      if (backButton) {
+
+        backButton.addEventListener("click", function () {
+
+          window.location.href = "../../index.html";
+
+        });
+
+      }
+
+
+      /*
+       * Settings
+       */
+
+      const settingsButton =
+        document.getElementById("settingsButton");
+
+      const settingsModal =
+        document.getElementById("settingsModal");
+
+      const closeSettings =
+        document.getElementById("closeSettings");
+
+      if (settingsButton && settingsModal) {
+
+        settingsButton.addEventListener("click", function () {
+
+          settingsModal.classList.remove("hidden");
+
+        });
+
+      }
+
+
+      if (closeSettings && settingsModal) {
+
+        closeSettings.addEventListener("click", function () {
+
+          settingsModal.classList.add("hidden");
+
+        });
+
+      }
+
+
+      /*
+       * Power slider
+       */
+
+      const powerRange =
+        document.getElementById("powerRange");
+
+      const powerValue =
+        document.getElementById("powerValue");
+
+      if (powerRange && powerValue) {
+
+        powerRange.addEventListener("input", function () {
+
+          powerValue.textContent =
+            powerRange.value + "%";
+
+        });
+
+      }
+
+
+      /*
+       * Prevent accidental browser scrolling
+       * while playing on mobile.
+       */
+
+      document.addEventListener(
+        "touchmove",
+        function (event) {
+
+          if (
+            event.target.closest &&
+            event.target.closest("#poolCanvas")
+          ) {
+
+            event.preventDefault();
+
+          }
+
+        },
+        { passive: false }
+      );
+
+
+    });
+
+  </script>
+
+</body>
+            </html>
