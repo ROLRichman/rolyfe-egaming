@@ -12,7 +12,7 @@ RO'Lyfe Gaming is designed to bring multiple classic and strategy games into one
 
 🌐 **RO'Lyfe Gaming**
 
-https://rolrichman.github.io/rolyfe-gaming/
+https://rolrichman.github.io/rolyfe-egaming/
 
 ---
 
