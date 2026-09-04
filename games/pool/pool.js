@@ -1,1 +1,62 @@
+:root{
+  --rl-bg:#07111f;--rl-panel:#101827;--rl-panel-2:#172235;--rl-border:rgba(255,255,255,.10);
+  --rl-text:#f8fafc;--rl-muted:#94a3b8;--rl-green:#22c55e;--rl-yellow:#facc15;--rl-red:#ef4444;
+  --rl-blue:#38bdf8;--rl-shadow:0 18px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--pool-bg,var(--rl-bg));color:var(--pool-text,var(--rl-text));font-family:Arial,Helvetica,sans-serif}
+body{overflow-x:hidden}
+button,select{font:inherit}
+button{cursor:pointer}
+button:disabled,select:disabled{cursor:not-allowed;opacity:.5}
+.pool-app{min-height:100vh;padding:14px;max-width:1280px;margin:auto;background:radial-gradient(circle at 50% -10%,rgba(34,197,94,.10),transparent 35%)}
+.pool-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 4px 18px;border-bottom:1px solid var(--rl-border)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{font-size:38px}
+.brand h1{margin:0;font-size:clamp(20px,4vw,30px);letter-spacing:.5px}
+.brand p{margin:4px 0 0;color:var(--rl-muted);font-size:12px}
+.header-actions{display:flex;gap:8px}
+.header-actions button,.game-controls button,.shoot-controls button,.power-controls button,.modal-close{
+  border:1px solid var(--rl-border);background:var(--rl-panel);color:var(--pool-text,var(--rl-text));border-radius:10px;padding:10px 13px
+}
+.pool-settings{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.setting-group{display:flex;flex-direction:column;gap:6px;color:var(--rl-muted);font-size:11px;font-weight:800;text-transform:uppercase}
+.setting-group select{width:100%;padding:10px;border-radius:9px;border:1px solid var(--rl-border);background:var(--rl-panel);color:var(--pool-text,var(--rl-text))}
+.pool-scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch}
+.player-card,.pool-center-status,.info-card,.challenge-panel,.ai-status{background:var(--rl-panel);border:1px solid var(--rl-border);border-radius:14px;box-shadow:var(--rl-shadow)}
+.player-card{padding:13px;position:relative}
+.player-card.active{border-color:var(--pool-accent,var(--rl-green));box-shadow:0 0 0 1px var(--pool-accent,var(--rl-green))}
+.player-card[data-player="0"] .player-name{color:var(--pool-player1,var(--rl-blue))}
+.player-card[data-player="1"] .player-name{color:var(--pool-player2,var(--rl-red))}
+.player-name{font-weight:900}.player-status,.player-group{font-size:11px;color:var(--rl-muted);margin-top:3px}.player-score{font-size:28px;font-weight:900;margin-top:5px}
+.pool-center-status{text-align:center;padding:12px 18px;min-width:145px}.turn-label{font-size:10px;color:var(--rl-muted);font-weight:900}.turn-value{font-size:16px;font-weight:900;margin:3px 0}.pool-timer{font-variant-numeric:tabular-nums;font-weight:900;color:var(--pool-accent,var(--rl-green))}
+.pool-message{text-align:center;margin:12px 0;padding:10px;border-radius:10px;background:rgba(255,255,255,.035);color:var(--rl-muted);min-height:40px}
+.pool-stage{width:100%;display:flex;justify-content:center;padding:4px 0 12px}
+.table-wrap{width:min(100%,1100px)}
+.pool-table{position:relative;width:100%;aspect-ratio:2/1;border:18px solid var(--pool-rail,var(--rl-green));border-radius:28px;background:var(--pool-rail-dark,#06100c);box-shadow:var(--rl-shadow);overflow:hidden}
+.table-surface{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,var(--pool-table,#064e3b),var(--pool-table-dark,#022c22));overflow:hidden}
+.table-surface:before{content:"";position:absolute;inset:4%;border:2px solid rgba(255,255,255,.08);border-radius:8px;pointer-events:none}
+.pocket{position:absolute;width:clamp(22px,4vw,34px);height:clamp(22px,4vw,34px);border-radius:50%;background:var(--pool-pocket,#000);box-shadow:inset 0 0 8px rgba(255,255,255,.08);z-index:4}
+.pocket.tl{left:-2%;top:-2%}.pocket.tc{left:calc(50% - 17px);top:-2%}.pocket.tr{right:-2%;top:-2%}
+.pocket.bl{left:-2%;bottom:-2%}.pocket.bc{left:calc(50% - 17px);bottom:-2%}.pocket.br{right:-2%;bottom:-2%}
+.ball-layer{position:absolute;inset:0;z-index:5}
+.ball{position:absolute;width:28px;height:28px;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.5),inset -4px -4px 7px rgba(0,0,0,.25);user-select:none;touch-action:none}
+.ball:after{content:"";position:absolute;left:50%;top:50%;width:42%;height:42%;transform:translate(-50%,-50%);border-radius:50%;background:white;color:#111;display:grid;place-items:center;font-size:8px;font-weight:900}
+.ball.white{background:#f8fafc}.ball.cue{outline:2px solid rgba(255,255,255,.65)}
+.ball.ball-1{background:#facc15}.ball.ball-2{background:#2563eb}.ball.ball-3{background:#dc2626}.ball.ball-4{background:#7c3aed}.ball.ball-5{background:#f97316}.ball.ball-6{background:#16a34a}.ball.ball-7{background:#7f1d1d}.ball.ball-8{background:#111}.ball.ball-9{background:#facc15}.ball.ball-10{background:#2563eb}.ball.ball-11{background:#dc2626}.ball.ball-12{background:#7c3aed}.ball.ball-13{background:#f97316}.ball.ball-14{background:#16a34a}.ball.ball-15{background:#7f1d1d}
+.aim-line{position:absolute;height:2px;transform-origin:0 50%;background:rgba(255,255,255,.75);z-index:3;pointer-events:none;display:none}
+.aim-line.power{display:block;background:var(--pool-accent,var(--rl-green))}
+.pool-power-panel{margin:6px auto 10px;max-width:760px;padding:12px;background:var(--rl-panel);border:1px solid var(--rl-border);border-radius:14px}
+.power-header{display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:7px}.power-meter{height:14px;flex:1;border-radius:999px;background:#020617;overflow:hidden;border:1px solid var(--rl-border)}.power-fill{height:100%;width:55%;background:var(--pool-accent,var(--rl-green));transition:width .12s}.power-controls{display:flex;align-items:center;gap:10px}.power-controls button{width:44px;height:38px;padding:0;font-size:22px}
+.shoot-controls,.game-controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}.shoot-controls button{min-width:110px}.primary-action{background:var(--pool-accent,var(--rl-green))!important;color:#06100c!important;font-weight:900!important}
+.pool-info{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.info-card{padding:12px}.info-card span{display:block;color:var(--rl-muted);font-size:10px;font-weight:900}.info-card strong{display:block;margin-top:4px;font-size:13px}
+.challenge-panel,.ai-status{margin-top:12px;padding:12px}.challenge-panel>div{display:flex;justify-content:space-between}.ai-status{display:flex;flex-direction:column;gap:4px;border-color:var(--pool-accent,var(--rl-green))}
+.modal,.pool-game-over{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.72)}
+.modal[hidden],.pool-game-over[hidden],[hidden]{display:none!important}
+.modal-card,.game-over-card{position:relative;width:min(560px,100%);padding:24px;border-radius:18px;background:var(--rl-panel);border:1px solid var(--rl-border);box-shadow:var(--rl-shadow)}
+.modal-card h2,.game-over-card h2{margin-top:0}.modal-card p{color:var(--rl-muted);line-height:1.5;margin:12px 0}.modal-close{position:absolute;right:12px;top:12px;font-size:20px}
+footer{text-align:center;color:var(--rl-muted);font-size:11px;padding:24px 0 8px}
+body.game-paused .pool-table{filter:grayscale(.45) brightness(.7)}
+@media(max-width:850px){.pool-settings{grid-template-columns:repeat(2,1fr)}.pool-scoreboard{grid-template-columns:1fr 1fr}.pool-center-status{grid-column:1/-1;grid-row:1}.pool-info{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.pool-app{padding:9px}.pool-settings{grid-template-columns:1fr 1fr}.pool-table{border-width:11px;border-radius:18px}.ball{width:22px;height:22px}.ball:after{font-size:6px}.pool-scoreboard{gap:7px}.player-card{padding:9px}.player-score{font-size:22px}.shoot-controls button{min-width:92px}}
 
