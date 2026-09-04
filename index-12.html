@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07100c">
+<meta name="description" content="RO'Lyfe Pool™ — Competitive pool with AI, themes, challenge mode and tactical gameplay.">
+<title>RO'Lyfe Pool™</title>
+<link rel="stylesheet" href="./pool.css">
+</head>
+
+<body>
+<main id="poolApp" class="pool-app">
+
+  <header class="pool-header">
+    <div class="brand">
+      <div class="brand-mark">RO</div>
+      <div class="brand-text">
+        <div class="brand-title">RO'LYFE POOL™</div>
+        <div class="brand-subtitle">PLAY • COMPETE • THINK • BUILD</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="soundBtn" class="icon-btn" type="button" aria-label="Toggle sound">🔊</button>
+      <button id="fullscreenBtn" class="icon-btn" type="button" aria-label="Fullscreen">⛶</button>
+    </div>
+  </header>
+
+  <section class="pool-settings" aria-label="Game settings">
+    <div class="setting-group">
+      <label for="poolGame">GAME</label>
+      <select id="poolGame">
+        <option value="8ball">8-Ball</option>
+        <option value="9ball">9-Ball</option>
+        <option value="practice">Practice</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label for="poolMode">MODE</label>
+      <select id="poolMode">
+        <option value="pvp">Player vs Player</option>
+        <option value="pvai">Player vs AI</option>
+        <option value="aivai">AI vs AI</option>
+        <option value="challenge">Challenge</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label for="poolAILevel">AI LEVEL</label>
+      <select id="poolAILevel">
+        <option value="1">START-UP</option>
+        <option value="2">BEGINNER</option>
+        <option value="3">INVESTOR</option>
+        <option value="4">ADVANCED</option>
+        <option value="5">7FIGURES</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label for="poolTheme">THEME</label>
+      <select id="poolTheme">
+        <option value="classic">Classic</option>
+        <option value="rolyfe">RO'Lyfe</option>
+        <option value="emg">EM Gaming</option>
+        <option value="ace">ACE</option>
+        <option value="business">Business</option>
+        <option value="realestate">Real Estate</option>
+        <option value="investor">Investor</option>
+        <option value="sevenfigures">7FIGURES</option>
+        <option value="midnight">Midnight</option>
+        <option value="neon">Neon</option>
+        <option value="championship">Championship</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="players" aria-label="Players">
+    <article id="player1" class="player-card active" data-player="0">
+      <div class="player-avatar">P1</div>
+      <div class="player-info">
+        <div class="player-name">PLAYER 1</div>
+        <div id="player1Status" class="player-status">READY</div>
+        <div><span id="score0" class="player-score">0</span><span id="group0" class="player-group">Open</span></div>
+      </div>
+      <div class="player-timer"><span id="timer0">10:00</span></div>
+    </article>
+
+    <div class="turn-status">
+      <div class="turn-label">TURN</div>
+      <div id="turnValue" class="turn-value">PLAYER 1</div>
+      <div id="poolTimer" class="pool-timer">10:00</div>
+    </div>
+
+    <article id="player2" class="player-card" data-player="1">
+      <div class="player-avatar">P2</div>
+      <div class="player-info">
+        <div class="player-name">PLAYER 2</div>
+        <div id="player2Status" class="player-status">WAITING</div>
+        <div><span id="score1" class="player-score">0</span><span id="group1" class="player-group">Open</span></div>
+      </div>
+      <div class="player-timer"><span id="timer1">10:00</span></div>
+    </article>
+  </section>
+
+  <section class="pool-center-status">
+    <div id="poolMessage" class="pool-message">Break the rack to begin.</div>
+    <div id="aiStatus" class="ai-status hidden">AI READY</div>
+  </section>
+
+  <section class="pool-stage">
+    <div id="poolTable" class="pool-table" aria-label="Pool table">
+      <div class="rail rail-top"></div>
+      <div class="rail rail-bottom"></div>
+      <div class="rail rail-left"></div>
+      <div class="rail rail-right"></div>
+
+      <div class="pocket tl"></div>
+      <div class="pocket tc"></div>
+      <div class="pocket tr"></div>
+      <div class="pocket bl"></div>
+      <div class="pocket bc"></div>
+      <div class="pocket br"></div>
+
+      <div class="table-surface">
+        <div id="aimLine" class="aim-line"></div>
+        <div id="ballLayer" class="ball-layer"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pool-power-panel">
+    <div class="power-header">
+      <span>SHOT POWER</span>
+      <strong id="powerValue">55%</strong>
+    </div>
+    <div class="power-controls">
+      <button id="powerDown" class="power-btn" type="button" aria-label="Decrease power">−</button>
+      <div class="power-meter" aria-label="Shot power">
+        <div id="powerFill" class="power-fill"></div>
+      </div>
+      <button id="powerUp" class="power-btn" type="button" aria-label="Increase power">+</button>
+    </div>
+  </section>
+
+  <section class="pool-actions">
+    <button id="aimLeft" type="button">↶ AIM</button>
+    <button id="shootBtn" class="shoot-btn" type="button">🎱 SHOOT</button>
+    <button id="aimRight" type="button">AIM ↷</button>
+  </section>
+
+  <section class="pool-controls">
+    <button id="resetPool" type="button">RESET GAME</button>
+    <button id="newRackBtn" type="button">NEW RACK</button>
+    <button id="pauseBtn" type="button">PAUSE</button>
+    <button id="rulesBtn" type="button">RULES</button>
+  </section>
+
+  <section id="challengePanel" class="challenge-panel hidden">
+    <div><span>CHALLENGE MODE</span><strong id="challengeScore">0</strong></div>
+    <small>Score points by pocketing balls.</small>
+  </section>
+
+  <section class="pool-info" aria-label="Game statistics">
+    <div class="info-card"><span>GAME</span><strong id="statGame">8-Ball</strong></div>
+    <div class="info-card"><span>MODE</span><strong id="statMode">Player vs Player</strong></div>
+    <div class="info-card"><span>AI</span><strong id="statAI">START-UP</strong></div>
+    <div class="info-card"><span>SHOTS</span><strong id="shotCount">0</strong></div>
+  </section>
+
+  <div id="rulesModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="modal-card">
+      <button id="closeRulesBtn" class="modal-close" type="button" aria-label="Close rules">×</button>
+      <h2 id="rulesTitle">RO'LYFE POOL™ RULES</h2>
+      <h3>8-BALL</h3>
+      <p>Pocket object balls and finish with the 8-ball. This V3.2 engine uses a simplified rule foundation rather than full tournament regulation.</p>
+      <h3>9-BALL</h3>
+      <p>The 9-ball is the winning ball. The engine prioritizes the lowest numbered available target.</p>
+      <h3>PRACTICE</h3>
+      <p>Practice aim, power, table control and shot timing without turn pressure.</p>
+      <h3>AI LEVELS</h3>
+      <p>START-UP → BEGINNER → INVESTOR → ADVANCED → 7FIGURES</p>
+    </div>
+  </div>
+
+  <div id="gameOverModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+    <div class="game-over-card">
+      <h2 id="gameOverTitle">GAME OVER</h2>
+      <p id="finalScore">—</p>
+      <button id="playAgainBtn" class="primary-action" type="button">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <footer>RO'Lyfe Gaming™ • Play. Compete. Think. Build.</footer>
+</main>
+
+<script src="../../shared/timer.js"></script>
+<script src="../../shared/audio.js"></script>
+<script src="../../shared/theme-engine.js"></script>
+<script src="../../shared/player-system.js"></script>
+<script src="../../shared/ai-engine.js"></script>
+<script src="../../shared/game-ui.js"></script>
+<script src="../../shared/physics-engine.js"></script>
+<script src="./themes.js"></script>
+<script src="./pool.js"></script>
+</body>
+</html>
