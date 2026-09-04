@@ -1,1 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<meta name="description" content="RO’Lyfe Pool™ — 8-Ball, 9-Ball, Practice, AI and Challenge Mode.">
+<title>RO’Lyfe Pool™</title>
+<link rel="stylesheet" href="../../shared/game-ui.css">
+<link rel="stylesheet" href="../../shared/theme-engine.css">
+<link rel="stylesheet" href="./pool.css">
+</head>
+<body>
+<main id="poolApp" class="pool-app">
+<header class="pool-header">
+  <div class="brand">
+    <div class="brand-icon">🎱</div>
+    <div>
+      <h1>RO’LYFE POOL™</h1>
+      <p>Play. Think. Control the Table.</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="soundBtn" type="button" aria-label="Toggle sound">🔊</button>
+    <button id="fullscreenBtn" type="button" aria-label="Toggle fullscreen">⛶</button>
+  </div>
+</header>
+
+<section class="pool-settings" aria-label="Game settings">
+  <label class="setting-group">Game
+    <select id="poolGame">
+      <option value="8ball">8-Ball</option>
+      <option value="9ball">9-Ball</option>
+      <option value="practice">Practice</option>
+    </select>
+  </label>
+  <label class="setting-group">Mode
+    <select id="poolMode">
+      <option value="pvp">Player vs Player</option>
+      <option value="pvai">Player vs AI</option>
+      <option value="aivai">AI vs AI</option>
+      <option value="challenge">Challenge</option>
+    </select>
+  </label>
+  <label class="setting-group">AI Level
+    <select id="poolAILevel">
+      <option value="1">1 — START-UP</option>
+      <option value="2">2 — START-UP+</option>
+      <option value="3">3 — INVESTOR</option>
+      <option value="4">4 — INVESTOR+</option>
+      <option value="5">5 — 7FIGURES</option>
+    </select>
+  </label>
+  <label class="setting-group">Theme
+    <select id="poolTheme">
+      <option value="rolyfe">RO’Lyfe</option>
+      <option value="classic">Classic</option>
+      <option value="emg">EMG</option>
+      <option value="ace">ACE / Vincible</option>
+      <option value="business">Business</option>
+      <option value="realestate">Real Estate</option>
+      <option value="investor">Investor</option>
+      <option value="sevenfigures">7FIGURES</option>
+      <option value="midnight">Midnight</option>
+      <option value="neon">Neon</option>
+      <option value="championship">Championship</option>
+    </select>
+  </label>
+</section>
+
+<section class="pool-scoreboard">
+  <div class="player-card active" data-player="0">
+    <div class="player-name">PLAYER 1</div>
+    <div class="player-status">At Table</div>
+    <div class="player-score" id="score0">0</div>
+    <div class="player-group" id="group0">Open</div>
+  </div>
+  <div class="pool-center-status">
+    <div class="turn-label">TURN</div>
+    <div class="turn-value" id="turnValue">PLAYER 1</div>
+    <div class="pool-timer" id="poolTimer">10:00</div>
+  </div>
+  <div class="player-card" data-player="1">
+    <div class="player-name">PLAYER 2</div>
+    <div class="player-status">Waiting</div>
+    <div class="player-score" id="score1">0</div>
+    <div class="player-group" id="group1">Open</div>
+  </div>
+</section>
+
+<div class="pool-message" id="poolMessage">Break the rack to begin.</div>
+
+<section class="pool-stage">
+  <div class="table-wrap">
+    <div id="poolTable" class="pool-table">
+      <div class="table-surface">
+        <div class="pocket tl"></div><div class="pocket tc"></div><div class="pocket tr"></div>
+        <div class="pocket bl"></div><div class="pocket bc"></div><div class="pocket br"></div>
+        <div id="ballLayer" class="ball-layer"></div>
+        <div id="aimLine" class="aim-line"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pool-power-panel">
+  <div class="power-header">
+    <span>SHOT POWER</span>
+    <strong id="powerValue">55%</strong>
+  </div>
+  <div class="power-controls">
+    <button id="powerDown" type="button">−</button>
+    <div class="power-meter"><div id="powerFill" class="power-fill"></div></div>
+    <button id="powerUp" type="button">+</button>
+  </div>
+</section>
+
+<section class="shoot-controls">
+  <button id="aimLeft" type="button">↶ AIM</button>
+  <button id="shootBtn" type="button" class="primary-action">🎱 SHOOT</button>
+  <button id="aimRight" type="button">AIM ↷</button>
+</section>
+
+<section class="game-controls">
+  <button id="resetPool" type="button">Reset Game</button>
+  <button id="newRackBtn" type="button">New Rack</button>
+  <button id="pauseBtn" type="button">Pause</button>
+  <button id="rulesBtn" type="button">Rules</button>
+</section>
+
+<section class="pool-info">
+  <div class="info-card">
+    <span>GAME</span><strong id="statGame">8-Ball</strong>
+  </div>
+  <div class="info-card">
+    <span>MODE</span><strong id="statMode">Player vs Player</strong>
+  </div>
+  <div class="info-card">
+    <span>AI</span><strong id="statAI">START-UP</strong>
+  </div>
+  <div class="info-card">
+    <span>SHOTS</span><strong id="shotCount">0</strong>
+  </div>
+</section>
+
+<section id="challengePanel" class="challenge-panel" hidden>
+  <div><strong>🔥 CHALLENGE MODE</strong><span>Score: <b id="challengeScore">0</b></span></div>
+</section>
+
+<section id="aiStatus" class="ai-status" hidden>
+  <strong>🧠 RO’LYFE POOL INTELLIGENCE</strong>
+  <span id="aiStatusText">Analyzing the table…</span>
+</section>
+
+<div id="rulesModal" class="modal" hidden>
+  <div class="modal-card">
+    <button id="closeRules" class="modal-close" type="button">×</button>
+    <h2>Pool Rules</h2>
+    <p><b>8-Ball:</b> Pocket your assigned group, then legally pocket the 8-ball to win. The current engine provides a foundation rather than full tournament rule enforcement.</p>
+    <p><b>9-Ball:</b> Pocket balls 1–9 in sequence. This build provides the game foundation; advanced lowest-ball-first enforcement can be expanded later.</p>
+    <p><b>Practice:</b> Use the table to work on aiming and shot control.</p>
+  </div>
+</div>
+
+<div id="gameOver" class="pool-game-over" hidden>
+  <div class="game-over-card">
+    <h2>GAME OVER</h2>
+    <p id="finalScore"></p>
+    <button id="playAgainBtn" type="button" class="primary-action">PLAY AGAIN</button>
+  </div>
+</div>
+
+<footer>RO’Lyfe Gaming™ • Play. Compete. Think. Build.</footer>
+</main>
+
+<script src="../../shared/timer.js"></script>
+<script src="../../shared/audio.js"></script>
+<script src="../../shared/theme-engine.js"></script>
+<script src="../../shared/player-system.js"></script>
+<script src="../../shared/ai-engine.js"></script>
+<script src="../../shared/game-ui.js"></script>
+<script src="../../shared/physics-engine.js"></script>
+<script src="./themes.js"></script>
+<script src="./pool.js"></script>
+</body>
+</html>
 
