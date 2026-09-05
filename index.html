@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>RO’Lyfe Gaming™</title>
+
+  <meta
+    name="description"
+    content="RO’Lyfe Gaming™ — Play. Compete. Think. Build Your Level."
+  >
+
+  <meta name="theme-color" content="#0b1020">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070b16;
+      --panel: #10182b;
+      --panel-light: #17223a;
+      --text: #ffffff;
+      --muted: #9ca9c4;
+      --blue: #22aaff;
+      --cyan: #38d9ff;
+      --purple: #9b5cff;
+      --green: #28e070;
+      --gold: #ffc928;
+      --red: #ff4d67;
+      --border: rgba(255,255,255,0.10);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(34,170,255,0.25), transparent 35%),
+        radial-gradient(circle at 100% 50%, rgba(155,92,255,0.12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,11,22,0.90);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav {
+      max-width: 1200px;
+      margin: auto;
+      min-height: 72px;
+      padding: 12px 20px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      font-size: 34px;
+    }
+
+    .brand-name {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-name span {
+      color: var(--cyan);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: white;
+      padding: 9px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--blue);
+      background: var(--panel-light);
+    }
+
+    .hero {
+      max-width: 1200px;
+      margin: auto;
+      padding: 70px 20px 55px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 8px 15px;
+      border: 1px solid rgba(56,217,255,0.35);
+      border-radius: 999px;
+      background: rgba(34,170,255,0.08);
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(44px, 9vw, 86px);
+      line-height: 0.95;
+      font-weight: 1000;
+      letter-spacing: -4px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 .blue {
+      color: var(--cyan);
+      text-shadow: 0 0 35px rgba(56,217,255,0.30);
+    }
+
+    .hero h1 .purple {
+      color: var(--purple);
+    }
+
+    .hero-subtitle {
+      max-width: 700px;
+      margin: auto;
+      color: var(--muted);
+      font-size: clamp(17px, 3vw, 22px);
+      line-height: 1.5;
+    }
+
+    .hero-actions {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 150px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #1aa8ff, #7957ff);
+      color: white;
+      box-shadow: 0 10px 35px rgba(34,170,255,0.22);
+    }
+
+    .secondary-btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: white;
+    }
+
+    .primary-btn:hover,
+    .secondary-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .section {
+      max-width: 1200px;
+      margin: auto;
+      padding: 25px 20px 60px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+
+    .section-title h2 {
+      font-size: clamp(25px, 5vw, 36px);
+      font-weight: 900;
+    }
+
+    .section-title p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .game-card {
+      position: relative;
+      min-height: 245px;
+      overflow: hidden;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      padding: 24px;
+
+      border: 1px solid var(--border);
+      border-radius: 20px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,0.06),
+          rgba(255,255,255,0.015)
+        ),
+        var(--panel);
+
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .game-card::before {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      right: -70px;
+      top: -70px;
+      border-radius: 50%;
+      background: var(--card-color);
+      opacity: 0.12;
+      filter: blur(25px);
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--card-color);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+    }
+
+    .game-top {
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-icon {
+      font-size: 48px;
+      margin-bottom: 14px;
+    }
+
+    .game-card h3 {
+      font-size: 25px;
+      margin-bottom: 8px;
+    }
+
+    .game-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .game-bottom {
+      position: relative;
+      z-index: 1;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .play-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 17px;
+      border-radius: 10px;
+      background: var(--card-color);
+      color: #06101c;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .game-status {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chess {
+      --card-color: #38d9ff;
+    }
+
+    .checkers {
+      --card-color: #ff4d67;
+    }
+
+    .connect {
+      --card-color: #28e070;
+    }
+
+    .tic {
+      --card-color: #ffc928;
+    }
+
+    .monopoly {
+      --card-color: #9b5cff;
+    }
+
+    .pool {
+      --card-color: #20b9ff;
+    }
+
+    .levels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .level-card {
+      padding: 24px;
+      border-radius: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+
+    .level-icon {
+      font-size: 30px;
+      margin-bottom: 12px;
+    }
+
+    .level-card h3 {
+      margin-bottom: 8px;
+    }
+
+    .level-card p {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .level-startup {
+      border-color: rgba(40,224,112,0.3);
+    }
+
+    .level-investor {
+      border-color: rgba(34,170,255,0.3);
+    }
+
+    .level-7figures {
+      border-color: rgba(155,92,255,0.4);
+    }
+
+    .systems {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .system {
+      padding: 18px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .system strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .system span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .future {
+      padding: 32px;
+      border-radius: 22px;
+      border: 1px solid rgba(155,92,255,0.25);
+      background:
+        radial-gradient(
+          circle at 80% 20%,
+          rgba(155,92,255,0.15),
+          transparent 35%
+        ),
+        var(--panel);
+    }
+
+    .future h2 {
+      margin-bottom: 10px;
+    }
+
+    .future p {
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 760px;
+    }
+
+    .future-list {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .future-tag {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+      padding: 35px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    footer strong {
+      color: white;
+    }
+
+    .footer-small {
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 850px) {
+      .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .levels {
+        grid-template-columns: 1fr;
+      }
+
+      .systems {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav {
+        min-height: 62px;
+      }
+
+      .brand-name {
+        font-size: 18px;
+      }
+
+      .brand-icon {
+        font-size: 27px;
+      }
+
+      .nav-buttons {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 55px;
+      }
+
+      .hero h1 {
+        letter-spacing: -2px;
+      }
+
+      .games-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .systems {
+        grid-template-columns: 1fr;
+      }
+
+      .game-card {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <nav class="nav">
+    <a href="./" class="brand">
+      <div class="brand-icon">🎮</div>
+      <div class="brand-name">
+        RO’<span>Lyfe</span> Gaming™
+      </div>
+    </a>
+
+    <div class="nav-buttons">
+      <a class="nav-btn" href="#games">Games</a>
+      <a class="nav-btn" href="#levels">AI Levels</a>
+      <a class="nav-btn" href="#future">Future</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero">
+
+  <div class="hero-badge">
+    🎮 RO’LYFE GAMING™ PLATFORM
+  </div>
+
+  <h1>
+    PLAY.
+    <span class="blue">COMPETE.</span>
+    <br>
+    THINK.
+    <span class="purple">BUILD.</span>
+  </h1>
+
+  <p class="hero-subtitle">
+    An expanding browser-based gaming platform built under
+    the RO’Lyfe ecosystem — classic games, strategy,
+    AI opponents, customizable themes and future competitive systems.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#games" class="primary-btn">
+      🎮 PLAY GAMES
+    </a>
+
+    <a href="#levels" class="secondary-btn">
+      🧠 EXPLORE AI
+    </a>
+  </div>
+
+</section>
+
+<section class="section" id="games">
+
+  <div class="section-title">
+    <div>
+      <h2>🔥 Game Library</h2>
+      <p>Choose your game. Build your level.</p>
+    </div>
+  </div>
+
+  <div class="games-grid">
+
+    <article class="game-card chess">
+      <div class="game-top">
+        <div class="game-icon">♟️</div>
+        <h3>Chess</h3>
+        <p>
+          Classic strategic chess with legal moves,
+          drag & drop, AI opponents and multiple difficulty levels.
+        </p>
+      </div>
+
+      <div class="game-bottom">
+        <span class="game-status">♟️ PLAYABLE</span>
+        <a href="./games/chess/" class="play-btn">PLAY NOW →</a>
+      </div>
+    </article>
+
+    <article class="game-card checkers">
+      <div class="game-top">
+        <div class="game-icon">🔴</div>
+        <h3>Checkers</h3>
+        <p>
+          Fast classic board strategy with player systems,
+          AI architecture, custom themes and turn management.
+        </p>
+      </div>
+
+      <div class="game-bottom">
+        <span class="game-status">🔴 PLAYABLE</span>
+        <a href="./games/checkers/" class="play-btn">PLAY NOW →</a>
+      </div>
+    </article>
+
+    <article class="game-card connect">
+      <div class="game-top">
+        <div class="game-icon">🔴</div>
+        <h3>Connect Four</h3>
+        <p>
+          Drop your pieces, control the board and connect four
+          before your opponent does.
+        </p>
+      </div>
+
+      <div class="game-bottom">
+        <span class="game-status">🔴 PLAYABLE</span>
+        <a href="./games/connect-four/" class="play-btn">PLAY NOW →</a>
+      </div>
+    </article>
+
+    <article class="game-card tic">
+      <div class="game-top">
+        <div class="game-icon">⭕</div>
+        <h3>Tic-Tac-Toe</h3>
+        <p>
+          Quick strategy gaming with Player vs Player,
+          AI opponents and scalable difficulty.
+        </p>
+      </div>
+
+      <div class="game-bottom">
+        <span class="game-status">⭕ PLAYABLE</span>
+        <a href="./games/tic-tac-toe/" class="play-btn">PLAY NOW →</a>
+      </div>
+    </article>
+
+    <article class="game-card monopoly">
+      <div class="game-top">
+        <div class="game-icon">💰</div>
+        <h3>Monopoly</h3>
+        <p>
+          A developing property and business strategy game
+          built around acquisition, money and decision-making.
+        </p>
+      </div>
+
+      <div class="game-bottom">
+        <span class="game-status">🚧 DEVELOPING</span>
+        <a href="./games/monopoly/" class="play-btn">ENTER →</a>
+      </div>
+    </article>
+
+    <article class="game-card pool">
+      <div class="game-top">
+        <div class="game-icon">🎱</div>
+        <h3>Pool</h3>
+        <p>
+          RO’Lyfe pool system featuring 8-Ball, 9-Ball,
+          Practice, AI matches and Challenge Mode.
+        </p>
+      </div>
+
+      <div class="game-bottom">
+        <span class="game-status">🚧 DEVELOPING</span>
+        <a href="./games/pool/" class="play-btn">ENTER →</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section class="section" id="levels">
+
+  <div class="section-title">
+    <div>
+      <h2>🧠 RO’Lyfe AI Levels</h2>
+      <p>One platform. Multiple levels of competition.</p>
+    </div>
+  </div>
+
+  <div class="levels">
+
+    <div class="level-card level-startup">
+      <div class="level-icon">🟢</div>
+      <h3>START-UP</h3>
+      <p>
+        Beginner-level gameplay designed for new players,
+        casual gaming and learning the mechanics.
+      </p>
+    </div>
+
+    <div class="level-card level-investor">
+      <div class="level-icon">🔵</div>
+      <h3>INVESTOR</h3>
+      <p>
+        Intermediate gameplay designed for players looking
+        for stronger strategy and more challenging opponents.
+      </p>
+    </div>
+
+    <div class="level-card level-7figures">
+      <div class="level-icon">🟣</div>
+      <h3>7FIGURES</h3>
+      <p>
+        Advanced gameplay designed for experienced players,
+        strategic thinking and high-level competition.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section">
+
+  <div class="section-title">
+    <div>
+      <h2>⚙️ Platform Systems</h2>
+      <p>Shared technology designed to power multiple games.</p>
+    </div>
+  </div>
+
+  <div class="systems">
+
+    <div class="system">
+      <strong>⏱️ Game Timer</strong>
+      <span>Reusable timing architecture.</span>
+    </div>
+
+    <div class="system">
+      <strong>🔊 Audio Engine</strong>
+      <span>Shared sound and game audio system.</span>
+    </div>
+
+    <div class="system">
+      <strong>🎨 Theme Engine</strong>
+      <span>Custom visual identities across games.</span>
+    </div>
+
+    <div class="system">
+      <strong>👤 Player System</strong>
+      <span>Foundation for player profiles and statistics.</span>
+    </div>
+
+    <div class="system">
+      <strong>🧠 AI Engine</strong>
+      <span>Scalable opponent architecture.</span>
+    </div>
+
+    <div class="system">
+      <strong>⚽ Physics Engine</strong>
+      <span>Foundation for games requiring movement and physics.</span>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="future">
+
+  <div class="future">
+
+    <h2>🚀 The Game Library Is Just Beginning</h2>
+
+    <p>
+      RO’Lyfe Gaming™ is being designed as an expandable gaming
+      ecosystem. New games, AI systems, themes, challenges,
+      player statistics and competitive features can be added
+      without rebuilding the entire platform.
+    </p>
+
+    <div class="future-list">
+      <span class="future-tag">♟️ Strategy</span>
+      <span class="future-tag">🎱 Physics Games</span>
+      <span class="future-tag">🧠 AI Opponents</span>
+      <span class="future-tag">🏆 Challenges</span>
+      <span class="future-tag">👤 Player Profiles</span>
+      <span class="future-tag">📊 Statistics</span>
+      <span class="future-tag">🎨 Custom Themes</span>
+      <span class="future-tag">🔊 Sound Systems</span>
+      <span class="future-tag">⚔️ Competitive Modes</span>
+      <span class="future-tag">🚀 Future Games</span>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+
+  <div>
+    🎮 <strong>RO’Lyfe Gaming™</strong>
+  </div>
+
+  <div class="footer-small">
+    Play. Compete. Think. Build Your Level.
+  </div>
+
+  <div class="footer-small">
+    Part of the RO’Lyfe ecosystem.
+  </div>
+
+</footer>
+
+<script>
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+
+    link.addEventListener('click', function(event) {
+
+      const target = document.querySelector(this.getAttribute('href'));
+
+      if (target) {
+        event.preventDefault();
+
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+
+    });
+
+  });
+</script>
+
+</body>
+</html>
