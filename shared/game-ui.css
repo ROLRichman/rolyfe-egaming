@@ -1,1 +1,1236 @@
+/* =========================================================
+   RO’LYFE GAMING™
+   SHARED GAME UI — V1.0
+   File: shared/game-ui.css
 
+   PURPOSE
+   ---------------------------------------------------------
+   Shared visual UI foundation for the RO’Lyfe Gaming™
+   platform.
+
+   GAMES
+   ---------------------------------------------------------
+   • Chess
+   • Checkers
+   • Connect Four
+   • Tic-Tac-Toe
+   • Monopoly
+   • Pool
+
+   NOT INCLUDED
+   ---------------------------------------------------------
+   • Trading
+
+   DEPENDS ON
+   ---------------------------------------------------------
+   • shared/theme-engine.css
+   • shared/theme-engine.js
+   • shared/game-ui.js
+
+   GAME RULES
+   ---------------------------------------------------------
+   Game-specific rules and gameplay remain inside each
+   individual game's files.
+   ========================================================= */
+
+
+/* =========================================================
+   1. SHARED UI ROOT
+   ========================================================= */
+
+.rolyfe-game-ui {
+  box-sizing: border-box;
+  color: var(--rolyfe-text);
+  font-family: var(--rolyfe-font-family);
+}
+
+.rolyfe-game-ui *,
+.rolyfe-game-ui *::before,
+.rolyfe-game-ui *::after {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   2. GAME SHELL
+   ========================================================= */
+
+.rolyfe-game-shell {
+  width: 100%;
+  min-height: 100%;
+  background: var(--rolyfe-bg);
+  color: var(--rolyfe-text);
+}
+
+.rolyfe-game-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--rolyfe-spacing-xl);
+}
+
+
+/* =========================================================
+   3. GAME HEADER
+   ========================================================= */
+
+.rolyfe-game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rolyfe-spacing-lg);
+
+  width: 100%;
+
+  padding:
+    var(--rolyfe-spacing-md)
+    var(--rolyfe-spacing-lg);
+
+  background: var(--rolyfe-surface);
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-lg);
+
+  box-shadow: var(--rolyfe-shadow-sm);
+}
+
+.rolyfe-game-header-main {
+  min-width: 0;
+}
+
+.rolyfe-game-title {
+  margin: 0;
+
+  color: var(--rolyfe-text);
+
+  font-size: var(--rolyfe-font-size-xl);
+  font-weight: var(--rolyfe-font-weight-bold);
+
+  line-height: 1.2;
+}
+
+.rolyfe-game-subtitle {
+  margin-top: 4px;
+
+  color: var(--rolyfe-text-muted);
+
+  font-size: var(--rolyfe-font-size-sm);
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   4. HEADER ACTIONS
+   ========================================================= */
+
+.rolyfe-game-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--rolyfe-spacing-sm);
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   5. SHARED BUTTONS
+   ========================================================= */
+
+.rolyfe-game-btn {
+  appearance: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 40px;
+
+  padding:
+    9px 14px;
+
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-md);
+
+  background: var(--rolyfe-surface-2);
+  color: var(--rolyfe-text);
+
+  font-family: inherit;
+  font-size: var(--rolyfe-font-size-sm);
+  font-weight: var(--rolyfe-font-weight-semibold);
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  user-select: none;
+
+  transition:
+    background-color var(--rolyfe-transition-fast),
+    border-color var(--rolyfe-transition-fast),
+    color var(--rolyfe-transition-fast),
+    transform var(--rolyfe-transition-fast),
+    box-shadow var(--rolyfe-transition-fast);
+}
+
+.rolyfe-game-btn:hover {
+  background: var(--rolyfe-surface-3);
+  border-color: var(--rolyfe-border-strong);
+}
+
+.rolyfe-game-btn:active {
+  transform: translateY(1px);
+}
+
+.rolyfe-game-btn:focus-visible {
+  outline: 2px solid var(--rolyfe-accent);
+  outline-offset: 2px;
+}
+
+.rolyfe-game-btn:disabled,
+.rolyfe-game-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* =========================================================
+   6. PRIMARY GAME BUTTON
+   ========================================================= */
+
+.rolyfe-game-btn-primary {
+  background: var(--rolyfe-accent);
+  border-color: var(--rolyfe-accent);
+  color: #07100c;
+}
+
+.rolyfe-game-btn-primary:hover {
+  background: var(--rolyfe-accent-strong);
+  border-color: var(--rolyfe-accent-strong);
+}
+
+
+/* =========================================================
+   7. OUTLINE GAME BUTTON
+   ========================================================= */
+
+.rolyfe-game-btn-outline {
+  background: transparent;
+  border-color: var(--rolyfe-accent);
+  color: var(--rolyfe-accent);
+}
+
+.rolyfe-game-btn-outline:hover {
+  background: var(--rolyfe-accent-soft);
+}
+
+
+/* =========================================================
+   8. DANGER BUTTON
+   ========================================================= */
+
+.rolyfe-game-btn-danger {
+  background: transparent;
+  border-color: var(--rolyfe-danger);
+  color: var(--rolyfe-danger);
+}
+
+.rolyfe-game-btn-danger:hover {
+  background: rgba(239, 83, 80, 0.12);
+}
+
+
+/* =========================================================
+   9. PAUSE BUTTON
+   ========================================================= */
+
+.rolyfe-game-btn[data-paused="true"] {
+  border-color: var(--rolyfe-warning);
+  color: var(--rolyfe-warning);
+  background: rgba(242, 201, 76, 0.08);
+}
+
+
+/* =========================================================
+   10. GAME CONTROL BAR
+   ========================================================= */
+
+.rolyfe-game-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rolyfe-spacing-sm);
+
+  flex-wrap: wrap;
+
+  width: 100%;
+
+  padding: var(--rolyfe-spacing-md);
+
+  background: var(--rolyfe-surface);
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-lg);
+}
+
+
+/* =========================================================
+   11. GAME INFORMATION PANEL
+   ========================================================= */
+
+.rolyfe-game-info {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(120px, 1fr)
+  );
+
+  gap: var(--rolyfe-spacing-sm);
+
+  width: 100%;
+}
+
+.rolyfe-game-info-item {
+  min-width: 0;
+
+  padding:
+    var(--rolyfe-spacing-md);
+
+  background: var(--rolyfe-surface);
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-md);
+}
+
+.rolyfe-game-info-label {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--rolyfe-text-muted);
+
+  font-size: var(--rolyfe-font-size-xs);
+  font-weight: var(--rolyfe-font-weight-semibold);
+
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rolyfe-game-info-value {
+  display: block;
+
+  color: var(--rolyfe-text);
+
+  font-size: var(--rolyfe-font-size-md);
+  font-weight: var(--rolyfe-font-weight-bold);
+
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   12. STATUS PANEL
+   ========================================================= */
+
+.rolyfe-game-status {
+  display: flex;
+  align-items: center;
+  gap: var(--rolyfe-spacing-sm);
+
+  min-height: 42px;
+
+  padding:
+    9px 13px;
+
+  background: var(--rolyfe-surface);
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-md);
+
+  color: var(--rolyfe-text);
+
+  font-size: var(--rolyfe-font-size-sm);
+  font-weight: var(--rolyfe-font-weight-medium);
+
+  transition:
+    background-color var(--rolyfe-transition-fast),
+    border-color var(--rolyfe-transition-fast),
+    color var(--rolyfe-transition-fast);
+}
+
+.rolyfe-game-status::before {
+  content: "";
+
+  flex: 0 0 auto;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: var(--rolyfe-accent);
+}
+
+
+/* =========================================================
+   13. STATUS TYPES
+   ========================================================= */
+
+.rolyfe-game-status[data-status="success"],
+.rolyfe-game-status.status-success {
+  border-color: rgba(53, 208, 127, 0.30);
+  color: var(--rolyfe-success);
+}
+
+.rolyfe-game-status[data-status="success"]::before,
+.rolyfe-game-status.status-success::before {
+  background: var(--rolyfe-success);
+}
+
+.rolyfe-game-status[data-status="warning"],
+.rolyfe-game-status.status-warning {
+  border-color: rgba(242, 201, 76, 0.30);
+  color: var(--rolyfe-warning);
+}
+
+.rolyfe-game-status[data-status="warning"]::before,
+.rolyfe-game-status.status-warning::before {
+  background: var(--rolyfe-warning);
+}
+
+.rolyfe-game-status[data-status="danger"],
+.rolyfe-game-status.status-danger {
+  border-color: rgba(239, 83, 80, 0.30);
+  color: var(--rolyfe-danger);
+}
+
+.rolyfe-game-status[data-status="danger"]::before,
+.rolyfe-game-status.status-danger::before {
+  background: var(--rolyfe-danger);
+}
+
+.rolyfe-game-status[data-status="info"],
+.rolyfe-game-status.status-info {
+  border-color: rgba(77, 163, 255, 0.30);
+  color: var(--rolyfe-info);
+}
+
+.rolyfe-game-status[data-status="info"]::before,
+.rolyfe-game-status.status-info::before {
+  background: var(--rolyfe-info);
+}
+
+
+/* =========================================================
+   14. TURN INDICATOR
+   ========================================================= */
+
+.rolyfe-game-turn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  color: var(--rolyfe-accent);
+
+  font-size: var(--rolyfe-font-size-sm);
+  font-weight: var(--rolyfe-font-weight-bold);
+}
+
+.rolyfe-game-turn::before {
+  content: "";
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: currentColor;
+
+  box-shadow:
+    0 0 0 4px var(--rolyfe-accent-soft);
+}
+
+
+/* =========================================================
+   15. PLAYER PANEL
+   ========================================================= */
+
+.rolyfe-player-panel {
+  position: relative;
+
+  padding: var(--rolyfe-spacing-lg);
+
+  background: var(--rolyfe-surface);
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-lg);
+
+  color: var(--rolyfe-text);
+
+  transition:
+    background-color var(--rolyfe-transition-normal),
+    border-color var(--rolyfe-transition-normal),
+    box-shadow var(--rolyfe-transition-normal),
+    transform var(--rolyfe-transition-normal);
+}
+
+.rolyfe-player-panel:hover {
+  border-color: var(--rolyfe-border-strong);
+}
+
+.rolyfe-player-panel.active,
+.rolyfe-player-panel.rolyfe-player-active {
+  border-color: var(--rolyfe-accent);
+
+  box-shadow:
+    0 0 0 2px var(--rolyfe-accent-soft);
+}
+
+
+/* =========================================================
+   16. PLAYER NAME
+   ========================================================= */
+
+.rolyfe-player-name {
+  color: var(--rolyfe-text);
+
+  font-size: var(--rolyfe-font-size-md);
+  font-weight: var(--rolyfe-font-weight-bold);
+}
+
+.rolyfe-player-level {
+  margin-top: 3px;
+
+  color: var(--rolyfe-text-muted);
+
+  font-size: var(--rolyfe-font-size-xs);
+  font-weight: var(--rolyfe-font-weight-semibold);
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+
+/* =========================================================
+   17. PLAYER TYPE
+   ========================================================= */
+
+.rolyfe-player-panel[data-player-type="ai"] {
+  border-style: dashed;
+}
+
+.rolyfe-player-panel[data-player-type="ai"]
+.rolyfe-player-name {
+  color: var(--rolyfe-info);
+}
+
+
+/* =========================================================
+   18. PLAYER SCORE
+   ========================================================= */
+
+.rolyfe-player-score {
+  margin-top: var(--rolyfe-spacing-md);
+
+  color: var(--rolyfe-text);
+
+  font-size: var(--rolyfe-font-size-xl);
+  font-weight: var(--rolyfe-font-weight-bold);
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   19. SCOREBOARD
+   ========================================================= */
+
+.rolyfe-scoreboard {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(140px, 1fr)
+    );
+
+  gap: var(--rolyfe-spacing-md);
+
+  width: 100%;
+}
+
+.rolyfe-score-card {
+  padding: var(--rolyfe-spacing-lg);
+
+  background: var(--rolyfe-surface);
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-lg);
+
+  text-align: center;
+}
+
+.rolyfe-score-card-label {
+  color: var(--rolyfe-text-muted);
+
+  font-size: var(--rolyfe-font-size-xs);
+  font-weight: var(--rolyfe-font-weight-semibold);
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rolyfe-score-card-value {
+  margin-top: 6px;
+
+  color: var(--rolyfe-accent);
+
+  font-size: var(--rolyfe-font-size-2xl);
+  font-weight: var(--rolyfe-font-weight-bold);
+}
+
+
+/* =========================================================
+   20. LEVEL BADGES
+   ========================================================= */
+
+.rolyfe-level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 26px;
+
+  padding:
+    4px 9px;
+
+  border: 1px solid var(--rolyfe-border);
+  border-radius: 999px;
+
+  font-size: var(--rolyfe-font-size-xs);
+  font-weight: var(--rolyfe-font-weight-bold);
+
+  white-space: nowrap;
+}
+
+.rolyfe-level-badge.startup,
+.rolyfe-level-badge[data-level="START-UP"] {
+  background: rgba(53, 208, 127, 0.12);
+  border-color: rgba(53, 208, 127, 0.30);
+  color: var(--rolyfe-startup);
+}
+
+.rolyfe-level-badge.investor,
+.rolyfe-level-badge[data-level="INVESTOR"] {
+  background: rgba(77, 163, 255, 0.12);
+  border-color: rgba(77, 163, 255, 0.30);
+  color: var(--rolyfe-investor);
+}
+
+.rolyfe-level-badge.figures,
+.rolyfe-level-badge[data-level="7FIGURES"] {
+  background: rgba(165, 108, 255, 0.12);
+  border-color: rgba(165, 108, 255, 0.30);
+  color: var(--rolyfe-7figures);
+}
+
+
+/* =========================================================
+   21. GAME OVERLAY
+   ========================================================= */
+
+.rolyfe-game-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: var(--rolyfe-spacing-xl);
+
+  background: rgba(0, 0, 0, 0.62);
+
+  color: var(--rolyfe-text);
+
+  opacity: 1;
+  visibility: visible;
+
+  transition:
+    opacity var(--rolyfe-transition-normal),
+    visibility var(--rolyfe-transition-normal);
+}
+
+.rolyfe-game-overlay[hidden] {
+  display: none;
+}
+
+.rolyfe-game-overlay:not(.rolyfe-overlay-visible) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   22. OVERLAY CONTENT
+   ========================================================= */
+
+.rolyfe-overlay-panel {
+  width: min(100%, 520px);
+
+  padding: var(--rolyfe-spacing-2xl);
+
+  background: var(--rolyfe-surface);
+  border: 1px solid var(--rolyfe-border-strong);
+  border-radius: var(--rolyfe-radius-xl);
+
+  box-shadow: var(--rolyfe-shadow-lg);
+
+  text-align: center;
+}
+
+.rolyfe-overlay-title {
+  margin: 0;
+
+  color: var(--rolyfe-text);
+
+  font-size: var(--rolyfe-font-size-2xl);
+  font-weight: var(--rolyfe-font-weight-bold);
+}
+
+.rolyfe-overlay-content {
+  margin-top: var(--rolyfe-spacing-md);
+
+  color: var(--rolyfe-text-secondary);
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   23. PAUSED GAME
+   ========================================================= */
+
+.game-paused .rolyfe-game-shell {
+  filter: saturate(0.78);
+}
+
+.game-paused .rolyfe-game-board-area {
+  position: relative;
+}
+
+.game-paused .rolyfe-game-board-area::after {
+  content: "PAUSED";
+
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  background: rgba(0, 0, 0, 0.20);
+
+  color: var(--rolyfe-text);
+
+  font-size: clamp(
+    1.3rem,
+    4vw,
+    2.4rem
+  );
+
+  font-weight: var(--rolyfe-font-weight-black);
+
+  letter-spacing: 0.12em;
+}
+
+
+/* =========================================================
+   24. NOTIFICATION CONTAINER
+   ========================================================= */
+
+.rolyfe-notification-container {
+  position: fixed;
+
+  top: var(--rolyfe-spacing-lg);
+  right: var(--rolyfe-spacing-lg);
+
+  z-index: 2000;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--rolyfe-spacing-sm);
+
+  width: min(
+    calc(100vw - 32px),
+    360px
+  );
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   25. NOTIFICATION
+   ========================================================= */
+
+.rolyfe-notification {
+  width: 100%;
+
+  padding:
+    11px 13px;
+
+  background: var(--rolyfe-surface-2);
+
+  border: 1px solid var(--rolyfe-border);
+  border-radius: var(--rolyfe-radius-md);
+
+  box-shadow: var(--rolyfe-shadow-md);
+
+  color: var(--rolyfe-text);
+
+  font-size: var(--rolyfe-font-size-sm);
+  font-weight: var(--rolyfe-font-weight-medium);
+
+  opacity: 0;
+
+  transform:
+    translateY(-8px);
+
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.rolyfe-notification-visible {
+  opacity: 1;
+
+  transform:
+    translateY(0);
+}
+
+
+/* =========================================================
+   26. NOTIFICATION TYPES
+   ========================================================= */
+
+.rolyfe-notification-success {
+  border-color: rgba(53, 208, 127, 0.35);
+}
+
+.rolyfe-notification-warning {
+  border-color: rgba(242, 201, 76, 0.35);
+}
+
+.rolyfe-notification-danger {
+  border-color: rgba(239, 83, 80, 0.35);
+}
+
+.rolyfe-notification-info {
+  border-color: rgba(77, 163, 255, 0.35);
+}
+
+
+/* =========================================================
+   27. GAME STATUS STATES
+   ========================================================= */
+
+.rolyfe-game-running {
+  --rolyfe-ui-state-opacity: 1;
+}
+
+.rolyfe-game-paused {
+  --rolyfe-ui-state-opacity: 0.72;
+}
+
+
+/* =========================================================
+   28. DIVIDERS
+   ========================================================= */
+
+.rolyfe-ui-divider {
+  width: 100%;
+  height: 1px;
+
+  margin:
+    var(--rolyfe-spacing-md)
+    0;
+
+  background: var(--rolyfe-border);
+}
+
+
+/* =========================================================
+   29. GAME GRID
+   ========================================================= */
+
+.rolyfe-game-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(
+        min(100%, 280px),
+        1fr
+      )
+    );
+
+  gap: var(--rolyfe-spacing-lg);
+
+  width: 100%;
+}
+
+
+/* =========================================================
+   30. GAME BOARD AREA
+   ========================================================= */
+
+.rolyfe-game-board-area {
+  position: relative;
+
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   31. CONTROL GROUP
+   ========================================================= */
+
+.rolyfe-control-group {
+  display: flex;
+  align-items: center;
+
+  gap: var(--rolyfe-spacing-sm);
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   32. SELECT / INPUT UI
+   ========================================================= */
+
+.rolyfe-game-select,
+.rolyfe-game-input {
+  min-height: 40px;
+
+  padding:
+    9px 11px;
+
+  border:
+    1px solid var(--rolyfe-border);
+
+  border-radius:
+    var(--rolyfe-radius-md);
+
+  background:
+    var(--rolyfe-surface-2);
+
+  color:
+    var(--rolyfe-text);
+
+  font-family:
+    inherit;
+
+  font-size:
+    var(--rolyfe-font-size-sm);
+
+  transition:
+    border-color var(--rolyfe-transition-fast),
+    box-shadow var(--rolyfe-transition-fast),
+    background-color var(--rolyfe-transition-fast);
+}
+
+.rolyfe-game-select:focus,
+.rolyfe-game-input:focus {
+  outline: none;
+
+  border-color:
+    var(--rolyfe-accent);
+
+  box-shadow:
+    0 0 0 3px
+    var(--rolyfe-accent-soft);
+}
+
+
+/* =========================================================
+   33. HIDDEN UI
+   ========================================================= */
+
+.rolyfe-ui-hidden {
+  display: none !important;
+}
+
+
+/* =========================================================
+   34. VISUALLY HIDDEN
+   ========================================================= */
+
+.rolyfe-ui-sr-only {
+  position: absolute !important;
+
+  width: 1px !important;
+  height: 1px !important;
+
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+
+  white-space: nowrap !important;
+
+  border: 0 !important;
+}
+
+
+/* =========================================================
+   35. GAME-SPECIFIC THEME HOOKS
+   ---------------------------------------------------------
+   These establish a shared accent contract without
+   redesigning any individual game.
+   ========================================================= */
+
+[data-rolyfe-game="chess"],
+[data-game="chess"] {
+  --rolyfe-game-accent:
+    var(--rolyfe-accent);
+}
+
+[data-rolyfe-game="checkers"],
+[data-game="checkers"] {
+  --rolyfe-game-accent:
+    var(--rolyfe-accent);
+}
+
+[data-rolyfe-game="connect-four"],
+[data-game="connect-four"] {
+  --rolyfe-game-accent:
+    var(--rolyfe-accent);
+}
+
+[data-rolyfe-game="tic-tac-toe"],
+[data-game="tic-tac-toe"] {
+  --rolyfe-game-accent:
+    var(--rolyfe-accent);
+}
+
+[data-rolyfe-game="monopoly"],
+[data-game="monopoly"] {
+  --rolyfe-game-accent:
+    var(--rolyfe-accent);
+}
+
+[data-rolyfe-game="pool"],
+[data-game="pool"] {
+  --rolyfe-game-accent:
+    var(--rolyfe-accent);
+}
+
+
+/* =========================================================
+   36. GAME ACCENT ELEMENTS
+   ========================================================= */
+
+.rolyfe-game-accent {
+  color:
+    var(
+      --rolyfe-game-accent,
+      var(--rolyfe-accent)
+    );
+}
+
+.rolyfe-game-accent-bg {
+  background:
+    var(
+      --rolyfe-game-accent,
+      var(--rolyfe-accent)
+    );
+}
+
+.rolyfe-game-accent-border {
+  border-color:
+    var(
+      --rolyfe-game-accent,
+      var(--rolyfe-accent)
+    );
+}
+
+
+/* =========================================================
+   37. ACCESSIBILITY
+   ========================================================= */
+
+.rolyfe-game-btn:focus-visible,
+.rolyfe-game-select:focus-visible,
+.rolyfe-game-input:focus-visible,
+.rolyfe-focusable:focus-visible {
+  outline:
+    2px solid
+    var(--rolyfe-accent);
+
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   38. TOUCH INTERACTION
+   ========================================================= */
+
+.rolyfe-game-btn,
+.rolyfe-game-select,
+.rolyfe-game-input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rolyfe-game-btn {
+  touch-action: manipulation;
+}
+
+
+/* =========================================================
+   39. RESPONSIVE — TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .rolyfe-game-container {
+    padding:
+      var(--rolyfe-spacing-lg);
+  }
+
+  .rolyfe-game-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rolyfe-game-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+}
+
+
+/* =========================================================
+   40. RESPONSIVE — MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .rolyfe-game-container {
+    padding:
+      var(--rolyfe-spacing-md);
+  }
+
+  .rolyfe-game-header {
+    padding:
+      var(--rolyfe-spacing-md);
+  }
+
+  .rolyfe-game-title {
+    font-size:
+      var(--rolyfe-font-size-lg);
+  }
+
+  .rolyfe-game-controls {
+    padding:
+      var(--rolyfe-spacing-sm);
+  }
+
+  .rolyfe-game-btn {
+    min-height: 42px;
+    padding: 10px 13px;
+  }
+
+  .rolyfe-game-info {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .rolyfe-scoreboard {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .rolyfe-notification-container {
+    top: var(--rolyfe-spacing-md);
+    right: var(--rolyfe-spacing-md);
+  }
+
+}
+
+
+/* =========================================================
+   41. RESPONSIVE — SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 430px) {
+
+  .rolyfe-game-info {
+    grid-template-columns:
+      1fr;
+  }
+
+  .rolyfe-scoreboard {
+    grid-template-columns:
+      1fr;
+  }
+
+  .rolyfe-game-header-actions,
+  .rolyfe-control-group {
+    width: 100%;
+  }
+
+  .rolyfe-game-header-actions
+  .rolyfe-game-btn,
+  .rolyfe-control-group
+  .rolyfe-game-btn {
+    flex: 1 1 auto;
+  }
+
+  .rolyfe-overlay-panel {
+    padding:
+      var(--rolyfe-spacing-xl);
+  }
+
+}
+
+
+/* =========================================================
+   42. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .rolyfe-game-btn,
+  .rolyfe-game-status,
+  .rolyfe-player-panel,
+  .rolyfe-game-overlay,
+  .rolyfe-notification {
+    transition: none !important;
+  }
+
+}
+
+
+/* =========================================================
+   43. END OF RO’LYFE GAMING™
+       SHARED GAME UI V1.0
+   ========================================================= */
