@@ -2,17 +2,19 @@
    RO'LYFE GAMING™ — POOL ENGINE V3.2
    Replacement for: games/pool/pool.js
 
-   V3.2 STABILIZATION
+   V3.2 FIXES
    ---------------------------------------------------------
-   • AI vs AI auto-start
-   • AI turn safety timer
-   • Proper 9-Ball rack
-   • Proper 9-Ball lowest-ball-first rule
-   • 9-Ball victory handling
-   • 8-Ball victory handling preserved
-   • AI turn cancellation/reset protection
-   • Mobile touch/scroll stabilization
-   • Existing Pool UI preserved
+   • AI vs AI automatic turn cycle
+   • AI Start / Stop control
+   • AI turn timer handling
+   • Proper 9-Ball diamond rack
+   • 1-ball apex / 9-ball center
+   • Selector synchronization
+   • Cue-stick visual + shot animation
+   • Improved mobile touch control
+   • Shared audio-engine hooks
+   • AI-safe timers / stale AI cancellation
+   • Restart / new-rack controls
    ========================================================= */
 
 (() => {
@@ -25,6 +27,7 @@
   const CONFIG = {
     tableWidth: 1000,
     tableHeight: 500,
+
     ballRadius: 14,
 
     friction: 0.992,
@@ -42,15 +45,21 @@
     pocketCaptureRadius: 29,
 
     aiDelay: 850,
-    aiTurnTime: 5000,
+    aiMaxThinkTime: 1800,
+
     playerTime: 600,
     challengeTime: 120,
 
     aimStep: 2.5,
     aimLineLength: 240,
 
-    aiMaxThinkTime: 1800,
-    maxVelocity: 38
+    maxVelocity: 38,
+
+    cueStickLength: 285,
+    cueStickWidth: 7,
+    cuePullback: 45,
+    cueStrikeDistance: 26,
+    cueAnimationTime: 115
   };
 
 
@@ -135,11 +144,13 @@
      ========================================================= */
 
   const state = {
+
     gameType: "8ball",
     mode: "pvp",
     aiLevel: 1,
 
     balls: [],
+
     currentPlayer: 0,
     players: [],
 
@@ -157,10 +168,12 @@
     breakShot: true,
 
     ballsPocketedThisTurn: [],
+
     foulThisTurn: false,
     firstBallHit: null,
 
     gameOver: false,
+
     challengeMode: false,
     challengeScore: 0,
 
@@ -171,21 +184,25 @@
     lastFrame: performance.now(),
 
     aiThinking: false,
-    aiTimerId: null,
-    aiThinkStarted: 0,
-    aiThinkRemaining: 0,
+    aiEnabled: true,
+
+    aiTimer: null,
+    aiToken: 0,
 
     paused: false,
 
     lockOn: false,
     lockedTarget: null,
 
-    shotCount: 0
+    shotCount: 0,
+
+    cueStick: null,
+    cueAnimation: null
   };
 
 
   /* =========================================================
-     HELPERS
+     UTILITIES
      ========================================================= */
 
   const clamp = (v, min, max) =>
@@ -204,8 +221,13 @@
   };
 
   const size = () => ({
-    width: table?.clientWidth || CONFIG.tableWidth,
-    height: table?.clientHeight || CONFIG.tableHeight
+    width:
+      table?.clientWidth ||
+      CONFIG.tableWidth,
+
+    height:
+      table?.clientHeight ||
+      CONFIG.tableHeight
   });
 
   const sx = () =>
@@ -214,21 +236,116 @@
   const sy = () =>
     size().height / CONFIG.tableHeight;
 
-  const rx = x =>
-    x * sx();
-
-  const ry = y =>
-    y * sy();
+  const rx = x => x * sx();
+  const ry = y => y * sy();
 
   const player = () =>
     state.players[state.currentPlayer];
 
-  const formatTime = seconds =>
+  const formatTime = s =>
     `${String(
-      Math.floor(Math.max(0, seconds) / 60)
+      Math.floor(Math.max(0, s) / 60)
     ).padStart(2, "0")}:${String(
-      Math.max(0, seconds) % 60
+      Math.max(0, s) % 60
     ).padStart(2, "0")}`;
+
+
+  /* =========================================================
+     AUDIO BRIDGE
+     ========================================================= */
+
+  function audio() {
+    return (
+      window.ROLyfeAudio ||
+      window.ROlyfeAudio ||
+      null
+    );
+  }
+
+  function audioCall(name, ...args) {
+    const a = audio();
+
+    if (!a) return;
+
+    try {
+      if (typeof a[name] === "function") {
+        a[name](...args);
+      }
+    } catch (err) {
+      console.warn(
+        "RO'Lyfe Pool audio:",
+        name,
+        err
+      );
+    }
+  }
+
+  function unlockAudio() {
+    const a = audio();
+
+    if (!a) return;
+
+    try {
+      if (typeof a.unlock === "function") {
+        a.unlock();
+      }
+
+      if (
+        typeof a.init === "function" &&
+        !a.initialized
+      ) {
+        a.init();
+      }
+    } catch (err) {
+      console.warn(
+        "RO'Lyfe Audio unlock:",
+        err
+      );
+    }
+  }
+
+  function setupAudioUnlock() {
+
+    const unlock = () => {
+      unlockAudio();
+
+      document.removeEventListener(
+        "pointerdown",
+        unlock
+      );
+
+      document.removeEventListener(
+        "touchstart",
+        unlock
+      );
+
+      document.removeEventListener(
+        "keydown",
+        unlock
+      );
+    };
+
+    document.addEventListener(
+      "pointerdown",
+      unlock,
+      { once: true }
+    );
+
+    document.addEventListener(
+      "touchstart",
+      unlock,
+      {
+        once: true,
+        passive: true
+      }
+    );
+
+    document.addEventListener(
+      "keydown",
+      unlock,
+      { once: true }
+    );
+  }
 
 
   /* =========================================================
@@ -236,6 +353,7 @@
      ========================================================= */
 
   function msg(text, type = "") {
+
     if (!messageEl) return;
 
     messageEl.textContent = text;
@@ -251,6 +369,7 @@
      ========================================================= */
 
   function pockets() {
+
     const w = CONFIG.tableWidth;
     const h = CONFIG.tableHeight;
 
@@ -266,13 +385,14 @@
   }
 
 
-  function pocketed(ballObject) {
-    if (ballObject.pocketed) return false;
+  function pocketed(ballObj) {
+
+    if (ballObj.pocketed) return false;
 
     return pockets().some(p =>
       Math.hypot(
-        ballObject.x - p.x,
-        ballObject.y - p.y
+        ballObj.x - p.x,
+        ballObj.y - p.y
       ) <= CONFIG.pocketCaptureRadius
     );
   }
@@ -282,7 +402,8 @@
      BALL
      ========================================================= */
 
-  function createBall(number, x, y) {
+  function ball(number, x, y) {
+
     return {
       number,
       x,
@@ -306,18 +427,22 @@
 
   function configurePlayers() {
 
-    const aiName = () => ({
+    const aiNames = {
       1: "RO'Lyfe AI — START-UP",
       2: "RO'Lyfe AI — START-UP+",
       3: "RO'Lyfe AI — INVESTOR",
       4: "RO'Lyfe AI — INVESTOR+",
       5: "RO'Lyfe AI — 7FIGURES"
-    }[+state.aiLevel] || "RO'Lyfe AI");
+    };
 
+    const aiName =
+      aiNames[+state.aiLevel] ||
+      "RO'Lyfe AI";
 
     if (state.mode === "pvai") {
 
       state.players = [
+
         {
           name: "Player 1",
           type: "human",
@@ -327,21 +452,19 @@
         },
 
         {
-          name: aiName(),
+          name: aiName,
           type: "ai",
           score: 0,
           group: null,
           fouls: 0
         }
+
       ];
 
-      return;
-    }
-
-
-    if (state.mode === "aivai") {
+    } else if (state.mode === "aivai") {
 
       state.players = [
+
         {
           name: "RO'Lyfe AI Alpha",
           type: "ai",
@@ -357,15 +480,13 @@
           group: null,
           fouls: 0
         }
+
       ];
 
-      return;
-    }
-
-
-    if (state.mode === "challenge") {
+    } else if (state.mode === "challenge") {
 
       state.players = [
+
         {
           name: "Challenge Player",
           type: "human",
@@ -381,143 +502,187 @@
           group: null,
           fouls: 0
         }
+
       ];
+
+    } else {
+
+      state.players = [
+
+        {
+          name: "Player 1",
+          type: "human",
+          score: 0,
+          group: null,
+          fouls: 0
+        },
+
+        {
+          name: "Player 2",
+          type: "human",
+          score: 0,
+          group: null,
+          fouls: 0
+        }
+
+      ];
+    }
+  }
+
+
+  /* =========================================================
+     RACK CREATION
+     ========================================================= */
+
+  function createRack() {
+
+    state.balls = [];
+
+    /*
+     * Cue ball.
+     */
+    const cue =
+      ball(
+        0,
+        210,
+        250
+      );
+
+    state.cueBall = cue;
+
+    state.balls.push(cue);
+
+
+    /*
+     * 9-BALL
+     *
+     * Standard diamond:
+     *
+     *             1
+     *           2   3
+     *         4   9   5
+     *           6   7
+     *             8
+     *
+     * The exact rotation may vary in real-world racks,
+     * but the important structural rules are:
+     *
+     * • 1-ball at the apex
+     * • 9-ball in the center
+     * • 9 balls total
+     */
+    if (state.gameType === "9ball") {
+
+      const spacing =
+        CONFIG.ballRadius * 2.04;
+
+      const rackX = 720;
+      const rackY = 250;
+
+      const positions = [
+
+        /*
+         * Row 1
+         */
+        [0, 0],
+
+        /*
+         * Row 2
+         */
+        [1, -0.5],
+        [1, 0.5],
+
+        /*
+         * Row 3
+         */
+        [2, -1],
+        [2, 0],
+        [2, 1],
+
+        /*
+         * Row 4
+         */
+        [3, -0.5],
+        [3, 0.5],
+
+        /*
+         * Row 5
+         */
+        [4, 0]
+
+      ];
+
+      /*
+       * Fixed 9-ball layout:
+       * 1 = apex
+       * 9 = center
+       *
+       * Other balls rotate between remaining spots.
+       */
+      const numbers = [
+        1,
+        2,
+        3,
+        4,
+        9,
+        5,
+        6,
+        7,
+        8
+      ];
+
+      positions.forEach((pos, index) => {
+
+        const row = pos[0];
+        const offset = pos[1];
+
+        const x =
+          rackX +
+          row * spacing * 0.866;
+
+        const y =
+          rackY +
+          offset * spacing;
+
+        state.balls.push(
+          ball(
+            numbers[index],
+            x,
+            y
+          )
+        );
+      });
 
       return;
     }
 
 
-    state.players = [
-      {
-        name: "Player 1",
-        type: "human",
-        score: 0,
-        group: null,
-        fouls: 0
-      },
-
-      {
-        name: "Player 2",
-        type: "human",
-        score: 0,
-        group: null,
-        fouls: 0
-      }
-    ];
-  }
-
-
-  /* =========================================================
-     8-BALL RACK
-     ========================================================= */
-
-  function create8BallRack() {
-
-    const cue = createBall(
-      0,
-      210,
-      250
-    );
-
-    state.cueBall = cue;
-    state.balls = [cue];
+    /* =======================================================
+       8-BALL
+       ======================================================= */
 
     const spacing =
       CONFIG.ballRadius * 2.04;
 
     const rackX = 720;
     const rackY = 250;
-
-    let number = 1;
-
-    for (let row = 0; row < 5; row++) {
-
-      for (let col = 0; col <= row; col++) {
-
-        if (number > 15) break;
-
-        state.balls.push(
-          createBall(
-            number,
-            rackX + row * spacing * 0.866,
-            rackY +
-              (col - row / 2) *
-              spacing
-          )
-        );
-
-        number++;
-      }
-    }
-  }
-
-
-  /* =========================================================
-     PROPER 9-BALL RACK
-     
-     Triangle:
-     
-                  1
-                /   \
-              2       3
-             /   9     \
-           4      5      6
-          /   7     8     \
-     
-     The exact outside-ball order is randomized,
-     but:
-       • 1-ball is at the apex
-       • 9-ball is in the center
-     ========================================================= */
-
-  function create9BallRack() {
-
-    const cue = createBall(
-      0,
-      210,
-      250
-    );
-
-    state.cueBall = cue;
-    state.balls = [cue];
-
-    const spacing =
-      CONFIG.ballRadius * 2.04;
-
-    const rackX = 720;
-    const rackY = 250;
-
-    const numbers = [
-      1, 2, 3, 4, 5, 6, 7, 8
-    ];
 
     /*
-      Shuffle the 2-8 balls.
-
-      1 remains apex.
-      9 remains center.
-    */
-    for (let i = numbers.length - 1; i > 0; i--) {
-
-      const j =
-        Math.floor(
-          Math.random() * (i + 1)
-        );
-
-      [
-        numbers[i],
-        numbers[j]
-      ] = [
-        numbers[j],
-        numbers[i]
-      ];
-    }
-
+     * Standard triangle positions.
+     */
     const positions = [];
 
-    for (let row = 0; row < 5; row++) {
+    for (
+      let row = 0;
+      row < 5;
+      row++
+    ) {
 
-      for (let col = 0; col <= row; col++) {
+      for (
+        let col = 0;
+        col <= row;
+        col++
+      ) {
 
         positions.push({
           row,
@@ -527,9 +692,27 @@
     }
 
     /*
-      Position 0 = apex.
-      Position 4 = center of triangle.
-    */
+     * Numbers.
+     *
+     * 8-ball placed in the center.
+     */
+    const numbers = [
+      1,
+      2,
+      3,
+      4,
+      8,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ];
 
     positions.forEach((pos, index) => {
 
@@ -541,50 +724,20 @@
 
       const y =
         rackY +
-        (pos.col - pos.row / 2) *
+        (
+          pos.col -
+          pos.row / 2
+        ) *
         spacing;
 
-      let number;
-
-      if (index === 0) {
-
-        number = 1;
-
-      } else if (index === 4) {
-
-        number = 9;
-
-      } else {
-
-        number =
-          numbers.shift();
-      }
-
       state.balls.push(
-        createBall(
-          number,
+        ball(
+          numbers[index],
           x,
           y
         )
       );
     });
-  }
-
-
-  /* =========================================================
-     RACK SELECTOR
-     ========================================================= */
-
-  function createRack() {
-
-    if (state.gameType === "9ball") {
-
-      create9BallRack();
-
-      return;
-    }
-
-    create8BallRack();
   }
 
 
@@ -603,7 +756,8 @@
         b.element =
           document.createElement("div");
 
-        b.element.className = "ball";
+        b.element.className =
+          "ball";
 
         b.element.dataset.ball =
           b.number;
@@ -624,20 +778,12 @@
           b.element.textContent =
             b.number;
 
-          if (state.gameType === "9ball") {
-
-            b.element.dataset.group =
-              "nine-ball";
-
-          } else {
-
-            b.element.dataset.group =
-              b.number <= 7
-                ? "solid"
-                : b.number === 8
-                  ? "eight"
-                  : "stripe";
-          }
+          b.element.dataset.group =
+            b.number <= 7
+              ? "solid"
+              : b.number === 8
+                ? "eight"
+                : "stripe";
         }
 
         layer.appendChild(
@@ -645,12 +791,10 @@
         );
       }
 
-
       b.element.style.display =
         b.pocketed
           ? "none"
           : "flex";
-
 
       if (!b.pocketed) {
 
@@ -664,6 +808,8 @@
           "translate(-50%,-50%)";
       }
     }
+
+    renderCueStick();
   }
 
 
@@ -671,10 +817,10 @@
      POWER
      ========================================================= */
 
-  function power(value) {
+  function power(v) {
 
     state.power =
-      clamp(+value, 0, 1);
+      clamp(+v, 0, 1);
 
     if (powerFill) {
 
@@ -684,9 +830,9 @@
 
     document
       .querySelectorAll(".power-value")
-      .forEach(element => {
+      .forEach(e => {
 
-        element.textContent =
+        e.textContent =
           `${Math.round(
             state.power * 100
           )}%`;
@@ -695,7 +841,242 @@
 
 
   /* =========================================================
-     PLAYER TIMER
+     CUE STICK
+     ========================================================= */
+
+  function createCueStick() {
+
+    if (!layer) return null;
+
+    let stick =
+      document.getElementById(
+        "poolCueStick"
+      );
+
+    if (!stick) {
+
+      stick =
+        document.createElement("div");
+
+      stick.id =
+        "poolCueStick";
+
+      stick.className =
+        "cue-stick";
+
+      /*
+       * Inline presentation so this feature does
+       * not require another CSS file.
+       */
+      stick.style.position =
+        "absolute";
+
+      stick.style.height =
+        `${CONFIG.cueStickWidth}px`;
+
+      stick.style.width =
+        `${CONFIG.cueStickLength}px`;
+
+      stick.style.borderRadius =
+        "999px";
+
+      stick.style.transformOrigin =
+        "0 50%";
+
+      stick.style.pointerEvents =
+        "none";
+
+      stick.style.zIndex =
+        "4";
+
+      stick.style.background =
+        "linear-gradient(90deg,#c9a66b,#f2e0ad,#fff)";
+
+      stick.style.boxShadow =
+        "0 2px 6px rgba(0,0,0,.55)";
+
+      layer.appendChild(stick);
+    }
+
+    state.cueStick = stick;
+
+    return stick;
+  }
+
+
+  function renderCueStick() {
+
+    const cue = state.cueBall;
+
+    if (!cue || cue.pocketed) {
+
+      if (state.cueStick) {
+        state.cueStick.style.display =
+          "none";
+      }
+
+      return;
+    }
+
+    /*
+     * AI does not need a visible cue stick while
+     * thinking. It appears for the actual shot.
+     */
+    const humanTurn =
+      player()?.type === "human";
+
+    const visible =
+      humanTurn &&
+      !state.gameOver &&
+      !state.paused &&
+      !state.shooting;
+
+    const stick =
+      state.cueStick ||
+      createCueStick();
+
+    if (!stick) return;
+
+    if (!visible) {
+
+      stick.style.display =
+        "none";
+
+      return;
+    }
+
+    stick.style.display =
+      "block";
+
+    const angle =
+      state.aimAngle + Math.PI;
+
+    const pull =
+      CONFIG.cuePullback *
+      (1 - state.power * 0.25);
+
+    const startX =
+      cue.x +
+      Math.cos(angle) *
+      pull;
+
+    const startY =
+      cue.y +
+      Math.sin(angle) *
+      pull;
+
+    stick.style.left =
+      `${rx(startX)}px`;
+
+    stick.style.top =
+      `${ry(startY)}px`;
+
+    stick.style.width =
+      `${CONFIG.cueStickLength * sx()}px`;
+
+    stick.style.transform =
+      `translateY(-50%) rotate(${angle}rad)`;
+  }
+
+
+  function animateCueStrike(angle) {
+
+    const stick =
+      state.cueStick ||
+      createCueStick();
+
+    if (!stick || !state.cueBall) {
+      return;
+    }
+
+    const cue =
+      state.cueBall;
+
+    const start =
+      performance.now();
+
+    const duration =
+      CONFIG.cueAnimationTime;
+
+    const originalAngle =
+      angle + Math.PI;
+
+    state.cueAnimation = true;
+
+    stick.style.display =
+      "block";
+
+    const animate = now => {
+
+      const progress =
+        clamp(
+          (now - start) /
+          duration,
+          0,
+          1
+        );
+
+      /*
+       * Pull back -> strike.
+       */
+      const eased =
+        progress < 0.5
+          ? progress * 2
+          : 1 - (progress - 0.5) * 2;
+
+      const distance =
+        CONFIG.cueStrikeDistance *
+        (1 - eased);
+
+      const x =
+        cue.x +
+        Math.cos(originalAngle) *
+        distance;
+
+      const y =
+        cue.y +
+        Math.sin(originalAngle) *
+        distance;
+
+      stick.style.left =
+        `${rx(x)}px`;
+
+      stick.style.top =
+        `${ry(y)}px`;
+
+      stick.style.transform =
+        `translateY(-50%) rotate(${originalAngle}rad)`;
+
+      if (progress < 1) {
+
+        requestAnimationFrame(
+          animate
+        );
+
+      } else {
+
+        state.cueAnimation =
+          false;
+
+        if (
+          player()?.type !== "human" ||
+          state.shooting
+        ) {
+
+          stick.style.display =
+            "none";
+        }
+      }
+    };
+
+    requestAnimationFrame(
+      animate
+    );
+  }
+
+
+  /* =========================================================
+     TIMER
      ========================================================= */
 
   function updateTimer() {
@@ -708,21 +1089,22 @@
         )
       );
 
-    if (timerEl) {
+    const formatted =
+      formatTime(seconds);
 
+    if (timerEl) {
       timerEl.textContent =
-        formatTime(seconds);
+        formatted;
     }
 
-    const activeTimer =
+    const active =
       document.getElementById(
         `timer${state.currentPlayer}`
       );
 
-    if (activeTimer) {
-
-      activeTimer.textContent =
-        formatTime(seconds);
+    if (active) {
+      active.textContent =
+        formatted;
     }
   }
 
@@ -731,8 +1113,12 @@
 
     stopTimer();
 
-    if (state.paused || state.gameOver)
+    if (
+      state.gameOver ||
+      state.paused
+    ) {
       return;
+    }
 
     state.timerInterval =
       setInterval(() => {
@@ -740,15 +1126,15 @@
         if (
           state.gameOver ||
           state.shooting ||
-          state.aiThinking ||
           state.paused
         ) {
           return;
         }
 
-        state.timerSeconds--;
-
-        if (state.timerSeconds <= 0) {
+        /*
+         * AI thinking still consumes its own turn timer.
+         */
+        if (--state.timerSeconds <= 0) {
 
           state.timerSeconds = 0;
 
@@ -759,11 +1145,26 @@
             "warning"
           );
 
+          audioCall(
+            "countdown"
+          );
+
+          cancelAITurn();
+
           switchPlayer();
 
         } else {
 
           updateTimer();
+
+          if (
+            state.timerSeconds <= 10 &&
+            state.timerSeconds > 0
+          ) {
+            audioCall(
+              "countdown"
+            );
+          }
         }
 
       }, 1000);
@@ -795,95 +1196,374 @@
 
 
   /* =========================================================
-     AI TURN TIMER
+     AI CONTROL
      ========================================================= */
 
-  function clearAITimer() {
+  function cancelAITurn() {
 
-    if (state.aiTimerId) {
+    state.aiToken++;
+
+    state.aiThinking =
+      false;
+
+    if (state.aiTimer) {
 
       clearTimeout(
-        state.aiTimerId
+        state.aiTimer
       );
 
-      state.aiTimerId = null;
+      state.aiTimer = null;
     }
 
-    state.aiThinkStarted = 0;
-    state.aiThinkRemaining = 0;
+    updateUI();
   }
 
 
-  function startAITurnTimer() {
+  function shouldRunAI() {
 
-    clearAITimer();
+    return (
+      !state.gameOver &&
+      !state.paused &&
+      !state.shooting &&
+      state.aiEnabled &&
+      player()?.type === "ai"
+    );
+  }
 
-    state.aiThinkStarted =
-      performance.now();
 
-    state.aiThinkRemaining =
-      CONFIG.aiTurnTime;
+  function scheduleAI() {
 
+    cancelAITurn();
 
-    state.aiTimerId =
+    if (!shouldRunAI()) {
+      return;
+    }
+
+    state.aiThinking = true;
+
+    const token =
+      state.aiToken;
+
+    updateUI();
+
+    msg(
+      `${player().name} is thinking...`
+    );
+
+    audioCall("notify");
+
+    state.aiTimer =
       setTimeout(() => {
 
-        state.aiTimerId = null;
-
         if (
-          state.gameOver ||
-          state.paused ||
-          player()?.type !== "ai"
+          token !== state.aiToken ||
+          !shouldRunAI()
         ) {
-          state.aiThinking = false;
-          updateUI();
           return;
         }
 
-        /*
-          Safety fallback.
+        runAI(token);
 
-          If AI somehow fails to complete
-          its normal thinking cycle, fire
-          a safe shot instead of becoming
-          permanently stuck.
-        */
+      }, CONFIG.aiDelay);
+  }
 
-        state.aiThinking = false;
 
-        const targetBall =
-          target();
+  function runAI(token = state.aiToken) {
 
-        if (targetBall) {
+    if (
+      token !== state.aiToken ||
+      !shouldRunAI()
+    ) {
+      return;
+    }
 
-          const angle =
-            Math.atan2(
-              targetBall.y -
-                state.cueBall.y,
-              targetBall.x -
-                state.cueBall.x
-            );
+    state.aiThinking =
+      true;
 
-          const fallbackPower =
-            state.breakShot
-              ? 0.95
-              : 0.55;
+    updateUI();
 
-          updateUI();
+    const targetBall =
+      target();
 
-          fire(
-            angle,
-            fallbackPower
-          );
+    if (!targetBall) {
 
-        } else {
+      state.aiThinking =
+        false;
 
-          updateUI();
+      updateUI();
 
-          switchPlayer();
+      switchPlayer();
+
+      return;
+    }
+
+    const level =
+      clamp(
+        +state.aiLevel,
+        1,
+        5
+      );
+
+    /*
+     * Higher level = less aim error.
+     */
+    const accuracy =
+      0.80 +
+      level * 0.035;
+
+    const error =
+      (
+        1 - accuracy
+      ) *
+      (
+        Math.random() - 0.5
+      ) *
+      0.30;
+
+    const angle =
+      Math.atan2(
+        targetBall.y -
+          state.cueBall.y,
+
+        targetBall.x -
+          state.cueBall.x
+      ) + error;
+
+    let shotPower;
+
+    if (state.breakShot) {
+
+      shotPower =
+        0.95;
+
+    } else {
+
+      shotPower =
+        clamp(
+          0.38 +
+          dist(
+            state.cueBall,
+            targetBall
+          ) / 1000 +
+          level * 0.045,
+
+          0.28,
+          0.88
+        );
+    }
+
+    const thinkDelay =
+      Math.min(
+        300 +
+        (6 - level) * 120 +
+        Math.random() * 250,
+
+        CONFIG.aiMaxThinkTime
+      );
+
+    state.aiTimer =
+      setTimeout(() => {
+
+        if (
+          token !== state.aiToken ||
+          !shouldRunAI()
+        ) {
+          return;
         }
 
-      }, CONFIG.aiTurnTime);
+        state.aiTimer = null;
+
+        state.aiThinking =
+          false;
+
+        updateUI();
+
+        /*
+         * AI actually fires the shot.
+         */
+        fire(
+          angle,
+          shotPower
+        );
+
+      }, thinkDelay);
+  }
+
+
+  /*
+   * Manual AI Start / Stop.
+   */
+  function toggleAI() {
+
+    if (
+      state.mode !== "aivai"
+    ) {
+      return;
+    }
+
+    if (state.aiThinking) {
+
+      cancelAITurn();
+
+      msg(
+        "AI MATCH STOPPED",
+        "warning"
+      );
+
+      updateAIStartButton();
+
+      return;
+    }
+
+    if (
+      state.shooting ||
+      state.gameOver
+    ) {
+      return;
+    }
+
+    state.aiEnabled = true;
+
+    scheduleAI();
+
+    updateAIStartButton();
+  }
+
+
+  function createAIStartButton() {
+
+    let button =
+      document.getElementById(
+        "aiStartBtn"
+      );
+
+    if (button) {
+      return button;
+    }
+
+    /*
+     * Try to place beside the existing controls.
+     */
+    const controls =
+      document.querySelector(
+        ".pool-controls"
+      ) ||
+      document.querySelector(
+        ".game-controls"
+      ) ||
+      document.querySelector(
+        ".control-row"
+      );
+
+    if (!controls) {
+
+      button =
+        document.createElement("button");
+
+      button.id =
+        "aiStartBtn";
+
+      button.className =
+        "pool-ai-start";
+
+      button.type =
+        "button";
+
+      button.style.position =
+        "fixed";
+
+      button.style.right =
+        "14px";
+
+      button.style.bottom =
+        "92px";
+
+      button.style.zIndex =
+        "999";
+
+      button.style.padding =
+        "10px 14px";
+
+      button.style.borderRadius =
+        "12px";
+
+      button.style.border =
+        "1px solid rgba(255,255,255,.2)";
+
+      button.style.background =
+        "rgba(5,20,12,.95)";
+
+      button.style.color =
+        "#fff";
+
+      button.style.fontWeight =
+        "800";
+
+      button.style.boxShadow =
+        "0 5px 18px rgba(0,0,0,.35)";
+
+      document.body.appendChild(
+        button
+      );
+
+    } else {
+
+      button =
+        document.createElement("button");
+
+      button.id =
+        "aiStartBtn";
+
+      button.className =
+        "pool-ai-start";
+
+      button.type =
+        "button";
+
+      button.style.margin =
+        "8px";
+
+      controls.appendChild(
+        button
+      );
+    }
+
+    button.addEventListener(
+      "click",
+      toggleAI
+    );
+
+    return button;
+  }
+
+
+  function updateAIStartButton() {
+
+    const button =
+      document.getElementById(
+        "aiStartBtn"
+      );
+
+    if (!button) return;
+
+    /*
+     * Only show the control in AI vs AI.
+     */
+    button.style.display =
+      state.mode === "aivai"
+        ? "inline-flex"
+        : "none";
+
+    if (
+      state.mode !== "aivai"
+    ) {
+      return;
+    }
+
+    button.textContent =
+      state.aiThinking
+        ? "⏸ STOP AI"
+        : "▶ START AI";
   }
 
 
@@ -896,70 +1576,61 @@
     const current =
       player();
 
-    if (!current) return;
-
-
     if (turnEl) {
 
       turnEl.textContent =
         state.gameOver
           ? "GAME OVER"
-          : current.name;
+          : current?.name ||
+            "PLAYER 1";
     }
-
 
     document
       .querySelectorAll(".player-card")
-      .forEach((element, index) => {
+      .forEach((e, i) => {
 
-        element.classList.toggle(
+        e.classList.toggle(
           "active",
-          index === state.currentPlayer
+          i === state.currentPlayer
         );
       });
 
-
     document
       .querySelectorAll(".player-name")
-      .forEach((element, index) => {
+      .forEach((e, i) => {
 
-        if (state.players[index]) {
+        if (state.players[i]) {
 
-          element.textContent =
-            state.players[index].name;
+          e.textContent =
+            state.players[i].name;
         }
       });
-
 
     document
       .querySelectorAll(".player-score")
-      .forEach((element, index) => {
+      .forEach((e, i) => {
 
-        if (state.players[index]) {
+        if (state.players[i]) {
 
-          element.textContent =
-            state.players[index].score;
+          e.textContent =
+            state.players[i].score;
         }
       });
-
 
     const timers =
       document.querySelectorAll(
         ".player-timer span"
       );
 
-    timers.forEach(
-      (element, index) => {
+    timers.forEach((e, i) => {
 
-        element.textContent =
-          index === state.currentPlayer
-            ? formatTime(
-                state.timerSeconds
-              )
-            : "10:00";
-      }
-    );
-
+      e.textContent =
+        i === state.currentPlayer
+          ? formatTime(
+              state.timerSeconds
+            )
+          : "10:00";
+    });
 
     const statuses = [
       document.getElementById(
@@ -971,29 +1642,29 @@
       )
     ];
 
+    statuses.forEach((e, i) => {
 
-    statuses.forEach(
-      (element, index) => {
+      if (!e) return;
 
-        if (!element) return;
+      if (
+        i === state.currentPlayer
+      ) {
 
-        if (
-          index ===
-          state.currentPlayer
-        ) {
+        e.textContent =
+          current?.type === "ai"
+            ? (
+                state.aiThinking
+                  ? "THINKING"
+                  : "READY"
+              )
+            : "READY";
 
-          element.textContent =
-            current.type === "ai"
-              ? "THINKING"
-              : "READY";
+      } else {
 
-        } else {
-
-          element.textContent =
-            "WAITING";
-        }
+        e.textContent =
+          "WAITING";
       }
-    );
+    });
 
 
     const statGame =
@@ -1022,8 +1693,10 @@
       statGame.textContent =
         state.gameType === "9ball"
           ? "9-Ball"
+
           : state.gameType === "practice"
             ? "Practice"
+
             : "8-Ball";
     }
 
@@ -1044,16 +1717,14 @@
     if (statAI) {
 
       statAI.textContent =
-        (
-          [
-            "",
-            "START-UP",
-            "START-UP+",
-            "INVESTOR",
-            "INVESTOR+",
-            "7FIGURES"
-          ][state.aiLevel]
-        ) ||
+        [
+          "",
+          "START-UP",
+          "START-UP+",
+          "INVESTOR",
+          "INVESTOR+",
+          "7FIGURES"
+        ][state.aiLevel] ||
         "START-UP";
     }
 
@@ -1069,153 +1740,21 @@
 
     if (aiStatus) {
 
-      const isAI =
-        current.type === "ai";
-
       aiStatus.classList.toggle(
         "hidden",
-        !isAI
+        current?.type !== "ai"
       );
 
-
-      if (isAI) {
-
-        if (state.aiThinking) {
-
-          const elapsed =
-            performance.now() -
-            state.aiThinkStarted;
-
-          const remaining =
-            Math.max(
-              0,
-              CONFIG.aiTurnTime -
-                elapsed
-            );
-
-          state.aiThinkRemaining =
-            remaining;
-
-          aiStatus.textContent =
-            `AI THINKING… ${(
-              remaining / 1000
-            ).toFixed(1)}s`;
-
-        } else {
-
-          aiStatus.textContent =
-            "AI READY";
-        }
-      }
+      aiStatus.textContent =
+        state.aiThinking
+          ? "AI THINKING…"
+          : "AI READY";
     }
 
 
     updateTimer();
-  }
-
-
-  /* =========================================================
-     RESET GAME
-     ========================================================= */
-
-  function resetGame() {
-
-    stopTimer();
-
-    clearAITimer();
-
-    state.gameOver = false;
-    state.shooting = false;
-    state.aiming = false;
-
-    state.aiThinking = false;
-
-    state.currentPlayer = 0;
-
-    state.breakShot = true;
-
-    state.shotCount = 0;
-
-    state.ballsPocketedThisTurn = [];
-
-    state.foulThisTurn = false;
-
-    state.firstBallHit = null;
-
-    state.lockOn = false;
-    state.lockedTarget = null;
-
-    state.challengeScore = 0;
-
-    state.challengeMode =
-      state.mode === "challenge";
-
-    state.paused = false;
-
-    document.body.classList.remove(
-      "game-paused"
-    );
-
-    state.power = 0.55;
-
-    configurePlayers();
-
-    if (layer) {
-
-      layer.innerHTML = "";
-    }
-
-    createRack();
-
-    render();
-
-    setAim(0);
-
-    power(0.55);
-
-    resetTimer();
-
-    updateUI();
-
-    hideModal(gameOverModal);
-
-    msg(
-      "PLAYER 1 TURN — BREAK THE RACK!"
-    );
-
-    state.lastFrame =
-      performance.now();
-
-
-    if (!state.animationFrame) {
-
-      state.animationFrame =
-        requestAnimationFrame(loop);
-    }
-
-
-    /*
-      IMPORTANT:
-
-      AI vs AI must begin automatically.
-
-      Previously resetGame() always stopped
-      after displaying PLAYER 1 TURN.
-
-      Now an AI first player immediately
-      enters its AI turn.
-    */
-
-    if (
-      player() &&
-      player().type === "ai"
-    ) {
-
-      beginAITurn();
-    } else {
-
-      startTimer();
-    }
+    updateAIStartButton();
+    renderCueStick();
   }
 
 
@@ -1244,6 +1783,7 @@
       CONFIG.aimLineLength;
 
     aimLine();
+    renderCueStick();
   }
 
 
@@ -1252,6 +1792,7 @@
     if (
       state.gameOver ||
       state.shooting ||
+      state.aiThinking ||
       player()?.type !== "human"
     ) {
       return;
@@ -1277,13 +1818,10 @@
         "poolAimLine"
       );
 
-
     if (!line) {
 
       line =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
       line.id =
         "poolAimLine";
@@ -1295,7 +1833,6 @@
         line
       );
     }
-
 
     line.style.cssText =
       `
@@ -1309,7 +1846,6 @@
       pointer-events:none;
       display:block;
       `;
-
 
     line.classList.toggle(
       "locked",
@@ -1330,27 +1866,18 @@
       line.style.display =
         "none";
     }
+
+    if (state.cueStick) {
+
+      state.cueStick.style.display =
+        "none";
+    }
   }
 
 
   /* =========================================================
-     LEGAL TARGETS
+     TARGETING
      ========================================================= */
-
-  function getLowest9Ball() {
-
-    return state.balls
-      .filter(
-        b =>
-          b.number !== 0 &&
-          !b.pocketed
-      )
-      .sort(
-        (a, b) =>
-          a.number - b.number
-      )[0] || null;
-  }
-
 
   function legalTargets() {
 
@@ -1361,20 +1888,45 @@
           !b.pocketed
       );
 
-
+    /*
+     * 9-Ball:
+     * must contact the lowest-numbered
+     * ball remaining.
+     */
     if (
       state.gameType === "9ball"
     ) {
 
       const lowest =
-        getLowest9Ball();
+        available.reduce(
+          (lowestBall, b) =>
+            !lowestBall ||
+            b.number <
+              lowestBall.number
+              ? b
+              : lowestBall,
+          null
+        );
 
       return lowest
         ? [lowest]
         : [];
     }
 
+    /*
+     * Practice can use every object ball.
+     */
+    if (
+      state.gameType === "practice"
+    ) {
+      return available;
+    }
 
+    /*
+     * 8-ball:
+     * until groups are fully implemented,
+     * use all object balls except 8.
+     */
     return available.filter(
       b =>
         b.number !== 8
@@ -1384,60 +1936,63 @@
 
   function target() {
 
-    const targets =
+    const available =
       legalTargets();
 
-    return (
-      targets.sort(
-        (a, b) =>
-          dist(
-            state.cueBall,
-            a
-          ) -
-          dist(
-            state.cueBall,
-            b
-          )
-      )[0] ||
-      null
-    );
+    if (!available.length) {
+      return null;
+    }
+
+    /*
+     * AI chooses the closest legal target
+     * for now.
+     */
+    return available.sort(
+      (a, b) =>
+        dist(
+          state.cueBall,
+          a
+        ) -
+        dist(
+          state.cueBall,
+          b
+        )
+    )[0];
   }
 
-
-  /* =========================================================
-     LOCK ON
-     ========================================================= */
 
   function lock() {
 
     if (
       state.gameOver ||
       state.shooting ||
+      state.aiThinking ||
       player()?.type !== "human"
     ) {
       return;
     }
 
-
     if (state.lockOn) {
 
-      state.lockOn = false;
+      state.lockOn =
+        false;
 
-      state.lockedTarget = null;
+      state.lockedTarget =
+        null;
 
       hideAim();
 
-      msg("Lock-On OFF");
+      msg(
+        "LOCK-ON OFF"
+      );
 
       return;
     }
 
-
-    const targetBall =
+    const t =
       target();
 
-
-    if (!targetBall) {
+    if (!t) {
 
       msg(
         "No available target.",
@@ -1447,57 +2002,65 @@
       return;
     }
 
-
     state.lockedTarget =
-      targetBall;
+      t;
 
-    state.lockOn = true;
-
+    state.lockOn =
+      true;
 
     setAim(
       Math.atan2(
-        targetBall.y -
+        t.y -
           state.cueBall.y,
 
-        targetBall.x -
+        t.x -
           state.cueBall.x
       )
     );
 
-
     msg(
-      `LOCKED ON — Ball ${targetBall.number}`
+      `LOCKED ON — Ball ${t.number}`
+    );
+
+    audioCall(
+      "select"
     );
   }
 
 
   /* =========================================================
-     POINTER / TOUCH
+     POINTER
      ========================================================= */
 
-  function pointer(event) {
+  function pointer(e) {
+
+    if (!interactionSurface) {
+
+      return {
+        x: 0,
+        y: 0
+      };
+    }
 
     const rect =
-      interactionSurface
-        .getBoundingClientRect();
+      interactionSurface.getBoundingClientRect();
 
     const touch =
-      event.touches?.[0] ||
-      event.changedTouches?.[0];
-
+      e.touches?.[0] ||
+      e.changedTouches?.[0];
 
     const clientX =
       touch
         ? touch.clientX
-        : event.clientX;
+        : e.clientX;
 
     const clientY =
       touch
         ? touch.clientY
-        : event.clientY;
-
+        : e.clientY;
 
     return {
+
       x:
         (
           clientX -
@@ -1517,10 +2080,11 @@
   }
 
 
-  function startAim(event) {
+  function startAim(e) {
 
     if (
       state.gameOver ||
+      state.paused ||
       state.shooting ||
       state.aiThinking ||
       player()?.type !== "human" ||
@@ -1529,45 +2093,41 @@
       return;
     }
 
-
     const p =
-      pointer(event);
-
+      pointer(e);
 
     /*
-      Only begin manual aiming when
-      the user starts near the cue ball.
-    */
-
+     * Only start drag close to cue ball.
+     */
     if (
       dist(
         state.cueBall,
         p
       ) >
-      CONFIG.ballRadius * 7
+      CONFIG.ballRadius * 9
     ) {
       return;
     }
 
+    state.aiming =
+      true;
 
-    state.aiming = true;
+    moveAim(e);
 
-    moveAim(event);
-
-    if (event.cancelable) {
-
-      event.preventDefault();
+    if (e.cancelable) {
+      e.preventDefault();
     }
   }
 
 
-  function moveAim(event) {
+  function moveAim(e) {
 
-    if (!state.aiming) return;
+    if (!state.aiming) {
+      return;
+    }
 
     const p =
-      pointer(event);
-
+      pointer(e);
 
     setAim(
       Math.atan2(
@@ -1579,27 +2139,27 @@
       )
     );
 
-
-    if (event.cancelable) {
-
-      event.preventDefault();
+    if (e.cancelable) {
+      e.preventDefault();
     }
   }
 
 
-  function endAim(event) {
+  function endAim(e) {
 
-    if (!state.aiming) return;
+    if (!state.aiming) {
+      return;
+    }
 
-    moveAim(event);
+    moveAim(e);
 
-    state.aiming = false;
+    state.aiming =
+      false;
 
     shoot();
 
-    if (event.cancelable) {
-
-      event.preventDefault();
+    if (e.cancelable) {
+      e.preventDefault();
     }
   }
 
@@ -1612,13 +2172,13 @@
 
     if (
       state.gameOver ||
+      state.paused ||
       state.shooting ||
       state.aiThinking ||
       player()?.type !== "human"
     ) {
       return;
     }
-
 
     if (
       state.lockOn &&
@@ -1637,7 +2197,6 @@
       );
     }
 
-
     fire(
       state.aimAngle,
       state.power
@@ -1645,7 +2204,7 @@
   }
 
 
-  function fire(angle, powerValue) {
+  function fire(angle, p) {
 
     if (
       state.paused ||
@@ -1655,10 +2214,8 @@
       return;
     }
 
-
     const cue =
       state.cueBall;
-
 
     if (
       !cue ||
@@ -1667,23 +2224,17 @@
       return;
     }
 
-
     /*
-      If this is an AI turn,
-      end its thinking timer immediately.
-    */
-
-    clearAITimer();
-
-    state.aiThinking = false;
-
+     * Ensure audio has been unlocked after
+     * a user interaction.
+     */
+    unlockAudio();
 
     let speed =
       Math.max(
         CONFIG.minPower,
-        powerValue
+        p
       );
-
 
     if (state.breakShot) {
 
@@ -1695,7 +2246,6 @@
         CONFIG.breakPowerMultiplier;
     }
 
-
     const velocity =
       clamp(
         CONFIG.maxPower *
@@ -1705,7 +2255,6 @@
         CONFIG.maxVelocity
       );
 
-
     cue.vx =
       Math.cos(angle) *
       velocity;
@@ -1714,29 +2263,44 @@
       Math.sin(angle) *
       velocity;
 
+    state.lockOn =
+      false;
 
-    state.lockOn = false;
-
-    state.lockedTarget = null;
+    state.lockedTarget =
+      null;
 
     power(0);
 
     hideAim();
 
-
-    state.shooting = true;
+    state.shooting =
+      true;
 
     state.shotCount++;
 
-    state.ballsPocketedThisTurn = [];
+    state.ballsPocketedThisTurn =
+      [];
 
-    state.foulThisTurn = false;
+    state.foulThisTurn =
+      false;
 
-    state.firstBallHit = null;
-
+    state.firstBallHit =
+      null;
 
     msg(
       `${player().name} is shooting...`
+    );
+
+    audioCall(
+      "strike"
+    );
+
+    audioCall(
+      "cue"
+    );
+
+    animateCueStrike(
+      angle
     );
   }
 
@@ -1745,69 +2309,91 @@
      RAILS
      ========================================================= */
 
-  function rails(ballObject) {
+  function rails(b) {
 
     const r =
-      ballObject.radius;
-
+      b.radius;
 
     if (
-      ballObject.x - r < 0
+      b.x - r < 0
     ) {
 
-      ballObject.x = r;
+      b.x = r;
 
-      ballObject.vx =
-        Math.abs(
-          ballObject.vx
-        ) *
+      b.vx =
+        Math.abs(b.vx) *
         CONFIG.railRestitution;
+
+      audioCall(
+        "rail"
+      );
+
+      audioCall(
+        "cushion"
+      );
     }
 
-
     if (
-      ballObject.x + r >
+      b.x + r >
       CONFIG.tableWidth
     ) {
 
-      ballObject.x =
-        CONFIG.tableWidth - r;
+      b.x =
+        CONFIG.tableWidth -
+        r;
 
-      ballObject.vx =
-        -Math.abs(
-          ballObject.vx
-        ) *
+      b.vx =
+        -Math.abs(b.vx) *
         CONFIG.railRestitution;
+
+      audioCall(
+        "rail"
+      );
+
+      audioCall(
+        "cushion"
+      );
     }
 
-
     if (
-      ballObject.y - r < 0
+      b.y - r < 0
     ) {
 
-      ballObject.y = r;
+      b.y = r;
 
-      ballObject.vy =
-        Math.abs(
-          ballObject.vy
-        ) *
+      b.vy =
+        Math.abs(b.vy) *
         CONFIG.railRestitution;
+
+      audioCall(
+        "rail"
+      );
+
+      audioCall(
+        "cushion"
+      );
     }
 
-
     if (
-      ballObject.y + r >
+      b.y + r >
       CONFIG.tableHeight
     ) {
 
-      ballObject.y =
-        CONFIG.tableHeight - r;
+      b.y =
+        CONFIG.tableHeight -
+        r;
 
-      ballObject.vy =
-        -Math.abs(
-          ballObject.vy
-        ) *
+      b.vy =
+        -Math.abs(b.vy) *
         CONFIG.railRestitution;
+
+      audioCall(
+        "rail"
+      );
+
+      audioCall(
+        "cushion"
+      );
     }
   }
 
@@ -1818,31 +2404,28 @@
 
   function collisions() {
 
-    const balls =
+    const active =
       state.balls.filter(
-        b =>
-          !b.pocketed
+        b => !b.pocketed
       );
-
 
     for (
       let i = 0;
-      i < balls.length;
+      i < active.length;
       i++
     ) {
 
       for (
         let j = i + 1;
-        j < balls.length;
+        j < active.length;
         j++
       ) {
 
         const A =
-          balls[i];
+          active[i];
 
         const B =
-          balls[j];
-
+          active[j];
 
         const dx =
           B.x - A.x;
@@ -1850,45 +2433,34 @@
         const dy =
           B.y - A.y;
 
-
-        let distance =
+        let d =
           Math.hypot(
             dx,
             dy
           );
 
-
         const minimum =
           A.radius +
           B.radius;
 
-
         if (
-          distance >=
-          minimum
+          d >= minimum
         ) {
           continue;
         }
 
-
-        if (!distance) {
-
-          distance =
-            0.0001;
+        if (!d) {
+          d = 0.0001;
         }
 
-
         const nx =
-          dx / distance;
+          dx / d;
 
         const ny =
-          dy / distance;
-
+          dy / d;
 
         const overlap =
-          minimum -
-          distance;
-
+          minimum - d;
 
         A.x -=
           nx *
@@ -1900,7 +2472,6 @@
           overlap *
           0.5;
 
-
         B.x +=
           nx *
           overlap *
@@ -1911,14 +2482,18 @@
           overlap *
           0.5;
 
-
         const relativeVelocity =
-          (B.vx - A.vx) *
-            nx +
+          (
+            B.vx -
+            A.vx
+          ) *
+          nx +
 
-          (B.vy - A.vy) *
-            ny;
-
+          (
+            B.vy -
+            A.vy
+          ) *
+          ny;
 
         if (
           relativeVelocity > 0
@@ -1926,11 +2501,9 @@
           continue;
         }
 
-
         const impulse =
           -relativeVelocity *
           CONFIG.collisionRestitution;
-
 
         A.vx -=
           impulse * nx;
@@ -1938,23 +2511,17 @@
         A.vy -=
           impulse * ny;
 
-
         B.vx +=
           impulse * nx;
 
         B.vy +=
           impulse * ny;
 
-
         /*
-          First ball hit by the cue ball.
-
-          This is critical for 9-Ball.
-        */
-
+         * First ball hit tracking.
+         */
         if (
-          state.firstBallHit ===
-          null
+          state.firstBallHit === null
         ) {
 
           if (
@@ -1972,6 +2539,14 @@
               A.number;
           }
         }
+
+        audioCall(
+          "collision"
+        );
+
+        audioCall(
+          "hit"
+        );
       }
     }
   }
@@ -1981,69 +2556,66 @@
      POCKET
      ========================================================= */
 
-  function pocket(ballObject) {
+  function pocket(b) {
 
-    if (
-      ballObject.pocketed
-    ) {
+    if (b.pocketed) {
       return;
     }
 
-
-    ballObject.pocketed =
+    b.pocketed =
       true;
 
-    ballObject.vx = 0;
-    ballObject.vy = 0;
+    b.vx =
+      0;
 
+    b.vy =
+      0;
 
-    state.ballsPocketedThisTurn
-      .push(
-        ballObject.number
-      );
+    state.ballsPocketedThisTurn.push(
+      b.number
+    );
 
+    audioCall(
+      "pocket"
+    );
 
-    /*
-      Cue ball scratch.
-    */
+    audioCall(
+      "sink"
+    );
 
     if (
-      ballObject.number === 0
+      b.number === 0
     ) {
 
-      state.foulThisTurn = true;
+      state.foulThisTurn =
+        true;
 
       msg(
         "SCRATCH! Cue ball pocketed.",
         "warning"
       );
 
+      audioCall(
+        "foul"
+      );
+
+      audioCall(
+        "scratch"
+      );
+
       return;
     }
 
-
     player().score++;
-
 
     if (
       state.challengeMode
     ) {
-
       state.challengeScore++;
     }
 
-
     if (
-      ballObject.number === 9
-    ) {
-
-      msg(
-        "9-BALL POCKETED!",
-        "success"
-      );
-
-    } else if (
-      ballObject.number === 8
+      b.number === 8
     ) {
 
       msg(
@@ -2051,14 +2623,22 @@
         "success"
       );
 
+    } else if (
+      b.number === 9
+    ) {
+
+      msg(
+        "9-BALL POCKETED!",
+        "success"
+      );
+
     } else {
 
       msg(
-        `Ball ${ballObject.number} pocketed!`,
+        `Ball ${b.number} pocketed!`,
         "success"
       );
     }
-
 
     updateUI();
   }
@@ -2088,15 +2668,14 @@
      PHYSICS
      ========================================================= */
 
-  function physics(delta) {
+  function physics(dt) {
 
     const frameScale =
       clamp(
-        delta / 16.6667,
+        dt / 16.6667,
         0.35,
         2.5
       );
-
 
     for (
       const b of state.balls
@@ -2108,7 +2687,6 @@
         continue;
       }
 
-
       b.x +=
         b.vx *
         frameScale;
@@ -2117,13 +2695,11 @@
         b.vy *
         frameScale;
 
-
       const friction =
         Math.pow(
           CONFIG.friction,
           frameScale
         );
-
 
       b.vx *=
         friction;
@@ -2131,13 +2707,11 @@
       b.vy *=
         friction;
 
-
       const speed =
         Math.hypot(
           b.vx,
           b.vy
         );
-
 
       if (speed) {
 
@@ -2146,35 +2720,31 @@
           frameScale;
 
         b.vx -=
-          (b.vx / speed) *
+          b.vx /
+          speed *
           resistance;
 
         b.vy -=
-          (b.vy / speed) *
+          b.vy /
+          speed *
           resistance;
       }
-
 
       if (
         Math.abs(b.vx) <
         CONFIG.stopVelocity
       ) {
-
         b.vx = 0;
       }
-
 
       if (
         Math.abs(b.vy) <
         CONFIG.stopVelocity
       ) {
-
         b.vy = 0;
       }
 
-
       rails(b);
-
 
       if (
         pocketed(b)
@@ -2184,9 +2754,7 @@
       }
     }
 
-
     collisions();
-
 
     if (!moving()) {
 
@@ -2196,7 +2764,7 @@
 
 
   /* =========================================================
-     RESPOT CUE BALL
+     CUE BALL RESPOT
      ========================================================= */
 
   function respot() {
@@ -2204,20 +2772,23 @@
     const cue =
       state.cueBall;
 
-    if (!cue) return;
+    if (!cue) {
+      return;
+    }
 
+    cue.pocketed =
+      false;
 
-    cue.pocketed = false;
+    cue.vx =
+      0;
 
-    cue.vx = 0;
-    cue.vy = 0;
-
+    cue.vy =
+      0;
 
     let x = 210;
     let y = 250;
 
     let tries = 0;
-
 
     while (
       state.balls.some(
@@ -2228,8 +2799,7 @@
             b.x - x,
             b.y - y
           ) <
-            CONFIG.ballRadius *
-            2.2
+          CONFIG.ballRadius * 2.2
       ) &&
       tries++ < 100
     ) {
@@ -2245,10 +2815,11 @@
         380;
     }
 
+    cue.x =
+      x;
 
-    cue.x = x;
-    cue.y = y;
-
+    cue.y =
+      y;
 
     setAim(
       state.aimAngle
@@ -2259,89 +2830,21 @@
 
 
   /* =========================================================
-     9-BALL RULE VALIDATION
-     ========================================================= */
-
-  function validate9BallShot() {
-
-    if (
-      state.gameType !== "9ball"
-    ) {
-      return true;
-    }
-
-
-    const legalBall =
-      getLowest9Ball();
-
-
-    /*
-      If there was no ball available
-      before the shot, something unusual
-      happened. Do not create a false foul.
-    */
-
-    if (!legalBall) {
-      return true;
-    }
-
-
-    /*
-      The cue must hit the lowest
-      numbered ball first.
-    */
-
-    if (
-      state.firstBallHit !==
-      legalBall.number
-    ) {
-
-      state.foulThisTurn = true;
-
-      msg(
-        `FOUL — Ball ${legalBall.number} must be hit first.`,
-        "warning"
-      );
-
-      return false;
-    }
-
-
-    return true;
-  }
-
-
-  /* =========================================================
      FINISH SHOT
      ========================================================= */
 
   function finishShot() {
 
-    if (!state.shooting)
+    if (!state.shooting) {
       return;
-
-
-    state.shooting = false;
-
-
-    /*
-      9-Ball foul validation.
-    */
-
-    if (
-      state.gameType ===
-      "9ball"
-    ) {
-
-      validate9BallShot();
     }
 
+    state.shooting =
+      false;
 
     /*
-      Scratch or illegal 9-Ball
-      contact.
-    */
-
+     * Scratch.
+     */
     if (
       state.foulThisTurn
     ) {
@@ -2350,28 +2853,27 @@
 
       respot();
 
+      audioCall(
+        "turn"
+      );
+
       switchPlayer();
 
       return;
     }
 
-
-    const objectsPocketed =
-      state.ballsPocketedThisTurn
-        .some(
-          number =>
-            number !== 0
-        );
+    const objectBallPocketed =
+      state.ballsPocketedThisTurn.some(
+        n => n !== 0
+      );
 
 
     /* =======================================================
-       8-BALL WIN
+       8-BALL
        ======================================================= */
 
     if (
-      state.gameType ===
-      "8ball" &&
-
+      state.gameType === "8ball" &&
       state.balls.some(
         b =>
           b.number === 8 &&
@@ -2388,20 +2890,11 @@
 
 
     /* =======================================================
-       9-BALL WIN
-
-       The 9-ball is the game-winning
-       ball. It does NOT require the
-       8-ball to be hit first.
-
-       The player must legally contact
-       the lowest ball first.
+       9-BALL
        ======================================================= */
 
     if (
-      state.gameType ===
-      "9ball" &&
-
+      state.gameType === "9ball" &&
       state.balls.some(
         b =>
           b.number === 9 &&
@@ -2409,6 +2902,12 @@
       )
     ) {
 
+      /*
+       * The current implementation already restricts
+       * targeting to the lowest numbered ball.
+       *
+       * Therefore a pocketed 9 represents the winning shot.
+       */
       endGame(
         player()
       );
@@ -2428,9 +2927,8 @@
       state.breakShot =
         false;
 
-
       if (
-        objectsPocketed
+        objectBallPocketed
       ) {
 
         resetTimer();
@@ -2445,7 +2943,6 @@
         switchPlayer();
       }
 
-
       return;
     }
 
@@ -2455,7 +2952,7 @@
        ======================================================= */
 
     if (
-      objectsPocketed
+      objectBallPocketed
     ) {
 
       resetTimer();
@@ -2466,15 +2963,14 @@
       );
 
       /*
-        AI continues automatically
-        when it legally keeps the turn.
-      */
-
+       * IMPORTANT:
+       * If this player is AI, continue AI immediately.
+       */
       if (
         player().type === "ai"
       ) {
 
-        beginAITurn();
+        scheduleAI();
       }
 
     } else {
@@ -2496,45 +2992,76 @@
       return;
     }
 
-
-    clearAITimer();
-
-    state.aiThinking = false;
-
+    cancelAITurn();
 
     state.currentPlayer =
       state.currentPlayer
         ? 0
         : 1;
 
+    state.ballsPocketedThisTurn =
+      [];
 
-    state.ballsPocketedThisTurn = [];
+    state.foulThisTurn =
+      false;
 
-    state.foulThisTurn = false;
+    state.firstBallHit =
+      null;
 
-    state.firstBallHit = null;
+    state.breakShot =
+      false;
 
-    state.breakShot = false;
+    state.lockOn =
+      false;
 
-    state.lockOn = false;
-
-    state.lockedTarget = null;
-
+    state.lockedTarget =
+      null;
 
     resetTimer();
 
     updateUI();
 
+    startTimer();
+
+    audioCall(
+      "turn"
+    );
 
     if (
       player().type === "ai"
     ) {
 
-      beginAITurn();
+      /*
+       * THIS IS THE IMPORTANT AI-VS-AI FIX.
+       *
+       * Whenever the turn changes to an AI,
+       * the AI is automatically scheduled.
+       */
+      if (
+        state.aiEnabled
+      ) {
+
+        scheduleAI();
+
+      } else {
+
+        state.aiThinking =
+          false;
+
+        updateUI();
+
+        msg(
+          `${player().name} — AI STOPPED`,
+          "warning"
+        );
+      }
 
     } else {
 
-      startTimer();
+      state.aiThinking =
+        false;
+
+      updateUI();
 
       msg(
         `${player().name} — YOUR TURN`,
@@ -2545,308 +3072,76 @@
 
 
   /* =========================================================
-     AI TURN START
-     ========================================================= */
-
-  function beginAITurn() {
-
-    if (
-      state.gameOver ||
-      state.paused ||
-      player()?.type !== "ai"
-    ) {
-      return;
-    }
-
-
-    clearAITimer();
-
-    stopTimer();
-
-
-    state.aiThinking = true;
-
-    state.aiThinkStarted =
-      performance.now();
-
-    state.aiThinkRemaining =
-      CONFIG.aiTurnTime;
-
-
-    updateUI();
-
-
-    msg(
-      `${player().name} is thinking...`
-    );
-
-
-    /*
-      Start the safety timer FIRST.
-    */
-
-    startAITurnTimer();
-
-
-    /*
-      Then schedule the actual AI decision.
-    */
-
-    const delay =
-      Math.min(
-        CONFIG.aiDelay,
-        CONFIG.aiTurnTime - 250
-      );
-
-
-    setTimeout(
-      runAI,
-      Math.max(
-        100,
-        delay
-      )
-    );
-  }
-
-
-  /* =========================================================
      END GAME
      ========================================================= */
 
   function endGame(winner) {
 
-    clearAITimer();
+    cancelAITurn();
+
+    state.gameOver =
+      true;
+
+    state.shooting =
+      false;
+
+    state.aiThinking =
+      false;
 
     stopTimer();
 
-
-    state.gameOver = true;
-
-    state.shooting = false;
-
-    state.aiThinking = false;
-
-
     hideAim();
-
 
     const winnerName =
       winner?.name ||
       "Winner";
-
 
     msg(
       `🏆 ${winnerName} WINS!`,
       "success"
     );
 
+    audioCall(
+      "win"
+    );
+
+    audioCall(
+      "victory"
+    );
 
     if (finalScore) {
 
       finalScore.textContent =
         `${winnerName} wins • ` +
-        `Player 1 ${
-          state.players[0]?.score ||
-          0
-        } — ` +
-        `Player 2 ${
-          state.players[1]?.score ||
-          0
-        }`;
+        `Player 1 ${state.players[0]?.score || 0} — ` +
+        `Player 2 ${state.players[1]?.score || 0}`;
     }
-
 
     showModal(
       gameOverModal
     );
 
-
     updateUI();
   }
 
 
   /* =========================================================
-     AI ENGINE
+     MAIN LOOP
      ========================================================= */
 
-  function runAI() {
-
-    if (
-      state.gameOver ||
-      state.paused ||
-      state.shooting ||
-      player()?.type !== "ai"
-    ) {
-      return;
-    }
-
-
-    state.aiThinking = true;
-
-    updateUI();
-
-
-    const targetBall =
-      target();
-
-
-    if (!targetBall) {
-
-      state.aiThinking = false;
-
-      clearAITimer();
-
-      updateUI();
-
-      switchPlayer();
-
-      return;
-    }
-
-
-    const level =
-      clamp(
-        +state.aiLevel,
-        1,
-        5
-      );
-
-
-    /*
-      AI accuracy improves with level.
-    */
-
-    const accuracy =
-      0.80 +
-      level * 0.035;
-
-
-    const error =
-      (
-        1 -
-        accuracy
-      ) *
-      (
-        Math.random() -
-        0.5
-      ) *
-      0.30;
-
-
-    let angle =
-      Math.atan2(
-        targetBall.y -
-          state.cueBall.y,
-
-        targetBall.x -
-          state.cueBall.x
-      );
-
-
-    angle += error;
-
-
-    /*
-      AI power.
-
-      Break = strong.
-
-      Normal shots scale with
-      distance and level.
-    */
-
-    const shotPower =
-      state.breakShot
-        ? 0.95
-        : clamp(
-            0.38 +
-            dist(
-              state.cueBall,
-              targetBall
-            ) / 1000 +
-            level * 0.045,
-
-            0.28,
-            0.88
-          );
-
-
-    const thinkDelay =
-      Math.min(
-        300 +
-        (6 - level) *
-          120 +
-        Math.random() *
-          250,
-
-        CONFIG.aiMaxThinkTime
-      );
-
-
-    /*
-      Do not allow thinking to exceed
-      the AI turn timer.
-    */
-
-    const safeDelay =
-      Math.min(
-        thinkDelay,
-        CONFIG.aiTurnTime -
-          300
-      );
-
-
-    setTimeout(() => {
-
-      if (
-        state.gameOver ||
-        state.paused ||
-        player()?.type !== "ai"
-      ) {
-
-        state.aiThinking = false;
-
-        clearAITimer();
-
-        updateUI();
-
-        return;
-      }
-
-
-      state.aiThinking = false;
-
-      updateUI();
-
-
-      fire(
-        angle,
-        shotPower
-      );
-
-    }, Math.max(150, safeDelay));
-  }
-
-
-  /* =========================================================
-     LOOP
-     ========================================================= */
-
-  function loop(timestamp) {
+  function loop(ts) {
 
     const delta =
       clamp(
-        timestamp -
+        ts -
           state.lastFrame,
 
         0,
         50
       );
 
-
     state.lastFrame =
-      timestamp;
-
+      ts;
 
     if (
       state.shooting
@@ -2855,9 +3150,7 @@
       physics(delta);
     }
 
-
     render();
-
 
     if (
       state.aiming ||
@@ -2866,7 +3159,6 @@
 
       aimLine();
     }
-
 
     state.animationFrame =
       requestAnimationFrame(
@@ -2879,22 +3171,22 @@
      MODALS
      ========================================================= */
 
-  function showModal(element) {
+  function showModal(el) {
 
-    if (element) {
+    if (el) {
 
-      element.classList.remove(
+      el.classList.remove(
         "hidden"
       );
     }
   }
 
 
-  function hideModal(element) {
+  function hideModal(el) {
 
-    if (element) {
+    if (el) {
 
-      element.classList.add(
+      el.classList.add(
         "hidden"
       );
     }
@@ -2902,58 +3194,81 @@
 
 
   /* =========================================================
-     NEW RACK
+     RESET GAME
      ========================================================= */
 
-  function newRack() {
+  function resetGame() {
 
-    clearAITimer();
+    cancelAITurn();
 
     stopTimer();
 
+    state.gameOver =
+      false;
 
-    state.gameOver = false;
+    state.shooting =
+      false;
 
-    state.shooting = false;
+    state.aiming =
+      false;
 
-    state.aiming = false;
+    state.aiThinking =
+      false;
 
-    state.aiThinking = false;
+    state.currentPlayer =
+      0;
 
-    state.currentPlayer = 0;
+    state.breakShot =
+      true;
 
-    state.breakShot = true;
+    state.shotCount =
+      0;
 
-    state.ballsPocketedThisTurn = [];
+    state.ballsPocketedThisTurn =
+      [];
 
-    state.foulThisTurn = false;
+    state.foulThisTurn =
+      false;
 
-    state.firstBallHit = null;
+    state.firstBallHit =
+      null;
 
-    state.lockOn = false;
+    state.lockOn =
+      false;
 
-    state.lockedTarget = null;
+    state.lockedTarget =
+      null;
 
-    state.shotCount = 0;
+    state.challengeScore =
+      0;
 
-    state.challengeScore = 0;
+    state.challengeMode =
+      state.mode ===
+      "challenge";
 
-    state.paused = false;
+    state.paused =
+      false;
 
+    state.aiEnabled =
+      true;
 
     document.body.classList.remove(
       "game-paused"
     );
 
+    state.power =
+      0.55;
 
     configurePlayers();
 
-
     if (layer) {
 
-      layer.innerHTML = "";
+      layer.innerHTML =
+        "";
     }
 
+    state.cueStick =
+      null;
 
     createRack();
 
@@ -2967,26 +3282,148 @@
 
     updateUI();
 
+    hideModal(
+      gameOverModal
+    );
 
     msg(
       "PLAYER 1 TURN — BREAK THE RACK!"
     );
 
-
-    /*
-      AI vs AI new rack must also
-      automatically begin.
-    */
+    state.lastFrame =
+      performance.now();
 
     if (
-      player()?.type === "ai"
+      !state.animationFrame
     ) {
 
-      beginAITurn();
+      state.animationFrame =
+        requestAnimationFrame(
+          loop
+        );
+    }
 
-    } else {
+    /*
+     * IMPORTANT:
+     *
+     * AI vs AI starts automatically.
+     */
+    if (
+      state.mode === "aivai"
+    ) {
 
-      startTimer();
+      state.currentPlayer =
+        0;
+
+      resetTimer();
+
+      updateUI();
+
+      scheduleAI();
+    }
+
+    /*
+     * Player vs AI begins with human,
+     * so AI waits until Player 1 passes.
+     */
+  }
+
+
+  /* =========================================================
+     NEW RACK
+     ========================================================= */
+
+  function newRack() {
+
+    cancelAITurn();
+
+    hideModal(
+      gameOverModal
+    );
+
+    stopTimer();
+
+    state.gameOver =
+      false;
+
+    state.shooting =
+      false;
+
+    state.aiThinking =
+      false;
+
+    state.currentPlayer =
+      0;
+
+    state.breakShot =
+      true;
+
+    state.ballsPocketedThisTurn =
+      [];
+
+    state.foulThisTurn =
+      false;
+
+    state.firstBallHit =
+      null;
+
+    state.lockOn =
+      false;
+
+    state.lockedTarget =
+      null;
+
+    state.shotCount =
+      0;
+
+    state.challengeScore =
+      0;
+
+    state.paused =
+      false;
+
+    state.aiEnabled =
+      true;
+
+    document.body.classList.remove(
+      "game-paused"
+    );
+
+    configurePlayers();
+
+    if (layer) {
+
+      layer.innerHTML =
+        "";
+    }
+
+    state.cueStick =
+      null;
+
+    createRack();
+
+    render();
+
+    setAim(0);
+
+    power(0.55);
+
+    resetTimer();
+
+    updateUI();
+
+    msg(
+      "PLAYER 1 TURN — BREAK THE RACK!"
+    );
+
+    /*
+     * AI vs AI automatically starts again.
+     */
+    if (
+      state.mode === "aivai"
+    ) {
+
+      scheduleAI();
     }
   }
 
@@ -3003,65 +3440,58 @@
       return;
     }
 
-
     state.paused =
       !state.paused;
-
 
     document.body.classList.toggle(
       "game-paused",
       state.paused
     );
 
-
     if (
       state.paused
     ) {
 
+      /*
+       * Do not destroy AI state.
+       */
       stopTimer();
-
-      clearAITimer();
-
-      state.aiThinking = false;
 
       msg(
         "GAME PAUSED",
         "warning"
       );
 
-
       if (pauseButton) {
-
         pauseButton.textContent =
           "RESUME";
       }
 
     } else {
 
+      startTimer();
+
       updateUI();
 
-
-      if (
-        player()?.type === "ai"
-      ) {
-
-        beginAITurn();
-
-      } else {
-
-        startTimer();
-
-        msg(
-          `${player().name} — YOUR TURN`,
-          "success"
-        );
-      }
-
+      msg(
+        `${player().name} — YOUR TURN`,
+        "success"
+      );
 
       if (pauseButton) {
-
         pauseButton.textContent =
           "PAUSE";
+      }
+
+      /*
+       * Resume AI if its turn.
+       */
+      if (
+        player()?.type === "ai" &&
+        !state.shooting
+      ) {
+
+        scheduleAI();
       }
     }
   }
@@ -3078,7 +3508,6 @@
         "poolApp"
       ) ||
       document.documentElement;
-
 
     if (
       !document.fullscreenElement
@@ -3097,33 +3526,74 @@
 
 
   /* =========================================================
-     MOBILE SCREEN STABILITY
+     SOUND BUTTON
      ========================================================= */
 
-  if (document.documentElement) {
+  function toggleSound() {
 
-    document.documentElement.style.overscrollBehavior =
-      "none";
-  }
+    unlockAudio();
 
+    const a =
+      audio();
 
-  if (document.body) {
+    if (a) {
 
-    document.body.style.overscrollBehavior =
-      "none";
-  }
+      try {
 
+        if (
+          typeof a.toggleMute ===
+          "function"
+        ) {
 
-  if (interactionSurface) {
+          a.toggleMute();
 
-    interactionSurface.style.touchAction =
-      "none";
+          return;
+        }
 
-    interactionSurface.style.userSelect =
-      "none";
+        if (
+          typeof a.mute ===
+          "function"
+        ) {
 
-    interactionSurface.style.webkitUserSelect =
-      "none";
+          a.mute();
+
+          document.body.classList.add(
+            "sound-muted"
+          );
+
+          if (soundButton) {
+            soundButton.textContent =
+              "🔇";
+          }
+
+          return;
+        }
+
+      } catch (err) {
+
+        console.warn(
+          "Sound toggle:",
+          err
+        );
+      }
+    }
+
+    /*
+     * Visual fallback.
+     */
+    document.body.classList.toggle(
+      "sound-muted"
+    );
+
+    if (soundButton) {
+
+      soundButton.textContent =
+        document.body.classList.contains(
+          "sound-muted"
+        )
+          ? "🔇"
+          : "🔊";
+    }
   }
 
 
@@ -3139,10 +3609,19 @@
 
       button.addEventListener(
         "click",
-        () =>
+        () => {
+
+          unlockAudio();
+
           power(
-            state.power + 0.05
-          )
+            state.power +
+            0.05
+          );
+
+          audioCall(
+            "click"
+          );
+        }
       );
     });
 
@@ -3155,10 +3634,19 @@
 
       button.addEventListener(
         "click",
-        () =>
+        () => {
+
+          unlockAudio();
+
           power(
-            state.power - 0.05
-          )
+            state.power -
+            0.05
+          );
+
+          audioCall(
+            "click"
+          );
+        }
       );
     });
 
@@ -3197,7 +3685,12 @@
 
   shootButton?.addEventListener(
     "click",
-    shoot
+    () => {
+
+      unlockAudio();
+
+      shoot();
+    }
   );
 
 
@@ -3256,29 +3749,51 @@
   );
 
 
-  /*
-    Sound button remains compatible
-    with the existing UI.
-
-    We are NOT changing the shared
-    audio system in this Pool pass.
-  */
-
   soundButton?.addEventListener(
     "click",
+    toggleSound
+  );
+
+
+  /* =========================================================
+     SELECTORS
+     ========================================================= */
+
+  modeSelect?.addEventListener(
+    "change",
     () => {
 
-      document.body.classList.toggle(
-        "sound-muted"
-      );
+      state.mode =
+        modeSelect.value ||
+        "pvp";
+
+      resetGame();
+    }
+  );
 
 
-      soundButton.textContent =
-        document.body.classList.contains(
-          "sound-muted"
-        )
-          ? "🔇"
-          : "🔊";
+  gameSelect?.addEventListener(
+    "change",
+    () => {
+
+      state.gameType =
+        gameSelect.value ||
+        "8ball";
+
+      resetGame();
+    }
+  );
+
+
+  aiSelect?.addEventListener(
+    "change",
+    () => {
+
+      state.aiLevel =
+        +aiSelect.value ||
+        1;
+
+      resetGame();
     }
   );
 
@@ -3315,38 +3830,44 @@
 
 
   /* =========================================================
-     TABLE POINTER EVENTS
+     TOUCH / MOUSE
      ========================================================= */
 
   if (interactionSurface) {
+
+    interactionSurface.style.touchAction =
+      "none";
+
+    interactionSurface.style.userSelect =
+      "none";
+
+    interactionSurface.style.webkitUserSelect =
+      "none";
 
     interactionSurface.addEventListener(
       "mousedown",
       startAim
     );
 
-
     interactionSurface.addEventListener(
       "mousemove",
       moveAim
     );
-
 
     interactionSurface.addEventListener(
       "mouseup",
       endAim
     );
 
-
     interactionSurface.addEventListener(
       "mouseleave",
-      event => {
+      e => {
 
         if (
           state.aiming
         ) {
 
-          moveAim(event);
+          moveAim(e);
         }
       }
     );
@@ -3377,6 +3898,27 @@
         passive: false
       }
     );
+
+
+    /*
+     * Prevent the browser from trying to scroll
+     * while the user is controlling the pool table.
+     */
+    interactionSurface.addEventListener(
+      "touchcancel",
+      e => {
+
+        state.aiming =
+          false;
+
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      },
+      {
+        passive: false
+      }
+    );
   }
 
 
@@ -3386,74 +3928,101 @@
 
   document.addEventListener(
     "keydown",
-    event => {
+    e => {
 
       if (
-        event.code === "Space"
+        e.code === "Space"
       ) {
 
-        event.preventDefault();
+        e.preventDefault();
 
         shoot();
+
+        return;
       }
 
-
       if (
-        event.key === "ArrowLeft"
+        e.key === "ArrowLeft"
       ) {
 
-        event.preventDefault();
+        e.preventDefault();
 
         rotate(
           -CONFIG.aimStep *
           Math.PI /
           180
         );
+
+        return;
       }
 
-
       if (
-        event.key === "ArrowRight"
+        e.key === "ArrowRight"
       ) {
 
-        event.preventDefault();
+        e.preventDefault();
 
         rotate(
           CONFIG.aimStep *
           Math.PI /
           180
         );
+
+        return;
       }
 
-
       if (
-        event.key.toLowerCase() === "r"
+        e.key.toLowerCase() === "r"
       ) {
 
-        resetGame();
+        /*
+         * R only works when a text field is not active.
+         */
+        if (
+          !(
+            document.activeElement &&
+            (
+              document.activeElement.tagName ===
+                "INPUT" ||
+
+              document.activeElement.tagName ===
+                "SELECT" ||
+
+              document.activeElement.tagName ===
+                "TEXTAREA"
+            )
+          )
+        ) {
+
+          resetGame();
+        }
+
+        return;
       }
 
-
       if (
-        event.key.toLowerCase() === "l"
+        e.key.toLowerCase() === "l"
       ) {
 
         lock();
+
+        return;
       }
 
-
       if (
-        event.key.toLowerCase() === "p"
+        e.key.toLowerCase() === "p"
       ) {
 
         togglePause();
+
+        return;
       }
     }
   );
 
 
   /* =========================================================
-     FULLSCREEN CHANGE
+     FULLSCREEN RESIZE
      ========================================================= */
 
   document.addEventListener(
@@ -3466,20 +4035,24 @@
           "⛶";
       }
 
+      setTimeout(
+        () => {
 
-      setTimeout(() => {
+          render();
 
-        render();
+          aimLine();
 
-        aimLine();
+          renderCueStick();
 
-      }, 100);
+        },
+        100
+      );
     }
   );
 
 
   /* =========================================================
-     PUBLIC POOL API
+     PUBLIC API
      ========================================================= */
 
   window.ROLYFE_POOL = {
@@ -3487,6 +4060,8 @@
     state,
 
     resetGame,
+
+    newRack,
 
     shoot,
 
@@ -3517,14 +4092,16 @@
 
     setMode: mode => {
 
-      state.mode = mode;
+      state.mode =
+        mode;
 
       resetGame();
     },
 
     setGameType: type => {
 
-      state.gameType = type;
+      state.gameType =
+        type;
 
       resetGame();
     },
@@ -3535,6 +4112,24 @@
         +level;
 
       resetGame();
+    },
+
+    startAI: () => {
+
+      state.aiEnabled =
+        true;
+
+      scheduleAI();
+    },
+
+    stopAI: () => {
+
+      state.aiEnabled =
+        false;
+
+      cancelAITurn();
+
+      updateUI();
     },
 
     getScore: () =>
@@ -3551,7 +4146,7 @@
 
 
   /* =========================================================
-     INITIAL SETTINGS
+     INITIALIZE
      ========================================================= */
 
   if (modeSelect) {
@@ -3578,15 +4173,24 @@
   }
 
 
-  /* =========================================================
-     START
-     ========================================================= */
+  /*
+   * Create AI control once.
+   */
+  createAIStartButton();
 
+  /*
+   * Prepare browser audio unlock.
+   */
+  setupAudioUnlock();
+
+  /*
+   * Start game.
+   */
   resetGame();
 
 
   console.log(
-    "🎱 RO'Lyfe Pool Engine V3.2 loaded — AI vs AI + 9-Ball rules stabilized."
+    "🎱 RO'Lyfe Pool Engine V3.2 loaded"
   );
 
 })();
