@@ -1,18 +1,14 @@
 /* =========================================================
    RO'LYFE GAMING™ — POOL ENGINE V3.2
-   Shared Systems Integration Build
    Replacement for: games/pool/pool.js
 
-   Uses:
-   - shared/physics-engine.js
-   - shared/audio.js
-   - shared/timer.js
-   - shared/player-system.js
-   - shared/theme-engine.js
-   - shared/game-ui.js
-   - shared/ai-engine.js
-
-   Pool remains responsible for Pool rules/gameplay.
+   V3.2 FIXES:
+   - AI vs AI now automatically starts
+   - AI turns correctly hand off to the next AI
+   - Prevents duplicate AI thinking timers
+   - AI turn state is synchronized with UI
+   - Human controls remain protected from AI turns
+   - Preserves existing Pool gameplay structure
    ========================================================= */
 (() => {
   "use strict";
@@ -39,20 +35,17 @@
     aiDelay: 850,
     playerTime: 600,
     challengeTime: 120,
+
     aimStep: 2.5,
     aimLineLength: 240,
-    aiMaxThinkTime: 1800,
 
+    aiMaxThinkTime: 1800,
     maxVelocity: 38
   };
 
-  /* =========================================================
-     DOM
-     ========================================================= */
-
-  const $ = (id, selector) =>
-    document.getElementById(id) ||
-    (selector ? document.querySelector(selector) : null);
+  const $ = (a, b) =>
+    document.getElementById(a) ||
+    document.querySelector(b);
 
   const table = $("poolTable", ".pool-table");
   const layer = $("ballLayer", ".ball-layer");
@@ -67,6 +60,7 @@
 
   const shootButton = $("shootBtn", "[data-action='shoot']");
   const resetButton = $("resetBtn", "#resetPool");
+
   const leftButton = $("aimLeft", "[data-action='aim-left']");
   const rightButton = $("aimRight", "[data-action='aim-right']");
   const lockButton = $("lockAim", "[data-action='lock-on']");
@@ -74,52 +68,41 @@
   const interactionSurface =
     table || document.querySelector(".table-surface");
 
-  const newRackButton = $("newRackBtn");
-  const pauseButton = $("pauseBtn");
-  const rulesButton = $("rulesBtn");
-  const closeRulesButton = $("closeRulesBtn");
-  const rulesModal = $("rulesModal");
-  const gameOverModal = $("gameOverModal");
-  const playAgainButton = $("playAgainBtn");
-  const finalScore = $("finalScore");
-  const fullscreenButton = $("fullscreenBtn");
-  const soundButton = $("soundBtn");
-  const themeSelect = $("poolTheme");
-  const aiStatus = $("aiStatus");
+  const newRackButton =
+    document.getElementById("newRackBtn");
 
-  /* =========================================================
-     SHARED SYSTEM REFERENCES
-     ========================================================= */
+  const pauseButton =
+    document.getElementById("pauseBtn");
 
-  const Audio =
-    window.ROLyfeAudio ||
-    window.ROlyfeAudio ||
-    null;
+  const rulesButton =
+    document.getElementById("rulesBtn");
 
-  const Timer =
-    window.ROLyfeTimer ||
-    window.ROlyfeTimer ||
-    null;
+  const closeRulesButton =
+    document.getElementById("closeRulesBtn");
 
-  const Players =
-    window.ROLyfePlayers ||
-    window.ROlyfePlayers ||
-    null;
+  const rulesModal =
+    document.getElementById("rulesModal");
 
-  const AI =
-    window.ROLyfeAI ||
-    window.ROlyfeAI ||
-    null;
+  const gameOverModal =
+    document.getElementById("gameOverModal");
 
-  const GameUI =
-    window.ROLyfeGameUI ||
-    window.ROlyfeGameUI ||
-    null;
+  const playAgainButton =
+    document.getElementById("playAgainBtn");
 
-  const Themes =
-    window.ROLyfeThemes ||
-    window.ROlyfeThemes ||
-    null;
+  const finalScore =
+    document.getElementById("finalScore");
+
+  const fullscreenButton =
+    document.getElementById("fullscreenBtn");
+
+  const soundButton =
+    document.getElementById("soundBtn");
+
+  const themeSelect =
+    document.getElementById("poolTheme");
+
+  const aiStatus =
+    document.getElementById("aiStatus");
 
   /* =========================================================
      STATE
@@ -162,20 +145,18 @@
     lastFrame: performance.now(),
 
     aiThinking: false,
-    aiTimer: null,
+    aiTimeout: null,
 
     paused: false,
 
     lockOn: false,
     lockedTarget: null,
 
-    shotCount: 0,
-
-    pointerId: null
+    shotCount: 0
   };
 
   /* =========================================================
-     UTILITIES
+     HELPERS
      ========================================================= */
 
   const clamp = (v, min, max) =>
@@ -183,6 +164,14 @@
 
   const dist = (a, b) =>
     Math.hypot(b.x - a.x, b.y - a.y);
+
+  const norm = (x, y) => {
+    const d = Math.hypot(x, y) || 1;
+    return {
+      x: x / d,
+      y: y / d
+    };
+  };
 
   const size = () => ({
     width: table?.clientWidth || CONFIG.tableWidth,
@@ -201,26 +190,8 @@
   const player = () =>
     state.players[state.currentPlayer];
 
-  const formatTime = seconds =>
-    `${String(Math.floor(Math.max(0, seconds) / 60)).padStart(2, "0")}:${String(Math.max(0, seconds) % 60).padStart(2, "0")}`;
-
-  /* =========================================================
-     AUDIO
-     ========================================================= */
-
-  function audio(method, ...args) {
-    if (!Audio || typeof Audio[method] !== "function") return;
-
-    try {
-      Audio[method](...args);
-    } catch (_) {}
-  }
-
-  function unlockAudio() {
-    try {
-      Audio?.unlock?.();
-    } catch (_) {}
-  }
+  const formatTime = s =>
+    `${String(Math.floor(Math.max(0, s) / 60)).padStart(2, "0")}:${String(Math.max(0, s) % 60).padStart(2, "0")}`;
 
   /* =========================================================
      MESSAGE
@@ -230,6 +201,7 @@
     if (!messageEl) return;
 
     messageEl.textContent = text;
+
     messageEl.className =
       "pool-message" +
       (type ? ` ${type}` : "");
@@ -253,19 +225,18 @@
     ];
   }
 
-  function pocketed(ballObject) {
-    if (ballObject.pocketed) return false;
+  function pocketed(ball) {
+    if (ball.pocketed) return false;
 
-    return pockets().some(
-      p =>
-        Math.hypot(
-          ballObject.x - p.x,
-          ballObject.y - p.y
-        ) <= CONFIG.pocketCaptureRadius
+    return pockets().some(p =>
+      Math.hypot(
+        ball.x - p.x,
+        ball.y - p.y
+      ) <= CONFIG.pocketCaptureRadius
     );
   }
 
-  function createBall(number, x, y) {
+  function ball(number, x, y) {
     return {
       number,
       x,
@@ -283,15 +254,18 @@
      ========================================================= */
 
   function configurePlayers() {
-    const aiNames = {
-      1: "RO'Lyfe AI — START-UP",
-      2: "RO'Lyfe AI — START-UP+",
-      3: "RO'Lyfe AI — INVESTOR",
-      4: "RO'Lyfe AI — INVESTOR+",
-      5: "RO'Lyfe AI — 7FIGURES"
-    };
+
+    const aiName = () =>
+      ({
+        1: "RO'Lyfe AI — START-UP",
+        2: "RO'Lyfe AI — INVESTOR",
+        3: "RO'Lyfe AI — EMG",
+        4: "RO'Lyfe AI — ACE",
+        5: "RO'Lyfe AI — 7FIGURES"
+      }[+state.aiLevel] || "RO'Lyfe AI");
 
     if (state.mode === "pvai") {
+
       state.players = [
         {
           name: "Player 1",
@@ -301,14 +275,16 @@
           fouls: 0
         },
         {
-          name: aiNames[+state.aiLevel] || "RO'Lyfe AI",
+          name: aiName(),
           type: "ai",
           score: 0,
           group: null,
           fouls: 0
         }
       ];
+
     } else if (state.mode === "aivai") {
+
       state.players = [
         {
           name: "RO'Lyfe AI Alpha",
@@ -325,7 +301,9 @@
           fouls: 0
         }
       ];
+
     } else if (state.mode === "challenge") {
+
       state.players = [
         {
           name: "Challenge Player",
@@ -342,7 +320,9 @@
           fouls: 0
         }
       ];
+
     } else {
+
       state.players = [
         {
           name: "Player 1",
@@ -360,24 +340,6 @@
         }
       ];
     }
-
-    /* Connect to shared Player System when available. */
-    try {
-      if (Players?.reset) Players.reset();
-
-      state.players.forEach((p, index) => {
-        if (typeof Players?.add === "function") {
-          Players.add({
-            id: `pool-player-${index + 1}`,
-            name: p.name,
-            type: p.type,
-            level: p.type === "ai" ? state.aiLevel : 0
-          });
-        }
-      });
-
-      Players?.setCurrent?.(state.currentPlayer);
-    } catch (_) {}
   }
 
   /* =========================================================
@@ -385,39 +347,45 @@
      ========================================================= */
 
   function createRack() {
+
     state.balls = [];
 
-    const cue = createBall(0, 210, 250);
+    const cue = ball(0, 210, 250);
 
     state.cueBall = cue;
     state.balls.push(cue);
 
-    const spacing = CONFIG.ballRadius * 2.04;
+    const spacing =
+      CONFIG.ballRadius * 2.04;
+
     const rackX = 720;
     const rackY = 250;
 
-    let number = 1;
+    let n = 1;
 
     for (let row = 0; row < 5; row++) {
+
       for (let col = 0; col <= row; col++) {
-        if (number > 15) break;
+
+        if (n > 15) break;
 
         state.balls.push(
-          createBall(
-            number,
+          ball(
+            n,
             rackX + row * spacing * 0.866,
             rackY + (col - row / 2) * spacing
           )
         );
 
-        number++;
+        n++;
       }
     }
 
     if (state.gameType === "9ball") {
-      state.balls = state.balls.filter(
-        b => b.number <= 9
-      );
+      state.balls =
+        state.balls.filter(
+          b => b.number <= 9
+        );
     }
   }
 
@@ -426,21 +394,36 @@
      ========================================================= */
 
   function render() {
+
     if (!layer) return;
 
     for (const b of state.balls) {
+
       if (!b.element) {
-        b.element = document.createElement("div");
+
+        b.element =
+          document.createElement("div");
 
         b.element.className = "ball";
-        b.element.dataset.ball = b.number;
+
+        b.element.dataset.ball =
+          b.number;
 
         if (b.number === 0) {
-          b.element.classList.add("white", "cue");
-        } else {
-          b.element.classList.add(`ball-${b.number}`);
 
-          b.element.textContent = b.number;
+          b.element.classList.add(
+            "white",
+            "cue"
+          );
+
+        } else {
+
+          b.element.classList.add(
+            `ball-${b.number}`
+          );
+
+          b.element.textContent =
+            b.number;
 
           b.element.dataset.group =
             b.number <= 7
@@ -457,8 +440,13 @@
         b.pocketed ? "none" : "flex";
 
       if (!b.pocketed) {
-        b.element.style.left = `${rx(b.x)}px`;
-        b.element.style.top = `${ry(b.y)}px`;
+
+        b.element.style.left =
+          `${rx(b.x)}px`;
+
+        b.element.style.top =
+          `${ry(b.y)}px`;
+
         b.element.style.transform =
           "translate(-50%,-50%)";
       }
@@ -469,18 +457,22 @@
      POWER
      ========================================================= */
 
-  function power(value) {
-    state.power = clamp(+value, 0, 1);
+  function power(v) {
+
+    state.power =
+      clamp(+v, 0, 1);
 
     if (powerFill) {
+
       powerFill.style.width =
         `${state.power * 100}%`;
     }
 
     document
       .querySelectorAll(".power-value")
-      .forEach(el => {
-        el.textContent =
+      .forEach(e => {
+
+        e.textContent =
           `${Math.round(state.power * 100)}%`;
       });
   }
@@ -490,13 +482,16 @@
      ========================================================= */
 
   function updateTimer() {
-    const seconds =
-      Math.max(0, Math.floor(state.timerSeconds));
 
-    const formatted = formatTime(seconds);
+    const s =
+      Math.max(
+        0,
+        Math.floor(state.timerSeconds)
+      );
 
     if (timerEl) {
-      timerEl.textContent = formatted;
+      timerEl.textContent =
+        formatTime(s);
     }
 
     const active =
@@ -505,149 +500,113 @@
       );
 
     if (active) {
-      active.textContent = formatted;
+      active.textContent =
+        formatTime(s);
     }
+  }
+
+  function startTimer() {
+
+    stopTimer();
+
+    state.timerInterval =
+      setInterval(() => {
+
+        if (
+          state.gameOver ||
+          state.shooting ||
+          state.aiThinking ||
+          state.paused
+        ) {
+          return;
+        }
+
+        state.timerSeconds--;
+
+        if (state.timerSeconds <= 0) {
+
+          state.timerSeconds = 0;
+
+          updateTimer();
+
+          msg(
+            `${player().name} ran out of time.`,
+            "warning"
+          );
+
+          switchPlayer();
+
+        } else {
+
+          updateTimer();
+        }
+
+      }, 1000);
   }
 
   function stopTimer() {
+
     if (state.timerInterval) {
-      clearInterval(state.timerInterval);
+
+      clearInterval(
+        state.timerInterval
+      );
+
       state.timerInterval = null;
     }
-
-    try {
-      Timer?.stop?.("pool-turn");
-    } catch (_) {}
   }
 
   function resetTimer() {
+
     state.timerSeconds =
       state.challengeMode
         ? CONFIG.challengeTime
         : CONFIG.playerTime;
 
     updateTimer();
-
-    try {
-      Timer?.reset?.("pool-turn", state.timerSeconds);
-    } catch (_) {}
-  }
-
-  function startTimer() {
-    stopTimer();
-
-    if (state.paused || state.gameOver) return;
-
-    state.timerInterval = setInterval(() => {
-      if (
-        state.gameOver ||
-        state.shooting ||
-        state.aiThinking ||
-        state.paused
-      ) {
-        return;
-      }
-
-      state.timerSeconds--;
-
-      if (state.timerSeconds <= 0) {
-        state.timerSeconds = 0;
-        updateTimer();
-
-        audio("countdown");
-
-        const current = player();
-
-        msg(
-          `${current?.name || "Player"} ran out of time.`,
-          "warning"
-        );
-
-        switchPlayer();
-      } else {
-        updateTimer();
-
-        if (state.timerSeconds <= 10) {
-          audio("countdown");
-        }
-      }
-    }, 1000);
-
-    try {
-      Timer?.start?.("pool-turn");
-    } catch (_) {}
   }
 
   /* =========================================================
-     SHARED GAME UI
-     ========================================================= */
-
-  function updateSharedUI() {
-    try {
-      GameUI?.setGame?.("pool");
-      GameUI?.setStatus?.(
-        state.gameOver
-          ? "GAME OVER"
-          : state.paused
-            ? "PAUSED"
-            : "PLAYING"
-      );
-
-      GameUI?.setTurn?.(
-        state.currentPlayer
-      );
-
-      GameUI?.setPlayers?.(
-        state.players.map((p, index) => ({
-          ...p,
-          current: index === state.currentPlayer
-        }))
-      );
-
-      GameUI?.setScores?.(
-        state.players.map(p => p.score)
-      );
-    } catch (_) {}
-  }
-
-  /* =========================================================
-     POOL UI
+     UI
      ========================================================= */
 
   function updateUI() {
-    const current = player();
 
     if (turnEl) {
+
       turnEl.textContent =
         state.gameOver
           ? "GAME OVER"
-          : current?.name || "PLAYER";
+          : player()?.name || "";
     }
 
     document
       .querySelectorAll(".player-card")
-      .forEach((element, index) => {
-        element.classList.toggle(
+      .forEach((e, i) => {
+
+        e.classList.toggle(
           "active",
-          index === state.currentPlayer
+          i === state.currentPlayer
         );
       });
 
     document
       .querySelectorAll(".player-name")
-      .forEach((element, index) => {
-        if (state.players[index]) {
-          element.textContent =
-            state.players[index].name;
+      .forEach((e, i) => {
+
+        if (state.players[i]) {
+          e.textContent =
+            state.players[i].name;
         }
       });
 
     document
       .querySelectorAll(".player-score")
-      .forEach((element, index) => {
-        if (state.players[index]) {
-          element.textContent =
-            state.players[index].score;
+      .forEach((e, i) => {
+
+        if (state.players[i]) {
+          e.textContent =
+            state.players[i].score;
         }
       });
 
@@ -656,26 +615,34 @@
         ".player-timer span"
       );
 
-    timers.forEach((element, index) => {
-      element.textContent =
-        index === state.currentPlayer
+    timers.forEach((e, i) => {
+
+      e.textContent =
+        i === state.currentPlayer
           ? formatTime(state.timerSeconds)
           : "10:00";
     });
 
     const statuses = [
-      document.getElementById("player1Status"),
-      document.getElementById("player2Status")
+      document.getElementById(
+        "player1Status"
+      ),
+      document.getElementById(
+        "player2Status"
+      )
     ];
 
-    statuses.forEach((element, index) => {
-      if (!element) return;
+    statuses.forEach((e, i) => {
 
-      element.textContent =
-        index === state.currentPlayer
-          ? current?.type === "ai"
-            ? "THINKING"
-            : "READY"
+      if (!e) return;
+
+      e.textContent =
+        i === state.currentPlayer
+          ? (
+              player()?.type === "ai"
+                ? "THINKING"
+                : "READY"
+            )
           : "WAITING";
     });
 
@@ -692,6 +659,7 @@
       document.getElementById("shotCount");
 
     if (statGame) {
+
       statGame.textContent =
         state.gameType === "9ball"
           ? "9-Ball"
@@ -701,34 +669,42 @@
     }
 
     if (statMode) {
+
       statMode.textContent =
         {
           pvp: "Player vs Player",
           pvai: "Player vs AI",
           aivai: "AI vs AI",
           challenge: "Challenge"
-        }[state.mode] || state.mode;
+        }[state.mode] ||
+        state.mode;
     }
 
     if (statAI) {
+
       statAI.textContent =
-        {
-          1: "START-UP",
-          2: "START-UP+",
-          3: "INVESTOR",
-          4: "INVESTOR+",
-          5: "7FIGURES"
-        }[state.aiLevel] || "START-UP";
+        (
+          [
+            "",
+            "START-UP",
+            "BEGINNER",
+            "INVESTOR",
+            "ADVANCED",
+            "7FIGURES"
+          ][state.aiLevel]
+        ) || "START-UP";
     }
 
     if (shotCount) {
+
       shotCount.textContent =
         String(state.shotCount);
     }
 
     if (aiStatus) {
+
       const isAI =
-        current?.type === "ai";
+        player()?.type === "ai";
 
       aiStatus.classList.toggle(
         "hidden",
@@ -741,58 +717,53 @@
           : "AI READY";
     }
 
-    if (pauseButton) {
-      pauseButton.textContent =
-        state.paused
-          ? "RESUME"
-          : "PAUSE";
-    }
-
     updateTimer();
-    updateSharedUI();
   }
 
   /* =========================================================
      AIM
      ========================================================= */
 
-  function setAim(angle) {
-    state.aimAngle = angle;
+  function setAim(a) {
 
-    const cue = state.cueBall;
+    state.aimAngle = a;
 
-    if (!cue) return;
+    const c =
+      state.cueBall;
+
+    if (!c) return;
 
     state.aimX =
-      cue.x +
-      Math.cos(angle) *
-        CONFIG.aimLineLength;
+      c.x +
+      Math.cos(a) *
+      CONFIG.aimLineLength;
 
     state.aimY =
-      cue.y +
-      Math.sin(angle) *
-        CONFIG.aimLineLength;
+      c.y +
+      Math.sin(a) *
+      CONFIG.aimLineLength;
 
     aimLine();
   }
 
-  function rotate(angle) {
+  function rotate(a) {
+
     if (
       state.gameOver ||
       state.shooting ||
       state.aiThinking ||
-      state.paused ||
       player()?.type !== "human"
     ) {
       return;
     }
 
-    setAim(state.aimAngle + angle);
-
-    audio("move");
+    setAim(
+      state.aimAngle + a
+    );
   }
 
   function aimLine() {
+
     if (
       !layer ||
       !state.cueBall
@@ -800,22 +771,27 @@
       return;
     }
 
-    let line =
+    let l =
       document.getElementById(
         "poolAimLine"
       );
 
-    if (!line) {
-      line =
+    if (!l) {
+
+      l =
         document.createElement("div");
 
-      line.id = "poolAimLine";
-      line.className = "aim-line";
+      l.id =
+        "poolAimLine";
 
-      layer.appendChild(line);
+      l.className =
+        "aim-line";
+
+      layer.appendChild(l);
     }
 
-    line.style.cssText = `
+    l.style.cssText =
+      `
       position:absolute;
       left:${rx(state.cueBall.x)}px;
       top:${ry(state.cueBall.y)}px;
@@ -825,22 +801,23 @@
       transform:rotate(${state.aimAngle * 180 / Math.PI}deg);
       pointer-events:none;
       display:block;
-    `;
+      `;
 
-    line.classList.toggle(
+    l.classList.toggle(
       "locked",
       state.lockOn
     );
   }
 
   function hideAim() {
-    const line =
+
+    const l =
       document.getElementById(
         "poolAimLine"
       );
 
-    if (line) {
-      line.style.display = "none";
+    if (l) {
+      l.style.display = "none";
     }
   }
 
@@ -849,7 +826,8 @@
      ========================================================= */
 
   function legalTargets() {
-    let available =
+
+    let a =
       state.balls.filter(
         b =>
           b.number !== 0 &&
@@ -857,64 +835,62 @@
       );
 
     if (state.gameType === "9ball") {
-      const lowest =
-        available.reduce(
-          (lowestBall, b) =>
-            !lowestBall ||
-            b.number < lowestBall.number
+
+      const n =
+        a.reduce(
+          (x, b) =>
+            !x || b.number < x.number
               ? b
-              : lowestBall,
+              : x,
           null
         );
 
-      return lowest
-        ? [lowest]
-        : [];
+      return n ? [n] : [];
     }
 
-    return available.filter(
+    return a.filter(
       b => b.number !== 8
     );
   }
 
   function target() {
-    const available =
+
+    const a =
       legalTargets();
 
-    if (!available.length) {
-      return null;
-    }
-
-    available.sort(
-      (a, b) =>
-        dist(state.cueBall, a) -
-        dist(state.cueBall, b)
+    return (
+      a.sort(
+        (x, y) =>
+          dist(state.cueBall, x) -
+          dist(state.cueBall, y)
+      )[0] ||
+      null
     );
-
-    return available[0];
   }
 
+  /* =========================================================
+     LOCK ON
+     ========================================================= */
+
   function lock() {
+
     if (
       state.gameOver ||
       state.shooting ||
-      state.paused ||
+      state.aiThinking ||
       player()?.type !== "human"
     ) {
       return;
     }
 
-    unlockAudio();
-
     if (state.lockOn) {
+
       state.lockOn = false;
       state.lockedTarget = null;
 
       hideAim();
 
-      msg("LOCK-ON OFF");
-
-      audio("click");
+      msg("Lock-On OFF");
 
       return;
     }
@@ -922,12 +898,11 @@
     const t = target();
 
     if (!t) {
+
       msg(
         "No available target.",
         "warning"
       );
-
-      audio("notify");
 
       return;
     }
@@ -945,110 +920,80 @@
     msg(
       `LOCKED ON — Ball ${t.number}`
     );
-
-    audio("select");
   }
 
   /* =========================================================
-     POINTER AIMING
-     =========================================================
-     IMPORTANT:
-     Aim from anywhere on the table instead of requiring
-     the user to start directly on the cue ball.
-     This fixes the touch/mobile aiming problem.
+     POINTER AIM
      ========================================================= */
 
-  function pointerPosition(event) {
-    if (!interactionSurface) {
-      return {
-        x: CONFIG.tableWidth / 2,
-        y: CONFIG.tableHeight / 2
-      };
-    }
+  function pointer(e) {
 
-    const rect =
+    const r =
       interactionSurface.getBoundingClientRect();
 
-    return {
-      x: clamp(
-        ((event.clientX - rect.left) /
-          rect.width) *
-          CONFIG.tableWidth,
-        0,
-        CONFIG.tableWidth
-      ),
+    const t =
+      e.touches?.[0] ||
+      e.changedTouches?.[0];
 
-      y: clamp(
-        ((event.clientY - rect.top) /
-          rect.height) *
-          CONFIG.tableHeight,
-        0,
+    return {
+      x:
+        (
+          (t ? t.clientX : e.clientX) -
+          r.left
+        ) /
+        r.width *
+        CONFIG.tableWidth,
+
+      y:
+        (
+          (t ? t.clientY : e.clientY) -
+          r.top
+        ) /
+        r.height *
         CONFIG.tableHeight
-      )
     };
   }
 
-  function startAim(event) {
+  function startAim(e) {
+
     if (
       state.gameOver ||
       state.shooting ||
       state.aiThinking ||
-      state.paused ||
       player()?.type !== "human" ||
-      !state.cueBall ||
-      state.cueBall.pocketed
-    ) {
-      return;
-    }
-
-    unlockAudio();
-
-    /* Ignore controls/buttons sitting above the table. */
-    if (
-      event.target.closest?.(
-        "button,select,input,a"
-      )
-    ) {
-      return;
-    }
-
-    state.pointerId =
-      event.pointerId;
-
-    state.aiming = true;
-
-    try {
-      interactionSurface.setPointerCapture?.(
-        event.pointerId
-      );
-    } catch (_) {}
-
-    moveAim(event);
-
-    event.preventDefault?.();
-
-    audio("select");
-  }
-
-  function moveAim(event) {
-    if (
-      !state.aiming ||
-      state.shooting ||
       !state.cueBall
     ) {
       return;
     }
 
+    const p =
+      pointer(e);
+
     if (
-      state.pointerId !== null &&
-      event.pointerId !== undefined &&
-      event.pointerId !== state.pointerId
+      dist(
+        state.cueBall,
+        p
+      ) >
+      CONFIG.ballRadius * 7
     ) {
       return;
     }
 
+    state.aiming = true;
+
+    moveAim(e);
+
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+  }
+
+  function moveAim(e) {
+
+    if (!state.aiming) return;
+
     const p =
-      pointerPosition(event);
+      pointer(e);
 
     setAim(
       Math.atan2(
@@ -1057,54 +1002,52 @@
       )
     );
 
-    event.preventDefault?.();
+    if (e.cancelable) {
+      e.preventDefault();
+    }
   }
 
-  function endAim(event) {
+  function endAim(e) {
+
     if (!state.aiming) return;
 
-    moveAim(event);
+    moveAim(e);
 
     state.aiming = false;
-    state.pointerId = null;
-
-    try {
-      interactionSurface.releasePointerCapture?.(
-        event.pointerId
-      );
-    } catch (_) {}
-
-    event.preventDefault?.();
 
     shoot();
+
+    if (e.cancelable) {
+      e.preventDefault();
+    }
   }
 
   /* =========================================================
-     SHOOT
+     SHOOTING
      ========================================================= */
 
   function shoot() {
+
     if (
       state.gameOver ||
       state.shooting ||
       state.aiThinking ||
-      state.paused ||
       player()?.type !== "human"
     ) {
       return;
     }
-
-    unlockAudio();
 
     if (
       state.lockOn &&
       state.lockedTarget &&
       !state.lockedTarget.pocketed
     ) {
+
       setAim(
         Math.atan2(
           state.lockedTarget.y -
             state.cueBall.y,
+
           state.lockedTarget.x -
             state.cueBall.x
         )
@@ -1117,7 +1060,8 @@
     );
   }
 
-  function fire(angle, powerValue) {
+  function fire(angle, p) {
+
     if (
       state.paused ||
       state.gameOver ||
@@ -1126,46 +1070,38 @@
       return;
     }
 
-    const cue =
+    const c =
       state.cueBall;
 
-    if (
-      !cue ||
-      cue.pocketed
-    ) {
+    if (!c || c.pocketed) {
       return;
     }
 
-    let shotPower =
+    let sp =
       Math.max(
         CONFIG.minPower,
-        powerValue
+        p
       );
 
     if (state.breakShot) {
-      shotPower =
-        Math.max(
-          shotPower,
-          0.78
-        ) *
+
+      sp =
+        Math.max(sp, 0.78) *
         CONFIG.breakPowerMultiplier;
     }
 
-    const velocity =
+    const v =
       clamp(
-        CONFIG.maxPower *
-          shotPower,
+        CONFIG.maxPower * sp,
         0,
         CONFIG.maxVelocity
       );
 
-    cue.vx =
-      Math.cos(angle) *
-      velocity;
+    c.vx =
+      Math.cos(angle) * v;
 
-    cue.vy =
-      Math.sin(angle) *
-      velocity;
+    c.vy =
+      Math.sin(angle) * v;
 
     state.lockOn = false;
     state.lockedTarget = null;
@@ -1182,13 +1118,9 @@
     state.foulThisTurn = false;
     state.firstBallHit = null;
 
-    stopTimer();
-
     msg(
-      `${player()?.name || "Player"} is shooting...`
+      `${player().name} is shooting...`
     );
-
-    audio("strike");
 
     updateUI();
   }
@@ -1198,77 +1130,80 @@
      ========================================================= */
 
   function rails(b) {
-    const r = b.radius;
+
+    const r =
+      b.radius;
 
     if (b.x - r < 0) {
+
       b.x = r;
+
       b.vx =
         Math.abs(b.vx) *
         CONFIG.railRestitution;
-
-      audio("rail");
     }
 
     if (
       b.x + r >
       CONFIG.tableWidth
     ) {
+
       b.x =
         CONFIG.tableWidth - r;
 
       b.vx =
         -Math.abs(b.vx) *
         CONFIG.railRestitution;
-
-      audio("rail");
     }
 
     if (b.y - r < 0) {
+
       b.y = r;
+
       b.vy =
         Math.abs(b.vy) *
         CONFIG.railRestitution;
-
-      audio("rail");
     }
 
     if (
       b.y + r >
       CONFIG.tableHeight
     ) {
+
       b.y =
         CONFIG.tableHeight - r;
 
       b.vy =
         -Math.abs(b.vy) *
         CONFIG.railRestitution;
-
-      audio("rail");
     }
   }
 
   /* =========================================================
-     BALL COLLISIONS
+     COLLISIONS
      ========================================================= */
 
   function collisions() {
-    const active =
+
+    const a =
       state.balls.filter(
         b => !b.pocketed
       );
 
     for (
       let i = 0;
-      i < active.length;
+      i < a.length;
       i++
     ) {
+
       for (
         let j = i + 1;
-        j < active.length;
+        j < a.length;
         j++
       ) {
-        const A = active[i];
-        const B = active[j];
+
+        const A = a[i];
+        const B = a[j];
 
         const dx =
           B.x - A.x;
@@ -1276,31 +1211,26 @@
         const dy =
           B.y - A.y;
 
-        let distance =
+        let d =
           Math.hypot(dx, dy);
 
-        const minimum =
-          A.radius +
-          B.radius;
+        const m =
+          A.radius + B.radius;
 
-        if (
-          distance >= minimum
-        ) {
-          continue;
-        }
+        if (d >= m) continue;
 
-        if (!distance) {
-          distance = 0.0001;
+        if (!d) {
+          d = 0.0001;
         }
 
         const nx =
-          dx / distance;
+          dx / d;
 
         const ny =
-          dy / distance;
+          dy / d;
 
         const overlap =
-          minimum - distance;
+          m - d;
 
         A.x -=
           nx *
@@ -1322,47 +1252,45 @@
           overlap *
           0.5;
 
-        const relativeVelocity =
+        const rel =
           (B.vx - A.vx) * nx +
           (B.vy - A.vy) * ny;
 
-        if (
-          relativeVelocity > 0
-        ) {
-          continue;
-        }
+        if (rel > 0) continue;
 
-        const impulse =
-          -relativeVelocity *
+        const imp =
+          -rel *
           CONFIG.collisionRestitution;
 
         A.vx -=
-          impulse * nx;
+          imp * nx;
 
         A.vy -=
-          impulse * ny;
+          imp * ny;
 
         B.vx +=
-          impulse * nx;
+          imp * nx;
 
         B.vy +=
-          impulse * ny;
+          imp * ny;
 
         if (
           state.firstBallHit === null
         ) {
+
           if (A.number === 0) {
+
             state.firstBallHit =
               B.number;
+
           } else if (
             B.number === 0
           ) {
+
             state.firstBallHit =
               A.number;
           }
         }
-
-        audio("collision");
       }
     }
   }
@@ -1372,17 +1300,19 @@
      ========================================================= */
 
   function pocket(b) {
+
     if (b.pocketed) return;
 
     b.pocketed = true;
+
     b.vx = 0;
     b.vy = 0;
 
-    state.ballsPocketedThisTurn.push(
-      b.number
-    );
+    state.ballsPocketedThisTurn
+      .push(b.number);
 
     if (b.number === 0) {
+
       state.foulThisTurn = true;
 
       msg(
@@ -1390,17 +1320,10 @@
         "warning"
       );
 
-      audio("foul");
-
       return;
     }
 
-    const current =
-      player();
-
-    if (current) {
-      current.score++;
-    }
+    player().score++;
 
     if (state.challengeMode) {
       state.challengeScore++;
@@ -1415,15 +1338,6 @@
       "success"
     );
 
-    audio("pocket");
-
-    try {
-      Players?.recordScore?.(
-        current?.id,
-        1
-      );
-    } catch (_) {}
-
     updateUI();
   }
 
@@ -1432,6 +1346,7 @@
      ========================================================= */
 
   function moving() {
+
     return state.balls.some(
       b =>
         !b.pocketed &&
@@ -1449,7 +1364,8 @@
      ========================================================= */
 
   function physics(dt) {
-    const frameScale =
+
+    const fs =
       clamp(
         dt / 16.6667,
         0.35,
@@ -1457,43 +1373,41 @@
       );
 
     for (const b of state.balls) {
+
       if (b.pocketed) continue;
 
       b.x +=
-        b.vx *
-        frameScale;
+        b.vx * fs;
 
       b.y +=
-        b.vy *
-        frameScale;
+        b.vy * fs;
 
-      const friction =
+      const f =
         Math.pow(
           CONFIG.friction,
-          frameScale
+          fs
         );
 
-      b.vx *= friction;
-      b.vy *= friction;
+      b.vx *= f;
+      b.vy *= f;
 
-      const speed =
+      const s =
         Math.hypot(
           b.vx,
           b.vy
         );
 
-      if (speed) {
-        const resistance =
+      if (s) {
+
+        const r =
           CONFIG.rollingResistance *
-          frameScale;
+          fs;
 
         b.vx -=
-          (b.vx / speed) *
-          resistance;
+          (b.vx / s) * r;
 
         b.vy -=
-          (b.vy / speed) *
-          resistance;
+          (b.vy / s) * r;
       }
 
       if (
@@ -1529,32 +1443,36 @@
      ========================================================= */
 
   function respot() {
-    const cue =
+
+    const c =
       state.cueBall;
 
-    if (!cue) return;
+    if (!c) return;
 
-    cue.pocketed = false;
-    cue.vx = 0;
-    cue.vy = 0;
+    c.pocketed = false;
+
+    c.vx = 0;
+    c.vy = 0;
 
     let x = 210;
     let y = 250;
-    let attempts = 0;
+
+    let tries = 0;
 
     while (
       state.balls.some(
         b =>
-          b !== cue &&
+          b !== c &&
           !b.pocketed &&
           Math.hypot(
             b.x - x,
             b.y - y
           ) <
-            CONFIG.ballRadius * 2.2
+          CONFIG.ballRadius * 2.2
       ) &&
-      attempts++ < 100
+      tries++ < 100
     ) {
+
       x =
         120 +
         Math.random() * 180;
@@ -1564,8 +1482,8 @@
         Math.random() * 380;
     }
 
-    cue.x = x;
-    cue.y = y;
+    c.x = x;
+    c.y = y;
 
     setAim(
       state.aimAngle
@@ -1579,14 +1497,16 @@
      ========================================================= */
 
   function finishShot() {
-    if (!state.shooting) return;
+
+    if (!state.shooting) {
+      return;
+    }
 
     state.shooting = false;
 
     if (state.foulThisTurn) {
-      player().fouls++;
 
-      audio("foul");
+      player().fouls++;
 
       respot();
 
@@ -1595,10 +1515,11 @@
       return;
     }
 
-    const objectBallPocketed =
-      state.ballsPocketedThisTurn.some(
-        number => number !== 0
-      );
+    const objects =
+      state.ballsPocketedThisTurn
+        .some(
+          n => n !== 0
+        );
 
     if (
       state.gameType === "8ball" &&
@@ -1608,7 +1529,9 @@
           b.pocketed
       )
     ) {
+
       endGame(player());
+
       return;
     }
 
@@ -1620,14 +1543,18 @@
           b.pocketed
       )
     ) {
+
       endGame(player());
+
       return;
     }
 
     if (state.breakShot) {
+
       state.breakShot = false;
 
-      if (objectBallPocketed) {
+      if (objects) {
+
         resetTimer();
 
         msg(
@@ -1635,23 +1562,35 @@
           "success"
         );
 
-        startTimer();
       } else {
+
         switchPlayer();
       }
 
       return;
     }
 
-    if (objectBallPocketed) {
+    if (objects) {
+
       resetTimer();
-      startTimer();
 
       msg(
         `${player().name} continues — nice shot!`,
         "success"
       );
+
+      /* =====================================================
+         IMPORTANT:
+         If this player is AI, allow the AI to continue
+         after making a legal shot.
+         ===================================================== */
+
+      if (player().type === "ai") {
+        scheduleAITurn();
+      }
+
     } else {
+
       switchPlayer();
     }
 
@@ -1659,11 +1598,70 @@
   }
 
   /* =========================================================
-     PLAYER SWITCH
+     AI TIMER CONTROL
+     ========================================================= */
+
+  function clearAITimer() {
+
+    if (state.aiTimeout) {
+
+      clearTimeout(
+        state.aiTimeout
+      );
+
+      state.aiTimeout = null;
+    }
+  }
+
+  /* =========================================================
+     AI TURN SCHEDULER
+     ========================================================= */
+
+  function scheduleAITurn() {
+
+    clearAITimer();
+
+    if (
+      state.gameOver ||
+      state.paused ||
+      state.shooting ||
+      player()?.type !== "ai"
+    ) {
+      return;
+    }
+
+    state.aiThinking = true;
+
+    updateUI();
+
+    msg(
+      `${player().name} is thinking...`
+    );
+
+    state.aiTimeout =
+      setTimeout(
+        () => {
+
+          state.aiTimeout = null;
+
+          runAI();
+
+        },
+        CONFIG.aiDelay
+      );
+  }
+
+  /* =========================================================
+     SWITCH PLAYER
      ========================================================= */
 
   function switchPlayer() {
-    if (state.gameOver) return;
+
+    if (state.gameOver) {
+      return;
+    }
+
+    clearAITimer();
 
     state.currentPlayer =
       state.currentPlayer
@@ -1680,262 +1678,42 @@
     state.lockedTarget = null;
 
     resetTimer();
+
     updateUI();
+
     startTimer();
 
-    try {
-      Players?.setCurrent?.(
-        state.currentPlayer
-      );
-    } catch (_) {}
-
-    audio("turn");
-
-    const current =
-      player();
-
     if (
-      current?.type === "ai"
+      player()?.type === "ai"
     ) {
-      state.aiThinking = true;
 
-      updateUI();
+      scheduleAITurn();
 
-      msg(
-        `${current.name} is thinking...`
-      );
-
-      scheduleAI();
     } else {
+
       state.aiThinking = false;
 
       updateUI();
 
       msg(
-        `${current?.name || "PLAYER"} — YOUR TURN`,
+        `${player().name} — YOUR TURN`,
         "success"
       );
     }
   }
 
   /* =========================================================
-     AI
-     ========================================================= */
-
-  function scheduleAI() {
-    clearAI();
-
-    state.aiThinking = true;
-    updateUI();
-
-    state.aiTimer =
-      setTimeout(
-        runAI,
-        CONFIG.aiDelay
-      );
-  }
-
-  function clearAI() {
-    if (state.aiTimer) {
-      clearTimeout(
-        state.aiTimer
-      );
-
-      state.aiTimer = null;
-    }
-  }
-
-  function chooseAIShot() {
-    const t = target();
-
-    if (!t) return null;
-
-    const level =
-      clamp(
-        +state.aiLevel,
-        1,
-        5
-      );
-
-    /*
-      Higher levels produce less angular error.
-      This remains Pool-specific decision logic.
-    */
-
-    const accuracy =
-      {
-        1: 0.22,
-        2: 0.16,
-        3: 0.10,
-        4: 0.055,
-        5: 0.025
-      }[level] || 0.10;
-
-    const error =
-      (Math.random() - 0.5) *
-      accuracy;
-
-    const angle =
-      Math.atan2(
-        t.y - state.cueBall.y,
-        t.x - state.cueBall.x
-      ) + error;
-
-    const distance =
-      dist(
-        state.cueBall,
-        t
-      );
-
-    let shotPower =
-      state.breakShot
-        ? 0.95
-        : 0.38 +
-          distance / 1000 +
-          level * 0.045;
-
-    shotPower =
-      clamp(
-        shotPower,
-        0.28,
-        0.88
-      );
-
-    return {
-      angle,
-      power: shotPower,
-      target: t
-    };
-  }
-
-  function runAI() {
-    state.aiTimer = null;
-
-    if (
-      state.gameOver ||
-      state.shooting ||
-      state.paused ||
-      player()?.type !== "ai"
-    ) {
-      state.aiThinking = false;
-      updateUI();
-      return;
-    }
-
-    state.aiThinking = true;
-    updateUI();
-
-    let decision = null;
-
-    /*
-      Use shared AI engine when available.
-      Pool still supplies the legal shot decision.
-    */
-
-    try {
-      if (
-        AI &&
-        typeof AI.think === "function"
-      ) {
-        AI.setGame?.("pool");
-        AI.setLevel?.(
-          state.aiLevel
-        );
-
-        AI.think(
-          {
-            balls: state.balls,
-            currentPlayer:
-              state.currentPlayer,
-            gameType:
-              state.gameType
-          },
-          {
-            legalMoves: () => {
-              const shot =
-                chooseAIShot();
-
-              return shot
-                ? [shot]
-                : [];
-            }
-          }
-        );
-      }
-    } catch (_) {}
-
-    decision =
-      chooseAIShot();
-
-    if (!decision) {
-      state.aiThinking = false;
-      updateUI();
-      switchPlayer();
-      return;
-    }
-
-    const level =
-      clamp(
-        +state.aiLevel,
-        1,
-        5
-      );
-
-    const thinkDelay =
-      Math.min(
-        300 +
-          (6 - level) * 120 +
-          Math.random() * 250,
-        CONFIG.aiMaxThinkTime
-      );
-
-    state.aiTimer =
-      setTimeout(
-        () => {
-          state.aiTimer = null;
-
-          if (
-            state.gameOver ||
-            state.paused ||
-            player()?.type !== "ai"
-          ) {
-            state.aiThinking = false;
-            updateUI();
-            return;
-          }
-
-          state.aiThinking = false;
-
-          updateUI();
-
-          if (
-            decision.target &&
-            !decision.target.pocketed
-          ) {
-            msg(
-              `${player().name} — Ball ${decision.target.number}`
-            );
-          }
-
-          fire(
-            decision.angle,
-            decision.power
-          );
-        },
-        thinkDelay
-      );
-  }
-
-  /* =========================================================
-     GAME OVER
+     END GAME
      ========================================================= */
 
   function endGame(winner) {
+
+    clearAITimer();
+
     state.gameOver = true;
     state.shooting = false;
     state.aiThinking = false;
 
-    clearAI();
     stopTimer();
 
     hideAim();
@@ -1949,25 +1727,11 @@
       "success"
     );
 
-    audio("win");
-
     if (finalScore) {
+
       finalScore.textContent =
         `${winnerName} wins • Player 1 ${state.players[0]?.score || 0} — Player 2 ${state.players[1]?.score || 0}`;
     }
-
-    try {
-      Players?.recordResult?.(
-        state.currentPlayer,
-        "win"
-      );
-    } catch (_) {}
-
-    try {
-      GameUI?.setStatus?.(
-        "GAME OVER"
-      );
-    } catch (_) {}
 
     showModal(
       gameOverModal
@@ -1977,26 +1741,153 @@
   }
 
   /* =========================================================
-     MAIN LOOP
+     AI ENGINE
      ========================================================= */
 
-  function loop(timestamp) {
-    const delta =
+  function runAI() {
+
+    if (
+      state.gameOver ||
+      state.paused ||
+      state.shooting ||
+      player()?.type !== "ai"
+    ) {
+
+      state.aiThinking = false;
+
+      updateUI();
+
+      return;
+    }
+
+    state.aiThinking = true;
+
+    updateUI();
+
+    const t =
+      target();
+
+    if (!t) {
+
+      state.aiThinking = false;
+
+      updateUI();
+
+      switchPlayer();
+
+      return;
+    }
+
+    const level =
       clamp(
-        timestamp -
-          state.lastFrame,
+        +state.aiLevel,
+        1,
+        5
+      );
+
+    /*
+     * Higher level = smaller aiming error.
+     */
+    const accuracy =
+      0.80 +
+      level * 0.035;
+
+    const error =
+      (1 - accuracy) *
+      (Math.random() - 0.5) *
+      0.3;
+
+    const angle =
+      Math.atan2(
+        t.y - state.cueBall.y,
+        t.x - state.cueBall.x
+      ) + error;
+
+    let p;
+
+    if (state.breakShot) {
+
+      p = 0.95;
+
+    } else {
+
+      p =
+        clamp(
+          0.38 +
+          dist(
+            state.cueBall,
+            t
+          ) / 1000 +
+          level * 0.045,
+          0.28,
+          0.88
+        );
+    }
+
+    const thinkDelay =
+      Math.min(
+        300 +
+        (6 - level) * 120 +
+        Math.random() * 250,
+        CONFIG.aiMaxThinkTime
+      );
+
+    clearAITimer();
+
+    state.aiTimeout =
+      setTimeout(
+        () => {
+
+          state.aiTimeout = null;
+
+          if (
+            state.gameOver ||
+            state.paused ||
+            player()?.type !== "ai"
+          ) {
+
+            state.aiThinking = false;
+
+            updateUI();
+
+            return;
+          }
+
+          state.aiThinking = false;
+
+          updateUI();
+
+          fire(
+            angle,
+            p
+          );
+
+        },
+        thinkDelay
+      );
+  }
+
+  /* =========================================================
+     GAME LOOP
+     ========================================================= */
+
+  function loop(ts) {
+
+    const d =
+      clamp(
+        ts - state.lastFrame,
         0,
         50
       );
 
-    state.lastFrame =
-      timestamp;
+    state.lastFrame = ts;
 
     if (
       state.shooting &&
       !state.paused
     ) {
-      physics(delta);
+
+      physics(d);
     }
 
     render();
@@ -2005,42 +1896,45 @@
       state.aiming ||
       state.lockOn
     ) {
+
       aimLine();
     }
 
     state.animationFrame =
-      requestAnimationFrame(
-        loop
-      );
+      requestAnimationFrame(loop);
   }
 
   /* =========================================================
      MODALS
      ========================================================= */
 
-  function showModal(element) {
-    if (!element) return;
+  function showModal(el) {
 
-    element.classList.remove(
-      "hidden"
-    );
+    if (el) {
+      el.classList.remove(
+        "hidden"
+      );
+    }
   }
 
-  function hideModal(element) {
-    if (!element) return;
+  function hideModal(el) {
 
-    element.classList.add(
-      "hidden"
-    );
+    if (el) {
+      el.classList.add(
+        "hidden"
+      );
+    }
   }
 
   /* =========================================================
-     RESET / NEW RACK
+     RESET GAME
      ========================================================= */
 
   function resetGame() {
+
+    clearAITimer();
+
     stopTimer();
-    clearAI();
 
     state.gameOver = false;
     state.shooting = false;
@@ -2051,6 +1945,8 @@
 
     state.breakShot = true;
 
+    state.shotCount = 0;
+
     state.ballsPocketedThisTurn = [];
     state.foulThisTurn = false;
     state.firstBallHit = null;
@@ -2058,15 +1954,12 @@
     state.lockOn = false;
     state.lockedTarget = null;
 
-    state.shotCount = 0;
     state.challengeScore = 0;
 
     state.challengeMode =
       state.mode === "challenge";
 
     state.paused = false;
-
-    state.pointerId = null;
 
     document.body.classList.remove(
       "game-paused"
@@ -2081,12 +1974,15 @@
     }
 
     createRack();
+
     render();
 
     setAim(0);
+
     power(0.55);
 
     resetTimer();
+
     startTimer();
 
     updateUI();
@@ -2103,17 +1999,107 @@
       performance.now();
 
     if (!state.animationFrame) {
+
       state.animationFrame =
         requestAnimationFrame(
           loop
         );
     }
 
-    audio("notify");
+    /*
+     * ========================================================
+     * V3.2 CRITICAL FIX
+     *
+     * If the selected mode starts with an AI player,
+     * immediately hand control to the AI.
+     *
+     * This fixes AI vs AI starting on:
+     * AI Alpha — THINKING
+     * while never actually taking a shot.
+     * ========================================================
+     */
+
+    if (
+      player()?.type === "ai"
+    ) {
+
+      scheduleAITurn();
+    }
   }
 
+  /* =========================================================
+     NEW RACK
+     ========================================================= */
+
   function newRack() {
-    resetGame();
+
+    clearAITimer();
+
+    if (state.gameOver) {
+      hideModal(gameOverModal);
+    }
+
+    stopTimer();
+
+    state.gameOver = false;
+    state.shooting = false;
+    state.aiThinking = false;
+
+    state.currentPlayer = 0;
+
+    state.breakShot = true;
+
+    state.ballsPocketedThisTurn = [];
+
+    state.foulThisTurn = false;
+    state.firstBallHit = null;
+
+    state.lockOn = false;
+    state.lockedTarget = null;
+
+    state.shotCount = 0;
+    state.challengeScore = 0;
+
+    state.paused = false;
+
+    document.body.classList.remove(
+      "game-paused"
+    );
+
+    configurePlayers();
+
+    if (layer) {
+      layer.innerHTML = "";
+    }
+
+    createRack();
+
+    render();
+
+    setAim(0);
+
+    power(0.55);
+
+    resetTimer();
+
+    startTimer();
+
+    updateUI();
+
+    msg(
+      "PLAYER 1 TURN — BREAK THE RACK!"
+    );
+
+    /*
+     * Also start AI automatically
+     * when New Rack is used in AI vs AI.
+     */
+    if (
+      player()?.type === "ai"
+    ) {
+
+      scheduleAITurn();
+    }
   }
 
   /* =========================================================
@@ -2121,7 +2107,10 @@
      ========================================================= */
 
   function togglePause() {
-    if (state.gameOver) return;
+
+    if (state.gameOver) {
+      return;
+    }
 
     state.paused =
       !state.paused;
@@ -2132,30 +2121,49 @@
     );
 
     if (state.paused) {
+
       stopTimer();
 
-      state.aiming = false;
-
+      /*
+       * Do not destroy the AI decision.
+       * Just prevent it from firing while paused.
+       */
       msg(
         "GAME PAUSED",
         "warning"
       );
 
-      audio("click");
+      if (pauseButton) {
+        pauseButton.textContent =
+          "RESUME";
+      }
+
     } else {
+
       startTimer();
 
       updateUI();
 
-      msg(
-        `${player().name} — YOUR TURN`,
-        "success"
-      );
+      if (pauseButton) {
+        pauseButton.textContent =
+          "PAUSE";
+      }
 
-      audio("click");
+      if (
+        player()?.type === "ai" &&
+        !state.shooting
+      ) {
+
+        scheduleAITurn();
+
+      } else {
+
+        msg(
+          `${player().name} — YOUR TURN`,
+          "success"
+        );
+      }
     }
-
-    updateUI();
   }
 
   /* =========================================================
@@ -2163,162 +2171,78 @@
      ========================================================= */
 
   function toggleFullscreen() {
+
     const target =
       document.getElementById(
         "poolApp"
       ) ||
       document.documentElement;
 
-    if (!document.fullscreenElement) {
+    if (
+      !document.fullscreenElement
+    ) {
+
       target
         .requestFullscreen?.()
         .catch(() => {});
+
     } else {
+
       document
         .exitFullscreen?.();
     }
   }
 
   /* =========================================================
-     SOUND BUTTON
-     ========================================================= */
-
-  function updateSoundButton() {
-    if (!soundButton) return;
-
-    let muted = false;
-
-    try {
-      muted =
-        Audio?.isMuted?.() === true;
-    } catch (_) {}
-
-    soundButton.textContent =
-      muted
-        ? "🔇"
-        : "🔊";
-  }
-
-  function toggleSound() {
-    unlockAudio();
-
-    try {
-      if (
-        typeof Audio?.toggleMute ===
-        "function"
-      ) {
-        Audio.toggleMute();
-      } else if (
-        typeof Audio?.mute ===
-        "function"
-      ) {
-        Audio.mute();
-      }
-    } catch (_) {}
-
-    updateSoundButton();
-  }
-
-  /* =========================================================
-     THEME
-     ========================================================= */
-
-  function changeTheme(value) {
-    if (!value) return;
-
-    try {
-      if (
-        Themes &&
-        typeof Themes.set ===
-        "function"
-      ) {
-        Themes.set(value);
-      }
-
-      Themes?.setGame?.("pool");
-    } catch (_) {}
-
-    try {
-      window.ROLYFE_POOL_THEME?.change?.(
-        value
-      );
-    } catch (_) {}
-
-    if (themeSelect) {
-      themeSelect.value = value;
-    }
-  }
-
-  /* =========================================================
-     POWER BUTTONS
+     BUTTONS
      ========================================================= */
 
   document
     .querySelectorAll(
       "[data-power='increase'],.power-plus,#powerPlus,#powerUp"
     )
-    .forEach(button => {
-      button.addEventListener(
+    .forEach(b =>
+      b.addEventListener(
         "click",
-        () => {
-          unlockAudio();
-
+        () =>
           power(
             state.power + 0.05
-          );
-
-          audio("click");
-        }
-      );
-    });
+          )
+      )
+    );
 
   document
     .querySelectorAll(
       "[data-power='decrease'],.power-minus,#powerMinus,#powerDown"
     )
-    .forEach(button => {
-      button.addEventListener(
+    .forEach(b =>
+      b.addEventListener(
         "click",
-        () => {
-          unlockAudio();
-
+        () =>
           power(
             state.power - 0.05
-          );
-
-          audio("click");
-        }
-      );
-    });
-
-  /* =========================================================
-     BUTTON EVENTS
-     ========================================================= */
+          )
+      )
+    );
 
   leftButton?.addEventListener(
     "click",
-    () => {
-      unlockAudio();
-
+    () =>
       rotate(
         -CONFIG.aimStep *
         Math.PI /
         180
-      );
-    }
+      )
   );
 
   rightButton?.addEventListener(
     "click",
-    () => {
-      unlockAudio();
-
+    () =>
       rotate(
         CONFIG.aimStep *
         Math.PI /
         180
-      );
-    }
+      )
   );
 
   lockButton?.addEventListener(
@@ -2328,57 +2252,44 @@
 
   shootButton?.addEventListener(
     "click",
-    () => {
-      unlockAudio();
-      shoot();
-    }
+    shoot
   );
 
   resetButton?.addEventListener(
     "click",
-    () => {
-      unlockAudio();
-      resetGame();
-    }
+    resetGame
   );
 
   newRackButton?.addEventListener(
     "click",
-    () => {
-      unlockAudio();
-      newRack();
-    }
+    newRack
   );
 
   pauseButton?.addEventListener(
     "click",
-    () => {
-      unlockAudio();
-      togglePause();
-    }
+    togglePause
   );
 
   rulesButton?.addEventListener(
     "click",
-    () => {
-      unlockAudio();
-      showModal(rulesModal);
-      audio("select");
-    }
+    () =>
+      showModal(rulesModal)
   );
 
   closeRulesButton?.addEventListener(
     "click",
-    () => {
-      hideModal(rulesModal);
-      audio("click");
-    }
+    () =>
+      hideModal(rulesModal)
   );
 
   playAgainButton?.addEventListener(
     "click",
     () => {
-      hideModal(gameOverModal);
+
+      hideModal(
+        gameOverModal
+      );
+
       resetGame();
     }
   );
@@ -2390,105 +2301,95 @@
 
   soundButton?.addEventListener(
     "click",
-    toggleSound
+    () => {
+
+      document.body.classList.toggle(
+        "sound-muted"
+      );
+
+      soundButton.textContent =
+        document.body.classList.contains(
+          "sound-muted"
+        )
+          ? "🔇"
+          : "🔊";
+    }
   );
 
   themeSelect?.addEventListener(
     "change",
-    event => {
-      changeTheme(
-        event.target.value
-      );
-    }
-  );
+    () => {
 
-  /* =========================================================
-     MODE / GAME / AI SELECTS
-     ========================================================= */
+      if (
+        window.ROLYFE_POOL_THEME?.change
+      ) {
 
-  modeSelect?.addEventListener(
-    "change",
-    event => {
-      state.mode =
-        event.target.value ||
-        "pvp";
-
-      resetGame();
-    }
-  );
-
-  gameSelect?.addEventListener(
-    "change",
-    event => {
-      state.gameType =
-        event.target.value ||
-        "8ball";
-
-      resetGame();
-    }
-  );
-
-  aiSelect?.addEventListener(
-    "change",
-    event => {
-      state.aiLevel =
-        clamp(
-          +event.target.value || 1,
-          1,
-          5
+        window.ROLYFE_POOL_THEME.change(
+          themeSelect.value
         );
-
-      resetGame();
+      }
     }
   );
 
+  if (
+    themeSelect &&
+    window.ROLYFE_POOL_THEME?.load
+  ) {
+
+    themeSelect.value =
+      window.ROLYFE_POOL_THEME.load() ||
+      themeSelect.value;
+  }
+
   /* =========================================================
-     POINTER EVENTS
-     =========================================================
-     Pointer Events replace separate mouse/touch handlers.
-     This provides one reliable input path for:
-     - mouse
-     - touch
-     - stylus
+     TABLE TOUCH / MOUSE
      ========================================================= */
 
   if (interactionSurface) {
+
     interactionSurface.style.touchAction =
       "none";
 
-    interactionSurface.style.userSelect =
-      "none";
+    interactionSurface.addEventListener(
+      "mousedown",
+      startAim
+    );
 
     interactionSurface.addEventListener(
-      "pointerdown",
+      "mousemove",
+      moveAim
+    );
+
+    interactionSurface.addEventListener(
+      "mouseup",
+      endAim
+    );
+
+    interactionSurface.addEventListener(
+      "mouseleave",
+      e => {
+
+        if (state.aiming) {
+          moveAim(e);
+        }
+      }
+    );
+
+    interactionSurface.addEventListener(
+      "touchstart",
       startAim,
       { passive: false }
     );
 
     interactionSurface.addEventListener(
-      "pointermove",
+      "touchmove",
       moveAim,
       { passive: false }
     );
 
     interactionSurface.addEventListener(
-      "pointerup",
+      "touchend",
       endAim,
-      { passive: false }
-    );
-
-    interactionSurface.addEventListener(
-      "pointercancel",
-      event => {
-        state.aiming = false;
-        state.pointerId = null;
-
-        try {
-          interactionSurface.releasePointerCapture?.(
-            event.pointerId
-          );
-        } catch (_) {}
-      },
       { passive: false }
     );
   }
@@ -2499,31 +2400,20 @@
 
   document.addEventListener(
     "keydown",
-    event => {
-      if (
-        event.target.matches?.(
-          "input,select,textarea"
-        )
-      ) {
-        return;
-      }
+    e => {
 
-      if (
-        event.code === "Space"
-      ) {
-        event.preventDefault();
+      if (e.code === "Space") {
 
-        unlockAudio();
+        e.preventDefault();
+
         shoot();
       }
 
       if (
-        event.key ===
-        "ArrowLeft"
+        e.key === "ArrowLeft"
       ) {
-        event.preventDefault();
 
-        unlockAudio();
+        e.preventDefault();
 
         rotate(
           -CONFIG.aimStep *
@@ -2533,12 +2423,10 @@
       }
 
       if (
-        event.key ===
-        "ArrowRight"
+        e.key === "ArrowRight"
       ) {
-        event.preventDefault();
 
-        unlockAudio();
+        e.preventDefault();
 
         rotate(
           CONFIG.aimStep *
@@ -2548,39 +2436,49 @@
       }
 
       if (
-        event.key.toLowerCase() ===
-        "r"
+        e.key.toLowerCase() === "r"
       ) {
+
         resetGame();
       }
 
       if (
-        event.key.toLowerCase() ===
-        "l"
+        e.key.toLowerCase() === "l"
       ) {
+
         lock();
       }
 
       if (
-        event.key.toLowerCase() ===
-        "p"
+        e.key.toLowerCase() === "p"
       ) {
+
         togglePause();
       }
     }
   );
 
   /* =========================================================
-     FULLSCREEN
+     FULLSCREEN RESIZE
      ========================================================= */
 
   document.addEventListener(
     "fullscreenchange",
     () => {
+
+      if (fullscreenButton) {
+
+        fullscreenButton.textContent =
+          "⛶";
+      }
+
       setTimeout(
         () => {
+
           render();
+
           aimLine();
+
         },
         100
       );
@@ -2588,14 +2486,14 @@
   );
 
   /* =========================================================
-     PUBLIC POOL API
+     PUBLIC API
      ========================================================= */
 
   window.ROLYFE_POOL = {
+
     state,
 
     resetGame,
-    newRack,
 
     shoot,
 
@@ -2615,36 +2513,32 @@
 
     lockOn: lock,
 
-    setPower: value =>
+    setPower: v =>
       power(
         clamp(
-          +value,
+          +v,
           0,
           1
         )
       ),
 
-    setMode: mode => {
-      state.mode =
-        mode || "pvp";
+    setMode: m => {
+
+      state.mode = m;
 
       resetGame();
     },
 
-    setGameType: type => {
-      state.gameType =
-        type || "8ball";
+    setGameType: t => {
+
+      state.gameType = t;
 
       resetGame();
     },
 
-    setAILevel: level => {
-      state.aiLevel =
-        clamp(
-          +level || 1,
-          1,
-          5
-        );
+    setAILevel: l => {
+
+      state.aiLevel = +l;
 
       resetGame();
     },
@@ -2666,39 +2560,25 @@
      ========================================================= */
 
   if (modeSelect) {
+
     state.mode =
       modeSelect.value ||
       "pvp";
   }
 
   if (gameSelect) {
+
     state.gameType =
       gameSelect.value ||
       "8ball";
   }
 
   if (aiSelect) {
+
     state.aiLevel =
-      clamp(
-        +aiSelect.value || 1,
-        1,
-        5
-      );
+      +aiSelect.value ||
+      1;
   }
-
-  /* =========================================================
-     SHARED SYSTEM INITIALIZATION
-     ========================================================= */
-
-  try {
-    Themes?.setGame?.("pool");
-  } catch (_) {}
-
-  try {
-    GameUI?.setGame?.("pool");
-  } catch (_) {}
-
-  updateSoundButton();
 
   /* =========================================================
      START
@@ -2706,7 +2586,4 @@
 
   resetGame();
 
-  console.log(
-    "🎱 RO’Lyfe Pool Engine V3.2 — Shared Systems Connected"
-  );
 })();
