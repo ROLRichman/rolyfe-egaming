@@ -1,1 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <meta
+    name="description"
+    content="RO’Lyfe Chess — Think Ahead • Control Position • Win"
+  >
+
+  <title>RO’Lyfe Chess</title>
+
+  <!-- =========================================================
+       RO’LYFE SHARED SYSTEMS
+       ========================================================= -->
+  <link rel="stylesheet" href="../../shared/theme-engine.css">
+  <link rel="stylesheet" href="../../shared/game-ui.css">
+
+  <!-- =========================================================
+       CHESS GAME STYLES
+       ========================================================= -->
+  <link rel="stylesheet" href="./chess.css">
+</head>
+
+<body
+  class="rolyfe-game-page chess-page"
+  data-rolyfe-game="chess"
+  data-game="chess"
+>
+
+  <!-- =========================================================
+       GAME SHELL
+       ========================================================= -->
+  <main class="rolyfe-game-shell chess-shell">
+
+    <!-- =======================================================
+         HEADER
+         ======================================================= -->
+    <header class="rolyfe-game-header chess-header">
+
+      <div class="game-header-main">
+
+        <a
+          href="../../index.html"
+          class="rolyfe-back-button"
+          aria-label="Back to RO’Lyfe Gaming Hub"
+        >
+          ← HUB
+        </a>
+
+        <div class="game-title-block">
+          <div class="game-eyebrow">RO’LYFE GAMING</div>
+
+          <h1 class="game-title">
+            ♟ RO’Lyfe Chess
+          </h1>
+
+          <p class="game-subtitle">
+            Think Ahead • Control Position • Win
+          </p>
+        </div>
+
+      </div>
+
+      <div class="game-header-actions">
+
+        <button
+          type="button"
+          id="themeButton"
+          class="rolyfe-btn rolyfe-btn-secondary"
+        >
+          THEME
+        </button>
+
+        <button
+          type="button"
+          id="resetGameButton"
+          class="rolyfe-btn rolyfe-btn-danger"
+        >
+          RESET
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- =======================================================
+         GAME STATUS BAR
+         ======================================================= -->
+    <section
+      class="rolyfe-status-bar chess-status-bar"
+      aria-label="Chess game status"
+    >
+
+      <div class="status-item">
+        <span class="status-label">STATUS</span>
+        <strong
+          id="gameStatus"
+          class="status-value"
+        >
+          READY
+        </strong>
+      </div>
+
+      <div class="status-item">
+        <span class="status-label">TURN</span>
+        <strong
+          id="turnStatus"
+          class="status-value"
+        >
+          WHITE
+        </strong>
+      </div>
+
+      <div class="status-item">
+        <span class="status-label">MODE</span>
+        <strong
+          id="modeStatus"
+          class="status-value"
+        >
+          PLAYER VS PLAYER
+        </strong>
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         GAME CONFIGURATION
+         ======================================================= -->
+    <section
+      class="chess-control-panel"
+      aria-label="Chess game controls"
+    >
+
+      <!-- MODE -->
+      <div class="chess-control-group">
+
+        <label for="gameMode">
+          GAME MODE
+        </label>
+
+        <select id="gameMode">
+          <option value="pvp">Player vs Player</option>
+          <option value="pve">Player vs AI</option>
+          <option value="eve">AI vs AI</option>
+          <option value="battle">Battle Mode</option>
+        </select>
+
+      </div>
+
+
+      <!-- AI / PLAYER -->
+      <div class="chess-control-group">
+
+        <label for="aiProfile">
+          AI PROFILE
+        </label>
+
+        <select id="aiProfile">
+          <option value="startup">START-UP</option>
+          <option value="credit">CREDIT+</option>
+          <option value="line">LINE OF CREDIT</option>
+          <option value="investor">INVESTOR</option>
+          <option value="sevenfigures">7FIGURES</option>
+          <option value="ace">ACE</option>
+          <option value="emg">EMGaming</option>
+        </select>
+
+      </div>
+
+
+      <!-- DIFFICULTY -->
+      <div class="chess-control-group">
+
+        <label for="difficultyLevel">
+          DIFFICULTY
+        </label>
+
+        <select id="difficultyLevel">
+          <option value="1">START-UP</option>
+          <option value="2">CREDIT+</option>
+          <option value="3">LINE OF CREDIT</option>
+          <option value="4">INVESTOR</option>
+          <option value="5">7FIGURES</option>
+        </select>
+
+      </div>
+
+
+      <!-- AI SPEED -->
+      <div class="chess-control-group">
+
+        <label for="aiSpeed">
+          AI SPEED
+        </label>
+
+        <select id="aiSpeed">
+          <option value="slow">SLOW</option>
+          <option value="normal" selected>NORMAL</option>
+          <option value="fast">FAST</option>
+          <option value="blitz">BLITZ</option>
+        </select>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         PLAYER INFORMATION
+         ======================================================= -->
+    <section class="chess-players">
+
+      <!-- WHITE -->
+      <article
+        class="chess-player-card player-white"
+        data-player="white"
+      >
+
+        <div class="player-color-marker"></div>
+
+        <div class="player-card-content">
+
+          <div class="player-label">
+            WHITE
+          </div>
+
+          <div
+            id="whitePlayerName"
+            class="player-name"
+          >
+            PLAYER 1
+          </div>
+
+          <div
+            id="whitePlayerLevel"
+            class="player-level"
+          >
+            HUMAN
+          </div>
+
+        </div>
+
+        <div class="player-clock">
+          <span class="clock-label">CLOCK</span>
+
+          <strong
+            id="whiteClock"
+            class="clock-value"
+          >
+            10:00
+          </strong>
+        </div>
+
+      </article>
+
+
+      <!-- BLACK -->
+      <article
+        class="chess-player-card player-black"
+        data-player="black"
+      >
+
+        <div class="player-color-marker"></div>
+
+        <div class="player-card-content">
+
+          <div class="player-label">
+            BLACK
+          </div>
+
+          <div
+            id="blackPlayerName"
+            class="player-name"
+          >
+            PLAYER 2
+          </div>
+
+          <div
+            id="blackPlayerLevel"
+            class="player-level"
+          >
+            HUMAN
+          </div>
+
+        </div>
+
+        <div class="player-clock">
+          <span class="clock-label">CLOCK</span>
+
+          <strong
+            id="blackClock"
+            class="clock-value"
+          >
+            10:00
+          </strong>
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- =======================================================
+         CHESS BOARD AREA
+         ======================================================= -->
+    <section
+      class="chess-board-section"
+      aria-label="Chess board"
+    >
+
+      <div class="chess-board-wrapper">
+
+        <!-- BOARD COORDINATES -->
+        <div
+          id="chessBoard"
+          class="chess-board"
+          role="grid"
+          aria-label="Chess board"
+          tabindex="0"
+        >
+
+          <!--
+            chess.js will generate the 64 squares.
+
+            HTML intentionally does not hard-code pieces here.
+            This keeps the board state controlled by the chess engine.
+          -->
+
+        </div>
+
+      </div>
+
+      <!-- BOARD STATUS -->
+      <div class="chess-board-status">
+
+        <div
+          id="checkStatus"
+          class="chess-check-status"
+          aria-live="polite"
+        >
+          READY
+        </div>
+
+        <div
+          id="moveStatus"
+          class="chess-move-status"
+          aria-live="polite"
+        >
+          Select a piece to begin.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         CHESS ACTIONS
+         ======================================================= -->
+    <section class="chess-actions">
+
+      <button
+        type="button"
+        id="startGameButton"
+        class="rolyfe-btn rolyfe-btn-primary"
+      >
+        START GAME
+      </button>
+
+      <button
+        type="button"
+        id="aiStartButton"
+        class="rolyfe-btn rolyfe-btn-secondary"
+      >
+        START AI
+      </button>
+
+      <button
+        type="button"
+        id="pauseGameButton"
+        class="rolyfe-btn rolyfe-btn-secondary"
+      >
+        PAUSE
+      </button>
+
+      <button
+        type="button"
+        id="resignButton"
+        class="rolyfe-btn rolyfe-btn-danger"
+      >
+        RESIGN
+      </button>
+
+    </section>
+
+
+    <!-- =======================================================
+         MOVE / GAME INFORMATION
+         ======================================================= -->
+    <section class="chess-information">
+
+      <!-- MOVE COUNTER -->
+      <div class="chess-info-card">
+
+        <span class="info-label">
+          MOVE
+        </span>
+
+        <strong
+          id="moveNumber"
+          class="info-value"
+        >
+          1
+        </strong>
+
+      </div>
+
+
+      <!-- CAPTURED WHITE -->
+      <div class="chess-info-card">
+
+        <span class="info-label">
+          WHITE CAPTURED
+        </span>
+
+        <div
+          id="whiteCaptured"
+          class="captured-pieces"
+          aria-label="Pieces captured by white"
+        ></div>
+
+      </div>
+
+
+      <!-- CAPTURED BLACK -->
+      <div class="chess-info-card">
+
+        <span class="info-label">
+          BLACK CAPTURED
+        </span>
+
+        <div
+          id="blackCaptured"
+          class="captured-pieces"
+          aria-label="Pieces captured by black"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         MOVE HISTORY
+         ======================================================= -->
+    <section class="chess-history-panel">
+
+      <div class="section-heading">
+
+        <div>
+          <span class="section-eyebrow">
+            GAME LOG
+          </span>
+
+          <h2>
+            Move History
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          id="clearHistoryButton"
+          class="rolyfe-btn rolyfe-btn-small"
+        >
+          CLEAR
+        </button>
+
+      </div>
+
+      <div
+        id="moveHistory"
+        class="chess-move-history"
+        aria-live="polite"
+      >
+        <div class="history-empty">
+          No moves yet.
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         STRATEGY / RATING
+         ======================================================= -->
+    <section class="chess-profile-panel">
+
+      <div class="chess-rating-card">
+
+        <span class="profile-label">
+          COMMANDER RATING
+        </span>
+
+        <strong
+          id="commanderRating"
+          class="profile-value"
+        >
+          1200
+        </strong>
+
+      </div>
+
+
+      <div class="chess-rating-card">
+
+        <span class="profile-label">
+          GAMES
+        </span>
+
+        <strong
+          id="gamesPlayed"
+          class="profile-value"
+        >
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="chess-rating-card">
+
+        <span class="profile-label">
+          WINS
+        </span>
+
+        <strong
+          id="gamesWon"
+          class="profile-value"
+        >
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="chess-rating-card">
+
+        <span class="profile-label">
+          WIN RATE
+        </span>
+
+        <strong
+          id="winRate"
+          class="profile-value"
+        >
+          0%
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         OVERLAY
+         ======================================================= -->
+    <div
+      id="gameOverlay"
+      class="rolyfe-game-overlay chess-overlay"
+      data-game-overlay
+      hidden
+    >
+
+      <div class="overlay-card">
+
+        <div
+          id="overlayIcon"
+          class="overlay-icon"
+        >
+          ♟
+        </div>
+
+        <h2
+          id="overlayTitle"
+          class="overlay-title"
+        >
+          GAME OVER
+        </h2>
+
+        <p
+          id="overlayMessage"
+          class="overlay-message"
+        >
+          The match has ended.
+        </p>
+
+        <div class="overlay-actions">
+
+          <button
+            type="button"
+            id="overlayRestartButton"
+            class="rolyfe-btn rolyfe-btn-primary"
+          >
+            PLAY AGAIN
+          </button>
+
+          <button
+            type="button"
+            id="overlayCloseButton"
+            class="rolyfe-btn rolyfe-btn-secondary"
+          >
+            CLOSE
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         NOTIFICATION AREA
+         ======================================================= -->
+    <div
+      id="chessNotifications"
+      class="rolyfe-notification-container"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
+
+
+    <!-- =======================================================
+         FOOTER
+         ======================================================= -->
+    <footer class="rolyfe-game-footer">
+
+      <div>
+        RO’Lyfe Gaming
+      </div>
+
+      <div>
+        RO’Lyfe Chess • Real Rules • Real Board • Real Play
+      </div>
+
+    </footer>
+
+  </main>
+
+
+  <!-- =========================================================
+       SHARED ENGINES
+       Load shared systems before Chess engine.
+       ========================================================= -->
+  <script src="../../shared/theme-engine.js"></script>
+  <script src="../../shared/game-ui.js"></script>
+  <script src="../../shared/timer.js"></script>
+  <script src="../../shared/player-system.js"></script>
+  <script src="../../shared/ai-engine.js"></script>
+
+  <!-- =========================================================
+       CHESS ENGINE
+       ========================================================= -->
+  <script src="./chess.js"></script>
+
+</body>
+  </html>
