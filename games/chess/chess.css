@@ -1,7 +1,7 @@
 /* =========================================================
    RO’LYFE CHESS
    games/chess/chess.css
-   V1.0 — CHESS VISUAL SYSTEM
+   V1.1 — CHESS VISUAL SYSTEM
    ========================================================= */
 
 :root {
@@ -31,16 +31,23 @@ html {
   min-height: 100%;
   background: var(--chess-background);
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
+  position: relative;
   margin: 0;
   min-height: 100vh;
   background:
     radial-gradient(
-      circle at top,
+      circle at 15% 10%,
       rgba(212, 175, 55, 0.08),
-      transparent 34%
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 85% 85%,
+      rgba(49, 93, 73, 0.16),
+      transparent 32%
     ),
     var(--chess-background);
   color: var(--chess-text);
@@ -53,6 +60,35 @@ body {
     sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  width: 42vw;
+  height: 42vw;
+  max-width: 620px;
+  max-height: 620px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.18;
+}
+
+body::before {
+  top: -18vw;
+  left: -14vw;
+  background: rgba(212, 175, 55, 0.18);
+  animation: chess-orbit-one 18s ease-in-out infinite alternate;
+}
+
+body::after {
+  right: -16vw;
+  bottom: -18vw;
+  background: rgba(49, 93, 73, 0.28);
+  animation: chess-orbit-two 22s ease-in-out infinite alternate;
 }
 
 button,
@@ -71,6 +107,30 @@ button:disabled {
 }
 
 /* =========================================================
+   AMBIENT BACKGROUND
+   ========================================================= */
+
+@keyframes chess-orbit-one {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate3d(18vw, 10vh, 0) scale(1.18);
+  }
+}
+
+@keyframes chess-orbit-two {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate3d(-15vw, -12vh, 0) scale(1.2);
+  }
+}
+
+/* =========================================================
    MAIN SHELL
    ========================================================= */
 
@@ -83,6 +143,8 @@ button:disabled {
 
 .chess-container,
 .game-container {
+  position: relative;
+  z-index: 1;
   width: min(1400px, 100%);
   margin: 0 auto;
   padding: 18px;
@@ -102,9 +164,15 @@ button:disabled {
   padding: 18px 20px;
   border: 1px solid var(--chess-border);
   border-radius: var(--chess-radius);
-  background: rgba(13, 27, 21, 0.9);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(13, 27, 21, 0.96),
+      rgba(7, 17, 13, 0.88)
+    );
   box-shadow: var(--chess-shadow);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .chess-title,
@@ -140,6 +208,9 @@ button:disabled {
   border: 1px solid var(--chess-border);
   border-radius: var(--chess-radius);
   background: rgba(13, 27, 21, 0.88);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .chess-control-group,
@@ -172,12 +243,20 @@ button:disabled {
   color: var(--chess-text);
 }
 
+.chess-controls select option,
+.control-group select option {
+  background: #0d1b15;
+  color: var(--chess-text);
+}
+
 .chess-controls select:focus,
 .chess-controls input:focus,
 .control-group select:focus,
 .control-group input:focus {
   border-color: var(--chess-accent);
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.12);
+  box-shadow:
+    0 0 0 2px rgba(212, 175, 55, 0.12),
+    0 0 18px rgba(212, 175, 55, 0.08);
 }
 
 /* =========================================================
@@ -207,6 +286,7 @@ button[data-chess-action]:hover {
   border-color: var(--chess-accent);
   background: rgba(212, 175, 55, 0.16);
   transform: translateY(-1px);
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.18);
 }
 
 .chess-button:active,
@@ -222,7 +302,17 @@ button[data-chess-action]:active {
   border-color: var(--chess-accent);
   background: var(--chess-accent);
   color: #10140f;
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.18);
+  box-shadow:
+    0 8px 24px rgba(212, 175, 55, 0.18);
+}
+
+.chess-button.primary:hover,
+.game-button.primary:hover,
+#startGameButton:hover,
+#aiStartButton:hover {
+  background: #e1bd4c;
+  box-shadow:
+    0 10px 30px rgba(212, 175, 55, 0.25);
 }
 
 .chess-button.danger,
@@ -230,6 +320,13 @@ button[data-chess-action]:active {
 #resignButton {
   border-color: rgba(255, 92, 92, 0.5);
   background: rgba(255, 92, 92, 0.08);
+}
+
+.chess-button.danger:hover,
+.game-button.danger:hover,
+#resignButton:hover {
+  border-color: rgba(255, 92, 92, 0.8);
+  background: rgba(255, 92, 92, 0.16);
 }
 
 .chess-actions,
@@ -278,8 +375,33 @@ button[data-chess-action]:active {
   padding: 10px;
   border: 1px solid var(--chess-border);
   border-radius: 18px;
-  background: rgba(0, 0, 0, 0.24);
-  box-shadow: var(--chess-shadow);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(212, 175, 55, 0.08),
+      rgba(0, 0, 0, 0.28)
+    );
+  box-shadow:
+    var(--chess-shadow),
+    0 0 0 1px rgba(255, 255, 255, 0.015);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.chess-board-wrap::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -25px;
+  border-radius: 30px;
+  background:
+    radial-gradient(
+      circle,
+      rgba(212, 175, 55, 0.09),
+      transparent 65%
+    );
+  filter: blur(12px);
+  pointer-events: none;
 }
 
 #chessBoard {
@@ -295,6 +417,9 @@ button[data-chess-action]:active {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 /* =========================================================
@@ -315,7 +440,8 @@ button[data-chess-action]:active {
   touch-action: manipulation;
   transition:
     filter 0.12s ease,
-    box-shadow 0.12s ease;
+    box-shadow 0.12s ease,
+    background 0.12s ease;
 }
 
 .chess-square.light {
@@ -331,6 +457,7 @@ button[data-chess-action]:active {
 }
 
 .chess-square.selected {
+  z-index: 4;
   box-shadow:
     inset 0 0 0 4px var(--chess-accent),
     inset 0 0 24px rgba(212, 175, 55, 0.28);
@@ -338,10 +465,12 @@ button[data-chess-action]:active {
 
 .chess-square.last-move {
   box-shadow:
-    inset 0 0 0 4px rgba(212, 175, 55, 0.5);
+    inset 0 0 0 4px rgba(212, 175, 55, 0.5),
+    inset 0 0 18px rgba(212, 175, 55, 0.12);
 }
 
 .chess-square.in-check {
+  z-index: 4;
   box-shadow:
     inset 0 0 0 5px rgba(255, 68, 68, 0.9),
     inset 0 0 30px rgba(255, 0, 0, 0.3);
@@ -358,6 +487,8 @@ button[data-chess-action]:active {
   height: 22%;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
 
@@ -400,6 +531,9 @@ button[data-chess-action]:active {
   transform: translateZ(0);
   filter:
     drop-shadow(0 4px 2px rgba(0, 0, 0, 0.35));
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease;
 }
 
 .chess-piece.white {
@@ -421,6 +555,8 @@ button[data-chess-action]:active {
 
 .chess-square.selected .chess-piece {
   transform: scale(1.05);
+  filter:
+    drop-shadow(0 5px 4px rgba(0, 0, 0, 0.4));
 }
 
 /* =========================================================
@@ -432,7 +568,8 @@ button[data-chess-action]:active {
   border: 1px solid var(--chess-border);
   border-radius: var(--chess-radius);
   background: rgba(13, 27, 21, 0.9);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.25);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -444,6 +581,7 @@ button[data-chess-action]:active {
   box-shadow:
     0 0 0 1px rgba(212, 175, 55, 0.18),
     0 12px 32px rgba(212, 175, 55, 0.12);
+  transform: translateY(-1px);
 }
 
 .chess-player-card.player-white {
@@ -477,6 +615,7 @@ button[data-chess-action]:active {
 .chess-clock {
   margin-top: 10px;
   padding: 10px 12px;
+  border: 1px solid transparent;
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.25);
   color: var(--chess-text);
@@ -489,16 +628,22 @@ button[data-chess-action]:active {
   font-weight: 800;
   letter-spacing: 0.05em;
   text-align: center;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
 .chess-clock.low-time {
   border: 1px solid rgba(255, 180, 60, 0.55);
   color: #ffd27a;
+  background: rgba(255, 180, 60, 0.07);
 }
 
 .chess-clock.critical-time {
   border: 1px solid rgba(255, 70, 70, 0.65);
   color: #ff8c8c;
+  background: rgba(255, 70, 70, 0.08);
   animation: chess-pulse 1s infinite;
 }
 
@@ -520,6 +665,7 @@ button[data-chess-action]:active {
   border: 1px solid var(--chess-border);
   border-radius: var(--chess-radius);
   background: rgba(13, 27, 21, 0.88);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
 }
 
 .chess-status-row,
@@ -568,6 +714,7 @@ button[data-chess-action]:active {
     serif;
   font-size: 1.15rem;
   letter-spacing: 1px;
+  word-break: break-word;
 }
 
 /* =========================================================
@@ -581,7 +728,83 @@ button[data-chess-action]:active {
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.2);
   scrollbar-width: thin;
+  scrollbar-color:
+    rgba(212, 175, 55, 0.35)
+    rgba(0, 0, 0, 0.15);
 }
+
+#moveHistory::-webkit-scrollbar {
+  width: 7px;
+}
+
+#moveHistory::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+}
+
+#moveHistory::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.35);
+  border-radius: 10px;
+}
+
+#moveHistory::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.55);
+}
+
+.history-empty {
+  padding: 18px 10px;
+  color: var(--chess-muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.history-move {
+  display: grid;
+  grid-template-columns: 30px minmax(85px, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  padding: 8px 7px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 7px;
+}
+
+.history-move:last-child {
+  border-bottom: 0;
+}
+
+.history-move:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.history-number {
+  color: var(--chess-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.history-piece-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--chess-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-notation {
+  color: var(--chess-accent);
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Compatibility with older history markup */
 
 .chess-move-row {
   display: grid;
@@ -646,6 +869,8 @@ button[data-chess-action]:active {
   color: var(--chess-accent);
   font-size: 1.35rem;
   font-weight: 850;
+  text-shadow:
+    0 0 18px rgba(212, 175, 55, 0.14);
 }
 
 /* =========================================================
@@ -664,6 +889,7 @@ button[data-chess-action]:active {
   padding: 20px;
   background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 #gameOverlay.show,
@@ -680,8 +906,15 @@ button[data-chess-action]:active {
   padding: 28px;
   border: 1px solid var(--chess-border);
   border-radius: 20px;
-  background: var(--chess-surface);
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13, 27, 21, 0.98),
+      rgba(7, 17, 13, 0.98)
+    );
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(212, 175, 55, 0.05);
   text-align: center;
 }
 
@@ -724,6 +957,8 @@ button[data-chess-action]:active {
   letter-spacing: 0.14em;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.35);
 }
 
 /* =========================================================
@@ -743,6 +978,8 @@ button[data-chess-action]:active {
   background: var(--chess-surface);
   color: var(--chess-text);
   box-shadow: var(--chess-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* =========================================================
@@ -883,6 +1120,20 @@ input:focus-visible {
     width: 100%;
     min-height: 44px;
   }
+
+  .history-move {
+    grid-template-columns: 25px minmax(0, 1fr) auto;
+    gap: 5px;
+    padding: 7px 5px;
+  }
+
+  .history-piece-name {
+    font-size: 0.72rem;
+  }
+
+  .history-notation {
+    font-size: 0.76rem;
+  }
 }
 
 /* =========================================================
@@ -906,6 +1157,14 @@ input:focus-visible {
 
   .chess-stat-value {
     font-size: 1rem;
+  }
+
+  .history-piece-name {
+    font-size: 0.68rem;
+  }
+
+  .history-notation {
+    font-size: 0.72rem;
   }
 }
 
@@ -954,4 +1213,4 @@ input:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
+   }
