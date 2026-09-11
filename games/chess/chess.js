@@ -1,7 +1,7 @@
 /* =========================================================
    RO’LYFE CHESS
    games/chess/chess.js
-   V1.2 — GAME RESULT / CHECKMATE SYSTEM
+   V1.2 — STABLE CHESS ENGINE + GAME RESULTS
    ========================================================= */
 
 (() => {
@@ -13,8 +13,69 @@
 
   const CONFIG = {
     startingTime: 600,
+    aiThinkDelay: 350,
+    maxHistory: 500,
     storageKey: "rolyfe-chess-stats"
   };
+
+  /* =========================================================
+     AI PROFILES
+     ========================================================= */
+
+  const AI_PROFILES = {
+    startup: {
+      name: "Start-Up",
+      level: 1,
+      depth: 1,
+      randomness: 0.70
+    },
+
+    credit: {
+      name: "Credit",
+      level: 2,
+      depth: 1,
+      randomness: 0.55
+    },
+
+    line: {
+      name: "Line of Credit",
+      level: 3,
+      depth: 2,
+      randomness: 0.35
+    },
+
+    investor: {
+      name: "Investor",
+      level: 4,
+      depth: 2,
+      randomness: 0.20
+    },
+
+    sevenfigures: {
+      name: "7Figures",
+      level: 5,
+      depth: 3,
+      randomness: 0.08
+    },
+
+    ace: {
+      name: "ACE",
+      level: 6,
+      depth: 3,
+      randomness: 0.04
+    },
+
+    emg: {
+      name: "EMG",
+      level: 7,
+      depth: 3,
+      randomness: 0.02
+    }
+  };
+
+  /* =========================================================
+     PIECES
+     ========================================================= */
 
   const PIECES = {
     w: {
@@ -25,6 +86,7 @@
       N: "♘",
       P: "♙"
     },
+
     b: {
       K: "♚",
       Q: "♛",
@@ -44,56 +106,69 @@
     P: "Pawn"
   };
 
-  const AI_PROFILES = {
-    startup: {
-      id: "startup",
-      name: "Start-Up",
-      level: 1,
-      depth: 1
-    },
-
-    credit: {
-      id: "credit",
-      name: "Credit",
-      level: 2,
-      depth: 1
-    },
-
-    line: {
-      id: "line",
-      name: "Line of Credit",
-      level: 3,
-      depth: 2
-    },
-
-    investor: {
-      id: "investor",
-      name: "Investor",
-      level: 4,
-      depth: 2
-    },
-
-    sevenfigures: {
-      id: "sevenfigures",
-      name: "7Figures",
-      level: 5,
-      depth: 3
-    },
-
-    ace: {
-      id: "ace",
-      name: "ACE",
-      level: 5,
-      depth: 3
-    },
-
-    emg: {
-      id: "emg",
-      name: "EMG",
-      level: 5,
-      depth: 3
-    }
+  const PIECE_VALUES = {
+    P: 100,
+    N: 320,
+    B: 330,
+    R: 500,
+    Q: 900,
+    K: 20000
   };
+
+  /* =========================================================
+     DOM
+     ========================================================= */
+
+  const $ = id => document.getElementById(id);
+
+  const boardEl = $("chessBoard");
+  const gameStatusEl = $("gameStatus");
+  const turnStatusEl = $("turnStatus");
+  const modeStatusEl = $("modeStatus");
+
+  const gameModeEl = $("gameMode");
+  const aiProfileEl = $("aiProfile");
+  const difficultyEl = $("difficultyLevel");
+  const aiSpeedEl = $("aiSpeed");
+
+  const whitePlayerNameEl = $("whitePlayerName");
+  const blackPlayerNameEl = $("blackPlayerName");
+
+  const whitePlayerLevelEl = $("whitePlayerLevel");
+  const blackPlayerLevelEl = $("blackPlayerLevel");
+
+  const whiteClockEl = $("whiteClock");
+  const blackClockEl = $("blackClock");
+
+  const checkStatusEl = $("checkStatus");
+  const moveStatusEl = $("moveStatus");
+  const moveNumberEl = $("moveNumber");
+
+  const whiteCapturedEl = $("whiteCaptured");
+  const blackCapturedEl = $("blackCaptured");
+
+  const moveHistoryEl = $("moveHistory");
+
+  const commanderRatingEl = $("commanderRating");
+  const gamesPlayedEl = $("gamesPlayed");
+  const gamesWonEl = $("gamesWon");
+  const winRateEl = $("winRate");
+
+  const overlayEl = $("gameOverlay");
+  const overlayIconEl = $("overlayIcon");
+  const overlayTitleEl = $("overlayTitle");
+  const overlayMessageEl = $("overlayMessage");
+
+  const startGameButton = $("startGameButton");
+  const aiStartButton = $("aiStartButton");
+  const pauseGameButton = $("pauseGameButton");
+  const resignButton = $("resignButton");
+  const resetGameButton = $("resetGameButton");
+  const themeButton = $("themeButton");
+
+  const overlayRestartButton = $("overlayRestartButton");
+  const overlayCloseButton = $("overlayCloseButton");
+  const clearHistoryButton = $("clearHistoryButton");
 
   /* =========================================================
      STATE
@@ -103,17 +178,28 @@
     board: [],
     turn: "w",
 
-    gameMode: "pve",
-    aiProfile: "ace",
-    difficulty: "5",
+    gameMode: "pvp",
+    aiProfile: "startup",
     aiSpeed: "normal",
 
     selected: null,
-    legalTargets: [],
+    legalMoves: [],
+
+    started: false,
+    paused: false,
+    gameOver: false,
+
+    whiteTime: CONFIG.startingTime,
+    blackTime: CONFIG.startingTime,
+
+    lastMove: null,
 
     moveHistory: [],
-    capturedWhite: [],
-    capturedBlack: [],
+
+    captured: {
+      w: [],
+      b: []
+    },
 
     halfmove: 0,
     fullmove: 1,
@@ -127,265 +213,308 @@
 
     enPassant: null,
 
-    whiteTime: CONFIG.startingTime,
-    blackTime: CONFIG.startingTime,
-
-    timerInterval: null,
+    aiThinking: false,
     aiTimer: null,
-
-    gameStarted: false,
-    gameOver: false,
-    paused: false,
+    clockTimer: null,
 
     result: null,
-    winner: null,
-    loser: null,
 
     stats: {
-      games: 0,
+      played: 0,
       wins: 0,
       rating: 1200
     }
   };
 
   /* =========================================================
-     DOM
-     ========================================================= */
-
-  const $ = id => document.getElementById(id);
-
-  const els = {
-    board: $("chessBoard"),
-
-    gameStatus: $("gameStatus"),
-    turnStatus: $("turnStatus"),
-    modeStatus: $("modeStatus"),
-
-    gameMode: $("gameMode"),
-    aiProfile: $("aiProfile"),
-    difficultyLevel: $("difficultyLevel"),
-    aiSpeed: $("aiSpeed"),
-
-    whitePlayerName: $("whitePlayerName"),
-    blackPlayerName: $("blackPlayerName"),
-
-    whitePlayerLevel: $("whitePlayerLevel"),
-    blackPlayerLevel: $("blackPlayerLevel"),
-
-    whiteClock: $("whiteClock"),
-    blackClock: $("blackClock"),
-
-    checkStatus: $("checkStatus"),
-    moveStatus: $("moveStatus"),
-    moveNumber: $("moveNumber"),
-
-    whiteCaptured: $("whiteCaptured"),
-    blackCaptured: $("blackCaptured"),
-
-    moveHistory: $("moveHistory"),
-
-    commanderRating: $("commanderRating"),
-    gamesPlayed: $("gamesPlayed"),
-    gamesWon: $("gamesWon"),
-    winRate: $("winRate"),
-
-    gameOverlay: $("gameOverlay"),
-    overlayIcon: $("overlayIcon"),
-    overlayTitle: $("overlayTitle"),
-    overlayMessage: $("overlayMessage"),
-
-    startGameButton: $("startGameButton"),
-    aiStartButton: $("aiStartButton"),
-    pauseGameButton: $("pauseGameButton"),
-    resignButton: $("resignButton"),
-    resetGameButton: $("resetGameButton"),
-    themeButton: $("themeButton"),
-
-    overlayRestartButton: $("overlayRestartButton"),
-    overlayCloseButton: $("overlayCloseButton"),
-    clearHistoryButton: $("clearHistoryButton")
-  };
-
-  /* =========================================================
      BOARD CREATION
      ========================================================= */
+
+  function piece(color, type) {
+    return {
+      color,
+      type
+    };
+  }
 
   function createInitialBoard() {
     return [
       [
-        { type: "R", color: "b" },
-        { type: "N", color: "b" },
-        { type: "B", color: "b" },
-        { type: "Q", color: "b" },
-        { type: "K", color: "b" },
-        { type: "B", color: "b" },
-        { type: "N", color: "b" },
-        { type: "R", color: "b" }
+        piece("b", "R"),
+        piece("b", "N"),
+        piece("b", "B"),
+        piece("b", "Q"),
+        piece("b", "K"),
+        piece("b", "B"),
+        piece("b", "N"),
+        piece("b", "R")
       ],
+
+      Array.from(
+        { length: 8 },
+        () => piece("b", "P")
+      ),
+
+      Array(8).fill(null),
+      Array(8).fill(null),
+      Array(8).fill(null),
+      Array(8).fill(null),
+
+      Array.from(
+        { length: 8 },
+        () => piece("w", "P")
+      ),
+
       [
-        { type: "P", color: "b" },
-        { type: "P", color: "b" },
-        { type: "P", color: "b" },
-        { type: "P", color: "b" },
-        { type: "P", color: "b" },
-        { type: "P", color: "b" },
-        { type: "P", color: "b" },
-        { type: "P", color: "b" }
-      ],
-      Array(8).fill(null),
-      Array(8).fill(null),
-      Array(8).fill(null),
-      Array(8).fill(null),
-      [
-        { type: "P", color: "w" },
-        { type: "P", color: "w" },
-        { type: "P", color: "w" },
-        { type: "P", color: "w" },
-        { type: "P", color: "w" },
-        { type: "P", color: "w" },
-        { type: "P", color: "w" },
-        { type: "P", color: "w" }
-      ],
-      [
-        { type: "R", color: "w" },
-        { type: "N", color: "w" },
-        { type: "B", color: "w" },
-        { type: "Q", color: "w" },
-        { type: "K", color: "w" },
-        { type: "B", color: "w" },
-        { type: "N", color: "w" },
-        { type: "R", color: "w" }
+        piece("w", "R"),
+        piece("w", "N"),
+        piece("w", "B"),
+        piece("w", "Q"),
+        piece("w", "K"),
+        piece("w", "B"),
+        piece("w", "N"),
+        piece("w", "R")
       ]
     ];
   }
 
-  /* =========================================================
-     UTILITIES
-     ========================================================= */
-
   function cloneBoard(board) {
     return board.map(row =>
-      row.map(piece =>
-        piece ? { ...piece } : null
+      row.map(p =>
+        p ? { ...p } : null
       )
     );
   }
 
-  function inside(r, c) {
-    return r >= 0 && r < 8 && c >= 0 && c < 8;
-  }
+  /* =========================================================
+     COORDINATES
+     ========================================================= */
 
-  function opposite(color) {
-    return color === "w" ? "b" : "w";
+  function inside(r, c) {
+    return (
+      r >= 0 &&
+      r < 8 &&
+      c >= 0 &&
+      c < 8
+    );
   }
 
   function squareName(r, c) {
-    return "abcdefgh"[c] + (8 - r);
-  }
-
-  function pieceName(piece) {
-    if (!piece) return "Unknown Piece";
-
-    const color =
-      piece.color === "w"
-        ? "White"
-        : "Black";
-
-    return `${color} ${PIECE_NAMES[piece.type] || "Piece"}`;
-  }
-
-  function formatTime(seconds) {
-    seconds = Math.max(0, Math.floor(seconds));
-
-    const minutes =
-      String(Math.floor(seconds / 60)).padStart(2, "0");
-
-    const secs =
-      String(seconds % 60).padStart(2, "0");
-
-    return `${minutes}:${secs}`;
-  }
-
-  function isHumanTurn() {
-    if (state.gameMode === "pvp") return true;
-    if (state.gameMode === "pve") return state.turn === "w";
-
-    return false;
-  }
-
-  function isAITurn() {
     return (
-      state.gameMode === "pve" &&
-      state.turn === "b"
+      String.fromCharCode(97 + c) +
+      (8 - r)
     );
+  }
+
+  /* =========================================================
+     BOARD RENDER
+     ========================================================= */
+
+  function renderBoard() {
+    if (!boardEl) return;
+
+    boardEl.innerHTML = "";
+
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const cell =
+          document.createElement("button");
+
+        cell.type = "button";
+
+        cell.className =
+          "chess-square " +
+          (
+            (r + c) % 2 === 0
+              ? "light"
+              : "dark"
+          );
+
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.dataset.square =
+          squareName(r, c);
+
+        const currentPiece =
+          state.board[r][c];
+
+        if (
+          state.selected &&
+          state.selected.r === r &&
+          state.selected.c === c
+        ) {
+          cell.classList.add("selected");
+        }
+
+        if (
+          state.legalMoves.some(
+            move =>
+              move.to.r === r &&
+              move.to.c === c
+          )
+        ) {
+          cell.classList.add(
+            currentPiece
+              ? "capture-target"
+              : "legal-target"
+          );
+        }
+
+        if (
+          state.lastMove &&
+          (
+            (
+              state.lastMove.from.r === r &&
+              state.lastMove.from.c === c
+            ) ||
+            (
+              state.lastMove.to.r === r &&
+              state.lastMove.to.c === c
+            )
+          )
+        ) {
+          cell.classList.add("last-move");
+        }
+
+        const pieceEl =
+          document.createElement("span");
+
+        pieceEl.className =
+          "chess-piece";
+
+        if (currentPiece) {
+          pieceEl.textContent =
+            PIECES[
+              currentPiece.color
+            ][currentPiece.type];
+
+          pieceEl.classList.add(
+            currentPiece.color === "w"
+              ? "white-piece"
+              : "black-piece"
+          );
+
+          cell.dataset.piece =
+            currentPiece.type;
+
+          cell.dataset.color =
+            currentPiece.color;
+        }
+
+        cell.appendChild(pieceEl);
+
+        cell.addEventListener(
+          "click",
+          () => handleSquareClick(r, c)
+        );
+
+        boardEl.appendChild(cell);
+      }
+    }
+
+    updateBoardStatus();
   }
 
   /* =========================================================
      MOVE GENERATION
      ========================================================= */
 
-  function generatePseudoMoves(board, r, c, options = {}) {
-    const piece = board[r]?.[c];
+  function generatePseudoMoves(
+    board,
+    r,
+    c,
+    options = {},
+    enPassantState = state.enPassant,
+    castlingState = state.castling
+  ) {
+    const result = [];
 
-    if (!piece) return [];
+    const current =
+      board[r][c];
 
-    const moves = [];
+    if (!current) {
+      return result;
+    }
 
-    const add = (toR, toC, extra = {}) => {
-      if (!inside(toR, toC)) return;
+    const color =
+      current.color;
 
-      const target = board[toR][toC];
+    const enemy =
+      color === "w"
+        ? "b"
+        : "w";
+
+    function addMove(
+      tr,
+      tc,
+      extra = {}
+    ) {
+      if (!inside(tr, tc)) {
+        return;
+      }
+
+      const target =
+        board[tr][tc];
 
       if (
         target &&
-        target.color === piece.color
+        target.color === color
       ) {
         return;
       }
 
-      if (
-        target &&
-        target.type === "K"
-      ) {
-        return;
-      }
-
-      moves.push({
+      result.push({
         from: { r, c },
-        to: { r: toR, c: toC },
-        piece: { ...piece },
+        to: {
+          r: tr,
+          c: tc
+        },
+        piece: {
+          color,
+          type: current.type
+        },
         capture: !!target,
-        captured: target ? { ...target } : null,
         ...extra
       });
-    };
+    }
 
-    /* -------------------------
+    /* -------------------------------------------------------
        PAWN
-       ------------------------- */
+       ------------------------------------------------------- */
 
-    if (piece.type === "P") {
+    if (current.type === "P") {
       const direction =
-        piece.color === "w" ? -1 : 1;
+        color === "w"
+          ? -1
+          : 1;
 
       const startRow =
-        piece.color === "w" ? 6 : 1;
+        color === "w"
+          ? 6
+          : 1;
 
       const promotionRow =
-        piece.color === "w" ? 0 : 7;
+        color === "w"
+          ? 0
+          : 7;
 
-      const oneR = r + direction;
+      const oneR =
+        r + direction;
 
       if (
         inside(oneR, c) &&
         !board[oneR][c]
       ) {
-        add(oneR, c, {
-          promotion:
-            oneR === promotionRow
-              ? "Q"
-              : null
-        });
+        addMove(
+          oneR,
+          c,
+          {
+            promotion:
+              oneR === promotionRow
+                ? "Q"
+                : null
+          }
+        );
 
         const twoR =
           r + direction * 2;
@@ -394,59 +523,73 @@
           r === startRow &&
           !board[twoR][c]
         ) {
-          add(twoR, c, {
-            pawnDouble: true
-          });
+          addMove(
+            twoR,
+            c,
+            {
+              pawnDouble: true
+            }
+          );
         }
       }
 
-      for (const dc of [-1, 1]) {
-        const tr = r + direction;
-        const tc = c + dc;
+      for (
+        const dc of [-1, 1]
+      ) {
+        const tr =
+          r + direction;
 
-        if (!inside(tr, tc)) continue;
+        const tc =
+          c + dc;
+
+        if (!inside(tr, tc)) {
+          continue;
+        }
 
         const target =
           board[tr][tc];
 
         if (
           target &&
-          target.color !== piece.color &&
-          target.type !== "K"
+          target.color === enemy
         ) {
-          add(tr, tc, {
-            promotion:
-              tr === promotionRow
-                ? "Q"
-                : null
-          });
+          addMove(
+            tr,
+            tc,
+            {
+              promotion:
+                tr === promotionRow
+                  ? "Q"
+                  : null
+            }
+          );
         }
 
         if (
-          state.enPassant &&
-          state.enPassant.r === tr &&
-          state.enPassant.c === tc
+          enPassantState &&
+          enPassantState.r === tr &&
+          enPassantState.c === tc
         ) {
-          add(tr, tc, {
-            enPassant: true,
-            capture: true,
-            captured: {
-              type: "P",
-              color: opposite(piece.color)
+          addMove(
+            tr,
+            tc,
+            {
+              enPassant: true,
+              capture: true
             }
-          });
+          );
         }
       }
 
-      return moves;
+      return result;
     }
 
-    /* -------------------------
+    /* -------------------------------------------------------
        KNIGHT
-       ------------------------- */
+       ------------------------------------------------------- */
 
-    if (piece.type === "N") {
-      const offsets = [
+    if (current.type === "N") {
+      const jumps = [
         [-2, -1],
         [-2, 1],
         [-1, -2],
@@ -457,63 +600,68 @@
         [2, 1]
       ];
 
-      offsets.forEach(([dr, dc]) =>
-        add(r + dr, c + dc)
+      jumps.forEach(
+        ([dr, dc]) =>
+          addMove(
+            r + dr,
+            c + dc
+          )
       );
 
-      return moves;
+      return result;
     }
 
-    /* -------------------------
+    /* -------------------------------------------------------
        BISHOP / ROOK / QUEEN
-       ------------------------- */
+       ------------------------------------------------------- */
+
+    const directions = [];
 
     if (
-      piece.type === "B" ||
-      piece.type === "R" ||
-      piece.type === "Q"
+      current.type === "B" ||
+      current.type === "Q"
     ) {
-      const directions = [];
+      directions.push(
+        [-1, -1],
+        [-1, 1],
+        [1, -1],
+        [1, 1]
+      );
+    }
 
-      if (
-        piece.type === "B" ||
-        piece.type === "Q"
+    if (
+      current.type === "R" ||
+      current.type === "Q"
+    ) {
+      directions.push(
+        [-1, 0],
+        [1, 0],
+        [0, -1],
+        [0, 1]
+      );
+    }
+
+    if (directions.length) {
+      for (
+        const [dr, dc]
+        of directions
       ) {
-        directions.push(
-          [-1, -1],
-          [-1, 1],
-          [1, -1],
-          [1, 1]
-        );
-      }
-
-      if (
-        piece.type === "R" ||
-        piece.type === "Q"
-      ) {
-        directions.push(
-          [-1, 0],
-          [1, 0],
-          [0, -1],
-          [0, 1]
-        );
-      }
-
-      directions.forEach(([dr, dc]) => {
         let tr = r + dr;
         let tc = c + dc;
 
-        while (inside(tr, tc)) {
-          const target = board[tr][tc];
+        while (
+          inside(tr, tc)
+        ) {
+          const target =
+            board[tr][tc];
 
           if (!target) {
-            add(tr, tc);
+            addMove(tr, tc);
           } else {
             if (
-              target.color !== piece.color &&
-              target.type !== "K"
+              target.color !== color
             ) {
-              add(tr, tc);
+              addMove(tr, tc);
             }
 
             break;
@@ -522,134 +670,53 @@
           tr += dr;
           tc += dc;
         }
-      });
+      }
 
-      return moves;
+      return result;
     }
 
-    /* -------------------------
+    /* -------------------------------------------------------
        KING
-       ------------------------- */
+       ------------------------------------------------------- */
 
-    if (piece.type === "K") {
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          add(r + dr, c + dc);
+    if (current.type === "K") {
+      for (
+        let dr = -1;
+        dr <= 1;
+        dr++
+      ) {
+        for (
+          let dc = -1;
+          dc <= 1;
+          dc++
+        ) {
+          if (
+            dr === 0 &&
+            dc === 0
+          ) {
+            continue;
+          }
+
+          addMove(
+            r + dr,
+            c + dc
+          );
         }
       }
 
       if (!options.skipCastling) {
         addCastlingMoves(
           board,
+          color,
           r,
           c,
-          piece.color,
-          moves
+          result,
+          castlingState
         );
       }
-
-      return moves;
     }
 
-    return moves;
-  }
-
-  /* =========================================================
-     ATTACK DETECTION
-     ========================================================= */
-
-  function isSquareAttacked(board, r, c, byColor) {
-    for (let pr = 0; pr < 8; pr++) {
-      for (let pc = 0; pc < 8; pc++) {
-        const piece = board[pr][pc];
-
-        if (
-          !piece ||
-          piece.color !== byColor
-        ) {
-          continue;
-        }
-
-        if (piece.type === "P") {
-          const direction =
-            piece.color === "w" ? -1 : 1;
-
-          if (
-            pr + direction === r &&
-            Math.abs(pc - c) === 1
-          ) {
-            return true;
-          }
-
-          continue;
-        }
-
-        if (piece.type === "K") {
-          if (
-            Math.max(
-              Math.abs(pr - r),
-              Math.abs(pc - c)
-            ) === 1
-          ) {
-            return true;
-          }
-
-          continue;
-        }
-
-        const moves =
-          generatePseudoMoves(
-            board,
-            pr,
-            pc,
-            { skipCastling: true }
-          );
-
-        if (
-          moves.some(
-            move =>
-              move.to.r === r &&
-              move.to.c === c
-          )
-        ) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  function findKing(board, color) {
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const piece = board[r][c];
-
-        if (
-          piece &&
-          piece.color === color &&
-          piece.type === "K"
-        ) {
-          return { r, c };
-        }
-      }
-    }
-
-    return null;
-  }
-
-  function isInCheck(board, color) {
-    const king = findKing(board, color);
-
-    if (!king) return true;
-
-    return isSquareAttacked(
-      board,
-      king.r,
-      king.c,
-      opposite(color)
-    );
+    return result;
   }
 
   /* =========================================================
@@ -658,41 +725,49 @@
 
   function addCastlingMoves(
     board,
+    color,
     r,
     c,
-    color,
-    moves
+    result,
+    castlingState
   ) {
-    if (state.gameOver) return;
-
     const homeRow =
-      color === "w" ? 7 : 0;
-
-    if (r !== homeRow || c !== 4) {
-      return;
-    }
+      color === "w"
+        ? 7
+        : 0;
 
     if (
-      isInCheck(board, color)
+      r !== homeRow ||
+      c !== 4
     ) {
       return;
     }
 
-    const enemy = opposite(color);
-
-    /* KING SIDE */
-
-    const kingSideRight =
+    const enemy =
       color === "w"
-        ? state.castling.wK
-        : state.castling.bK;
+        ? "b"
+        : "w";
 
     if (
-      kingSideRight &&
-      board[homeRow][7]?.type === "R" &&
-      board[homeRow][7]?.color === color &&
-      !board[homeRow][5] &&
-      !board[homeRow][6] &&
+      isSquareAttacked(
+        board,
+        homeRow,
+        4,
+        enemy
+      )
+    ) {
+      return;
+    }
+
+    if (
+      castlingState[
+        color + "K"
+      ] &&
+      board[homeRow][5] === null &&
+      board[homeRow][6] === null &&
+      board[homeRow][7] &&
+      board[homeRow][7].type === "R" &&
+      board[homeRow][7].color === color &&
       !isSquareAttacked(
         board,
         homeRow,
@@ -706,31 +781,36 @@
         enemy
       )
     ) {
-      moves.push({
-        from: { r, c },
+      result.push({
+        from: {
+          r,
+          c
+        },
+
         to: {
           r: homeRow,
           c: 6
         },
-        piece: { ...board[r][c] },
+
+        piece: {
+          color,
+          type: "K"
+        },
+
         castle: "K"
       });
     }
 
-    /* QUEEN SIDE */
-
-    const queenSideRight =
-      color === "w"
-        ? state.castling.wQ
-        : state.castling.bQ;
-
     if (
-      queenSideRight &&
-      board[homeRow][0]?.type === "R" &&
-      board[homeRow][0]?.color === color &&
-      !board[homeRow][1] &&
-      !board[homeRow][2] &&
-      !board[homeRow][3] &&
+      castlingState[
+        color + "Q"
+      ] &&
+      board[homeRow][1] === null &&
+      board[homeRow][2] === null &&
+      board[homeRow][3] === null &&
+      board[homeRow][0] &&
+      board[homeRow][0].type === "R" &&
+      board[homeRow][0].color === color &&
       !isSquareAttacked(
         board,
         homeRow,
@@ -744,190 +824,1048 @@
         enemy
       )
     ) {
-      moves.push({
-        from: { r, c },
+      result.push({
+        from: {
+          r,
+          c
+        },
+
         to: {
           r: homeRow,
           c: 2
         },
-        piece: { ...board[r][c] },
+
+        piece: {
+          color,
+          type: "K"
+        },
+
         castle: "Q"
       });
     }
   }
 
   /* =========================================================
-     APPLY MOVE TO BOARD
+     ATTACK DETECTION
+     ========================================================= */
+
+  function isSquareAttacked(
+    board,
+    r,
+    c,
+    byColor
+  ) {
+    for (
+      let rr = 0;
+      rr < 8;
+      rr++
+    ) {
+      for (
+        let cc = 0;
+        cc < 8;
+        cc++
+      ) {
+        const p =
+          board[rr][cc];
+
+        if (
+          !p ||
+          p.color !== byColor
+        ) {
+          continue;
+        }
+
+        const dr =
+          r - rr;
+
+        const dc =
+          c - cc;
+
+        /* Pawn */
+
+        if (p.type === "P") {
+          const direction =
+            byColor === "w"
+              ? -1
+              : 1;
+
+          if (
+            r ===
+              rr + direction &&
+            Math.abs(dc) === 1
+          ) {
+            return true;
+          }
+
+          continue;
+        }
+
+        /* Knight */
+
+        if (p.type === "N") {
+          if (
+            (
+              Math.abs(dr) === 2 &&
+              Math.abs(dc) === 1
+            ) ||
+            (
+              Math.abs(dr) === 1 &&
+              Math.abs(dc) === 2
+            )
+          ) {
+            return true;
+          }
+
+          continue;
+        }
+
+        /* King */
+
+        if (p.type === "K") {
+          if (
+            Math.max(
+              Math.abs(dr),
+              Math.abs(dc)
+            ) === 1
+          ) {
+            return true;
+          }
+
+          continue;
+        }
+
+        let validDirection =
+          false;
+
+        if (p.type === "B") {
+          validDirection =
+            Math.abs(dr) ===
+            Math.abs(dc);
+        }
+
+        if (p.type === "R") {
+          validDirection =
+            dr === 0 ||
+            dc === 0;
+        }
+
+        if (p.type === "Q") {
+          validDirection =
+            dr === 0 ||
+            dc === 0 ||
+            Math.abs(dr) ===
+            Math.abs(dc);
+        }
+
+        if (!validDirection) {
+          continue;
+        }
+
+        const stepR =
+          dr === 0
+            ? 0
+            : dr > 0
+              ? 1
+              : -1;
+
+        const stepC =
+          dc === 0
+            ? 0
+            : dc > 0
+              ? 1
+              : -1;
+
+        let tr =
+          rr + stepR;
+
+        let tc =
+          cc + stepC;
+
+        let blocked = false;
+
+        while (
+          tr !== r ||
+          tc !== c
+        ) {
+          if (
+            !inside(tr, tc) ||
+            board[tr][tc]
+          ) {
+            blocked = true;
+            break;
+          }
+
+          tr += stepR;
+          tc += stepC;
+        }
+
+        if (!blocked) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /* =========================================================
+     KING
+     ========================================================= */
+
+  function findKing(
+    board,
+    color
+  ) {
+    for (
+      let r = 0;
+      r < 8;
+      r++
+    ) {
+      for (
+        let c = 0;
+        c < 8;
+        c++
+      ) {
+        const p =
+          board[r][c];
+
+        if (
+          p &&
+          p.color === color &&
+          p.type === "K"
+        ) {
+          return {
+            r,
+            c
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function isInCheck(
+    board,
+    color
+  ) {
+    const king =
+      findKing(
+        board,
+        color
+      );
+
+    if (!king) {
+      return true;
+    }
+
+    return isSquareAttacked(
+      board,
+      king.r,
+      king.c,
+      color === "w"
+        ? "b"
+        : "w"
+    );
+  }
+
+  /* =========================================================
+     APPLY MOVE
      ========================================================= */
 
   function applyMoveToBoard(
     board,
     move
   ) {
-    const next = cloneBoard(board);
+    const from =
+      move.from;
 
-    const piece =
-      next[move.from.r][move.from.c];
+    const to =
+      move.to;
 
-    next[move.from.r][move.from.c] = null;
+    const movingPiece =
+      board[from.r][from.c];
+
+    if (!movingPiece) {
+      return;
+    }
+
+    board[to.r][to.c] = {
+      ...movingPiece
+    };
+
+    board[from.r][from.c] =
+      null;
+
+    /* En passant */
 
     if (move.enPassant) {
       const captureRow =
-        move.from.r;
+        movingPiece.color === "w"
+          ? to.r + 1
+          : to.r - 1;
 
-      next[captureRow][move.to.c] = null;
+      board[captureRow][to.c] =
+        null;
     }
 
-    if (move.castle === "K") {
-      const row = move.from.r;
+    /* Promotion */
 
-      next[row][6] = piece;
-
-      next[row][5] =
-        next[row][7];
-
-      next[row][7] = null;
-    } else if (move.castle === "Q") {
-      const row = move.from.r;
-
-      next[row][2] = piece;
-
-      next[row][3] =
-        next[row][0];
-
-      next[row][0] = null;
-    } else {
-      next[move.to.r][move.to.c] = {
-        ...piece,
+    if (move.promotion) {
+      board[to.r][to.c] = {
+        color:
+          movingPiece.color,
         type:
-          move.promotion || piece.type
+          move.promotion
       };
     }
 
-    return next;
+    /* Castling */
+
+    if (move.castle === "K") {
+      const row =
+        from.r;
+
+      board[row][5] =
+        board[row][7];
+
+      board[row][7] =
+        null;
+    }
+
+    if (move.castle === "Q") {
+      const row =
+        from.r;
+
+      board[row][3] =
+        board[row][0];
+
+      board[row][0] =
+        null;
+    }
   }
 
   /* =========================================================
      LEGAL MOVES
      ========================================================= */
 
-  function getLegalMovesFromBoard(
-    board,
-    r,
-    c,
-    color
+  function getLegalMoves(
+    color = state.turn
   ) {
-    const piece = board[r]?.[c];
-
-    if (
-      !piece ||
-      piece.color !== color
-    ) {
-      return [];
-    }
-
-    const pseudo =
-      generatePseudoMoves(
-        board,
-        r,
-        c
-      );
-
     const legal = [];
 
-    for (const move of pseudo) {
-      const testBoard =
-        applyMoveToBoard(
-          board,
-          move
-        );
-
-      if (
-        !isInCheck(
-          testBoard,
-          color
-        )
+    for (
+      let r = 0;
+      r < 8;
+      r++
+    ) {
+      for (
+        let c = 0;
+        c < 8;
+        c++
       ) {
-        legal.push(move);
+        const p =
+          state.board[r][c];
+
+        if (
+          !p ||
+          p.color !== color
+        ) {
+          continue;
+        }
+
+        const pseudo =
+          generatePseudoMoves(
+            state.board,
+            r,
+            c
+          );
+
+        for (
+          const move of pseudo
+        ) {
+          const test =
+            cloneBoard(
+              state.board
+            );
+
+          applyMoveToBoard(
+            test,
+            move
+          );
+
+          if (
+            !isInCheck(
+              test,
+              color
+            )
+          ) {
+            legal.push(move);
+          }
+        }
       }
     }
 
     return legal;
   }
 
-  function getAllLegalMoves(
-    board,
-    color
+  function getLegalMovesForPiece(
+    r,
+    c
   ) {
-    const moves = [];
+    return getLegalMoves(
+      state.turn
+    ).filter(
+      move =>
+        move.from.r === r &&
+        move.from.c === c
+    );
+  }
 
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const piece = board[r][c];
+  /* =========================================================
+     LEGAL MOVES FOR SIMULATION
+     ========================================================= */
+
+  function getLegalMovesFromBoard(
+    board,
+    color,
+    castlingState = state.castling,
+    enPassantState = state.enPassant
+  ) {
+    const legal = [];
+
+    for (
+      let r = 0;
+      r < 8;
+      r++
+    ) {
+      for (
+        let c = 0;
+        c < 8;
+        c++
+      ) {
+        const p =
+          board[r][c];
 
         if (
-          piece &&
-          piece.color === color
+          !p ||
+          p.color !== color
         ) {
-          moves.push(
-            ...getLegalMovesFromBoard(
-              board,
-              r,
-              c,
+          continue;
+        }
+
+        const pseudo =
+          generatePseudoMoves(
+            board,
+            r,
+            c,
+            {},
+            enPassantState,
+            castlingState
+          );
+
+        for (
+          const move of pseudo
+        ) {
+          const test =
+            cloneBoard(board);
+
+          applyMoveToBoard(
+            test,
+            move
+          );
+
+          if (
+            !isInCheck(
+              test,
               color
             )
-          );
+          ) {
+            legal.push(move);
+          }
         }
       }
     }
 
-    return moves;
+    return legal;
   }
 
   /* =========================================================
-     CHECK / MATE / DRAW
+     SAN
      ========================================================= */
 
-  function isCheckmate(
-    board,
-    color
+  function getSAN(
+    move,
+    boardBefore
   ) {
-    return (
-      isInCheck(board, color) &&
-      getAllLegalMoves(
-        board,
-        color
-      ).length === 0
+    const p =
+      boardBefore[
+        move.from.r
+      ][move.from.c];
+
+    if (!p) {
+      return "";
+    }
+
+    if (move.castle === "K") {
+      return "O-O";
+    }
+
+    if (move.castle === "Q") {
+      return "O-O-O";
+    }
+
+    let notation = "";
+
+    if (p.type !== "P") {
+      notation += p.type;
+    }
+
+    const target =
+      boardBefore[
+        move.to.r
+      ][move.to.c];
+
+    const capture =
+      !!target ||
+      !!move.enPassant;
+
+    if (
+      p.type === "P" &&
+      capture
+    ) {
+      notation +=
+        String.fromCharCode(
+          97 + move.from.c
+        );
+    }
+
+    if (capture) {
+      notation += "x";
+    }
+
+    notation +=
+      squareName(
+        move.to.r,
+        move.to.c
+      );
+
+    if (move.promotion) {
+      notation +=
+        "=" +
+        move.promotion;
+    }
+
+    const testBoard =
+      cloneBoard(
+        boardBefore
+      );
+
+    applyMoveToBoard(
+      testBoard,
+      move
     );
+
+    const enemy =
+      p.color === "w"
+        ? "b"
+        : "w";
+
+    if (
+      isInCheck(
+        testBoard,
+        enemy
+      )
+    ) {
+      const replies =
+        getLegalMovesFromBoard(
+          testBoard,
+          enemy
+        );
+
+      notation +=
+        replies.length === 0
+          ? "#"
+          : "+";
+    }
+
+    return notation;
   }
 
-  function isStalemate(
-    board,
-    color
-  ) {
-    return (
-      !isInCheck(board, color) &&
-      getAllLegalMoves(
-        board,
-        color
-      ).length === 0
+  /* =========================================================
+     MAKE MOVE
+     ========================================================= */
+
+  function makeMove(move) {
+    if (
+      state.gameOver ||
+      state.paused ||
+      !state.started
+    ) {
+      return false;
+    }
+
+    const boardBefore =
+      cloneBoard(
+        state.board
+      );
+
+    const movingPiece =
+      state.board[
+        move.from.r
+      ][move.from.c];
+
+    if (!movingPiece) {
+      return false;
+    }
+
+    const capturedPiece =
+      move.enPassant
+        ? state.board[
+            movingPiece.color === "w"
+              ? move.to.r + 1
+              : move.to.r - 1
+          ][move.to.c]
+        : state.board[
+            move.to.r
+          ][move.to.c];
+
+    const notation =
+      getSAN(
+        move,
+        boardBefore
+      );
+
+    applyMoveToBoard(
+      state.board,
+      move
     );
+
+    if (capturedPiece) {
+      state.captured[
+        movingPiece.color
+      ].push({
+        ...capturedPiece
+      });
+    }
+
+    updateCastlingRights(
+      move,
+      movingPiece,
+      capturedPiece
+    );
+
+    state.enPassant = null;
+
+    if (
+      movingPiece.type === "P" &&
+      Math.abs(
+        move.to.r -
+        move.from.r
+      ) === 2
+    ) {
+      state.enPassant = {
+        r:
+          (
+            move.to.r +
+            move.from.r
+          ) / 2,
+
+        c:
+          move.from.c
+      };
+    }
+
+    if (
+      movingPiece.type === "P" ||
+      capturedPiece
+    ) {
+      state.halfmove = 0;
+    } else {
+      state.halfmove++;
+    }
+
+    if (
+      movingPiece.color === "b"
+    ) {
+      state.fullmove++;
+    }
+
+    state.moveHistory.push({
+      number:
+        state.fullmove,
+
+      color:
+        movingPiece.color,
+
+      notation,
+
+      move: {
+        ...move,
+
+        piece: {
+          ...movingPiece
+        },
+
+        captured:
+          capturedPiece
+            ? {
+                ...capturedPiece
+              }
+            : null
+      }
+    });
+
+    if (
+      state.moveHistory.length >
+      CONFIG.maxHistory
+    ) {
+      state.moveHistory.shift();
+    }
+
+    state.lastMove = {
+      from: {
+        ...move.from
+      },
+
+      to: {
+        ...move.to
+      }
+    };
+
+    state.selected = null;
+    state.legalMoves = [];
+
+    /*
+     * IMPORTANT:
+     * Determine the result BEFORE scheduling another turn.
+     */
+
+    state.turn =
+      state.turn === "w"
+        ? "b"
+        : "w";
+
+    renderBoard();
+    renderHistory();
+    renderCaptured();
+    updateAllUI();
+
+    checkGameState();
+
+    if (
+      !state.gameOver &&
+      shouldAIPlay()
+    ) {
+      scheduleAI();
+    }
+
+    return true;
   }
 
-  function insufficientMaterial(
-    board
+  /* =========================================================
+     CASTLING RIGHTS
+     ========================================================= */
+
+  function updateCastlingRights(
+    move,
+    movingPiece,
+    capturedPiece
   ) {
+    if (
+      movingPiece.type === "K"
+    ) {
+      state.castling[
+        movingPiece.color + "K"
+      ] = false;
+
+      state.castling[
+        movingPiece.color + "Q"
+      ] = false;
+    }
+
+    if (
+      movingPiece.type === "R"
+    ) {
+      if (
+        move.from.r === 7 &&
+        move.from.c === 0
+      ) {
+        state.castling.wQ =
+          false;
+      }
+
+      if (
+        move.from.r === 7 &&
+        move.from.c === 7
+      ) {
+        state.castling.wK =
+          false;
+      }
+
+      if (
+        move.from.r === 0 &&
+        move.from.c === 0
+      ) {
+        state.castling.bQ =
+          false;
+      }
+
+      if (
+        move.from.r === 0 &&
+        move.from.c === 7
+      ) {
+        state.castling.bK =
+          false;
+      }
+    }
+
+    if (
+      capturedPiece &&
+      capturedPiece.type === "R"
+    ) {
+      if (
+        move.to.r === 7 &&
+        move.to.c === 0
+      ) {
+        state.castling.wQ =
+          false;
+      }
+
+      if (
+        move.to.r === 7 &&
+        move.to.c === 7
+      ) {
+        state.castling.wK =
+          false;
+      }
+
+      if (
+        move.to.r === 0 &&
+        move.to.c === 0
+      ) {
+        state.castling.bQ =
+          false;
+      }
+
+      if (
+        move.to.r === 0 &&
+        move.to.c === 7
+      ) {
+        state.castling.bK =
+          false;
+      }
+    }
+  }
+
+  /* =========================================================
+     CLICK HANDLER
+     ========================================================= */
+
+  function handleSquareClick(
+    r,
+    c
+  ) {
+    if (
+      !state.started ||
+      state.paused ||
+      state.gameOver ||
+      state.aiThinking
+    ) {
+      return;
+    }
+
+    if (
+      isAIColor(state.turn)
+    ) {
+      return;
+    }
+
+    const clicked =
+      state.board[r][c];
+
+    if (state.selected) {
+      const chosen =
+        state.legalMoves.find(
+          move =>
+            move.to.r === r &&
+            move.to.c === c
+        );
+
+      if (chosen) {
+        makeMove(chosen);
+        return;
+      }
+
+      if (
+        clicked &&
+        clicked.color ===
+          state.turn
+      ) {
+        selectPiece(r, c);
+        return;
+      }
+
+      clearSelection();
+      return;
+    }
+
+    if (
+      clicked &&
+      clicked.color ===
+        state.turn
+    ) {
+      selectPiece(r, c);
+    }
+  }
+
+  function selectPiece(
+    r,
+    c
+  ) {
+    state.selected = {
+      r,
+      c
+    };
+
+    state.legalMoves =
+      getLegalMovesForPiece(
+        r,
+        c
+      );
+
+    renderBoard();
+  }
+
+  function clearSelection() {
+    state.selected = null;
+    state.legalMoves = [];
+    renderBoard();
+  }
+
+  /* =========================================================
+     GAME STATE
+     ========================================================= */
+
+  function checkGameState() {
+    if (state.gameOver) {
+      return;
+    }
+
+    const legalMoves =
+      getLegalMoves(
+        state.turn
+      );
+
+    const inCheck =
+      isInCheck(
+        state.board,
+        state.turn
+      );
+
+    if (
+      legalMoves.length === 0
+    ) {
+      if (inCheck) {
+        const winner =
+          state.turn === "w"
+            ? "b"
+            : "w";
+
+        finishGame(
+          winner,
+          "checkmate"
+        );
+      } else {
+        finishGame(
+          null,
+          "stalemate"
+        );
+      }
+
+      return;
+    }
+
+    if (
+      state.halfmove >= 100
+    ) {
+      finishGame(
+        null,
+        "50-move"
+      );
+
+      return;
+    }
+
+    if (
+      insufficientMaterial()
+    ) {
+      finishGame(
+        null,
+        "insufficient material"
+      );
+
+      return;
+    }
+
+    if (inCheck) {
+      setText(
+        checkStatusEl,
+        state.turn === "w"
+          ? "White is in check"
+          : "Black is in check"
+      );
+
+      if (checkStatusEl) {
+        checkStatusEl.classList.add(
+          "check-warning"
+        );
+      }
+    } else {
+      setText(
+        checkStatusEl,
+        "Clear"
+      );
+
+      if (checkStatusEl) {
+        checkStatusEl.classList.remove(
+          "check-warning"
+        );
+      }
+    }
+
+    updateBoardStatus();
+  }
+
+  /* =========================================================
+     INSUFFICIENT MATERIAL
+     ========================================================= */
+
+  function insufficientMaterial() {
     const pieces = [];
 
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const piece = board[r][c];
+    for (
+      let r = 0;
+      r < 8;
+      r++
+    ) {
+      for (
+        let c = 0;
+        c < 8;
+        c++
+      ) {
+        const p =
+          state.board[r][c];
 
         if (
-          piece &&
-          piece.type !== "K"
+          p &&
+          p.type !== "K"
         ) {
-          pieces.push(piece);
+          pieces.push({
+            ...p,
+            r,
+            c
+          });
         }
       }
     }
@@ -946,706 +1884,413 @@
     if (
       pieces.length === 2 &&
       pieces.every(
-        piece => piece.type === "B"
+        p => p.type === "B"
       )
     ) {
-      return true;
+      const colors =
+        pieces.map(
+          p =>
+            (p.r + p.c) % 2
+        );
+
+      return (
+        colors[0] ===
+        colors[1]
+      );
     }
 
     return false;
   }
 
   /* =========================================================
-     SAN NOTATION
+     HUMAN COLOR
      ========================================================= */
 
-  function makeNotation(
-    move,
-    beforeBoard,
-    afterBoard,
-    moverColor
+  function getHumanColor() {
+    const mode =
+      getGameMode();
+
+    if (mode === "pve") {
+      return "w";
+    }
+
+    if (mode === "pvp") {
+      return null;
+    }
+
+    return null;
+  }
+
+  /* =========================================================
+     FINISH GAME
+     ========================================================= */
+
+  function finishGame(
+    winner,
+    reason
   ) {
-    const piece =
-      beforeBoard[
-        move.from.r
-      ][move.from.c];
-
-    if (move.castle === "K") {
-      return "O-O";
-    }
-
-    if (move.castle === "Q") {
-      return "O-O-O";
-    }
-
-    let notation = "";
-
-    if (piece.type !== "P") {
-      notation += piece.type;
-    }
-
-    const isCapture =
-      move.capture ||
-      move.enPassant;
-
-    if (piece.type === "P" && isCapture) {
-      notation +=
-        "abcdefgh"[move.from.c];
-    }
-
-    if (isCapture) {
-      notation += "x";
-    }
-
-    notation += squareName(
-      move.to.r,
-      move.to.c
-    );
-
-    if (move.promotion) {
-      notation += `=${move.promotion}`;
-    }
-
-    const enemy =
-      opposite(moverColor);
-
-    if (
-      isCheckmate(
-        afterBoard,
-        enemy
-      )
-    ) {
-      notation += "#";
-    } else if (
-      isInCheck(
-        afterBoard,
-        enemy
-      )
-    ) {
-      notation += "+";
-    }
-
-    return notation;
-  }
-
-  /* =========================================================
-     HISTORY
-     ========================================================= */
-
-  function renderHistory() {
-    if (!els.moveHistory) return;
-
-    if (
-      state.moveHistory.length === 0
-    ) {
-      els.moveHistory.innerHTML =
-        `<div class="history-empty">No moves yet.</div>`;
-      return;
-    }
-
-    els.moveHistory.innerHTML = "";
-
-    let pairNumber = 0;
-
-    for (
-      let index = 0;
-      index < state.moveHistory.length;
-      index += 2
-    ) {
-      pairNumber++;
-
-      const white =
-        state.moveHistory[index];
-
-      const black =
-        state.moveHistory[index + 1];
-
-      if (white) {
-        const whiteEl =
-          document.createElement("div");
-
-        whiteEl.className =
-          "history-move";
-
-        const whitePiece =
-          pieceName(
-            white.move?.piece
-          );
-
-        whiteEl.innerHTML = `
-          <span class="history-number">
-            ${pairNumber}.
-          </span>
-          <span class="history-piece-name">
-            ${whitePiece}
-          </span>
-          <span class="history-notation">
-            ${white.notation}
-          </span>
-        `;
-
-        els.moveHistory.appendChild(
-          whiteEl
-        );
-      }
-
-      if (black) {
-        const blackEl =
-          document.createElement("div");
-
-        blackEl.className =
-          "history-move";
-
-        const blackPiece =
-          pieceName(
-            black.move?.piece
-          );
-
-        blackEl.innerHTML = `
-          <span class="history-number">
-            …
-          </span>
-          <span class="history-piece-name">
-            ${blackPiece}
-          </span>
-          <span class="history-notation">
-            ${black.notation}
-          </span>
-        `;
-
-        els.moveHistory.appendChild(
-          blackEl
-        );
-      }
-    }
-
-    els.moveHistory.scrollTop =
-      els.moveHistory.scrollHeight;
-  }
-
-  /* =========================================================
-     CAPTURE DISPLAY
-     ========================================================= */
-
-  function renderCaptured() {
-    if (els.whiteCaptured) {
-      els.whiteCaptured.textContent =
-        state.capturedWhite
-          .map(
-            piece =>
-              PIECES.w[piece.type]
-          )
-          .join(" ");
-    }
-
-    if (els.blackCaptured) {
-      els.blackCaptured.textContent =
-        state.capturedBlack
-          .map(
-            piece =>
-              PIECES.b[piece.type]
-          )
-          .join(" ");
-    }
-  }
-
-  /* =========================================================
-     BOARD RENDER
-     ========================================================= */
-
-  function renderBoard() {
-    if (!els.board) return;
-
-    els.board.innerHTML = "";
-
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const square =
-          document.createElement("button");
-
-        square.type = "button";
-
-        square.className =
-          "chess-square " +
-          ((r + c) % 2 === 0
-            ? "light"
-            : "dark");
-
-        square.dataset.row = r;
-        square.dataset.col = c;
-
-        if (
-          state.selected &&
-          state.selected.r === r &&
-          state.selected.c === c
-        ) {
-          square.classList.add(
-            "selected"
-          );
-        }
-
-        if (
-          state.legalTargets.some(
-            target =>
-              target.r === r &&
-              target.c === c
-          )
-        ) {
-          square.classList.add(
-            "legal"
-          );
-        }
-
-        const piece =
-          state.board[r][c];
-
-        if (piece) {
-          const pieceEl =
-            document.createElement("span");
-
-          pieceEl.className =
-            `chess-piece ${
-              piece.color === "w"
-                ? "white-piece"
-                : "black-piece"
-            }`;
-
-          pieceEl.textContent =
-            PIECES[piece.color][
-              piece.type
-            ];
-
-          square.appendChild(
-            pieceEl
-          );
-        }
-
-        square.addEventListener(
-          "click",
-          () =>
-            handleSquareClick(r, c)
-        );
-
-        els.board.appendChild(
-          square
-        );
-      }
-    }
-  }
-
-  /* =========================================================
-     PLAYER LABELS
-     ========================================================= */
-
-  function updatePlayerLabels() {
-    let whiteName = "Player";
-    let blackName = "ACE";
-
-    if (state.gameMode === "pvp") {
-      blackName = "Player 2";
-    }
-
-    if (state.gameMode === "eve") {
-      whiteName = "ACE";
-      blackName = "EMG";
-    }
-
-    if (state.gameMode === "battle") {
-      whiteName = "ACE";
-      blackName = "EMG";
-    }
-
-    if (els.whitePlayerName) {
-      els.whitePlayerName.textContent =
-        whiteName;
-    }
-
-    if (els.blackPlayerName) {
-      els.blackPlayerName.textContent =
-        blackName;
-    }
-
-    if (els.whitePlayerLevel) {
-      els.whitePlayerLevel.textContent =
-        state.gameMode === "pvp"
-          ? "PLAYER"
-          : "ACE";
-    }
-
-    if (els.blackPlayerLevel) {
-      els.blackPlayerLevel.textContent =
-        state.gameMode === "pvp"
-          ? "PLAYER"
-          : "AI";
-    }
-  }
-
-  /* =========================================================
-     STATUS
-     ========================================================= */
-
-  function updateStatus() {
-    if (els.modeStatus) {
-      const modeText = {
-        pvp: "Player vs Player",
-        pve: "Player vs ACE",
-        eve: "ACE vs EMG",
-        battle: "Battle"
-      };
-
-      els.modeStatus.textContent =
-        modeText[state.gameMode] ||
-        "Player vs ACE";
-    }
-
-    if (els.moveNumber) {
-      els.moveNumber.textContent =
-        state.fullmove;
-    }
-
-    if (els.moveStatus) {
-      els.moveStatus.textContent =
-        state.moveHistory.length;
-    }
-
     if (state.gameOver) {
       return;
     }
 
-    if (els.gameStatus) {
-      els.gameStatus.textContent =
-        state.gameStarted
-          ? state.paused
-            ? "Paused"
-            : "Live"
-          : "Ready";
+    state.gameOver = true;
+    state.started = false;
+    state.paused = false;
+
+    state.result = {
+      winner,
+      reason
+    };
+
+    cancelAI();
+    stopClock();
+
+    /*
+     * Stats
+     */
+
+    state.stats.played++;
+
+    const humanColor =
+      getHumanColor();
+
+    if (
+      humanColor &&
+      winner === humanColor
+    ) {
+      state.stats.wins++;
+      state.stats.rating += 15;
+    } else if (
+      humanColor &&
+      winner &&
+      winner !== humanColor
+    ) {
+      state.stats.rating =
+        Math.max(
+          100,
+          state.stats.rating - 10
+        );
     }
 
-    if (els.turnStatus) {
-      els.turnStatus.textContent =
-        state.turn === "w"
-          ? "White"
-          : "Black";
+    saveStats();
+
+    /*
+     * Result messaging
+     */
+
+    let icon = "½";
+    let title = "Game Over";
+    let message =
+      "The game has ended.";
+
+    if (
+      reason === "checkmate"
+    ) {
+      if (winner === "w") {
+        icon = "♔";
+        title = "CHECKMATE!";
+        message =
+          "White wins by checkmate.";
+      } else {
+        icon = "♚";
+        title = "CHECKMATE!";
+        message =
+          "Black wins by checkmate.";
+      }
     }
 
-    const inCheck =
-      isInCheck(
-        state.board,
-        state.turn
-      );
-
-    if (els.checkStatus) {
-      els.checkStatus.textContent =
-        inCheck
-          ? "CHECK"
-          : "Clear";
-
-      els.checkStatus.classList.toggle(
-        "check-active",
-        inCheck
-      );
+    else if (
+      reason === "stalemate"
+    ) {
+      title = "STALEMATE";
+      message =
+        "The game ends in a draw.";
     }
+
+    else if (
+      reason === "50-move"
+    ) {
+      title = "DRAW";
+      message =
+        "The 50-move rule has been reached.";
+    }
+
+    else if (
+      reason === "insufficient material"
+    ) {
+      title = "DRAW";
+      message =
+        "There is insufficient material to checkmate.";
+    }
+
+    else if (
+      reason === "resign"
+    ) {
+      title = "RESIGNATION";
+
+      message =
+        winner === "w"
+          ? "White wins by resignation."
+          : "Black wins by resignation.";
+    }
+
+    else if (
+      reason === "timeout"
+    ) {
+      title = "TIME";
+
+      message =
+        winner === "w"
+          ? "White wins on time."
+          : "Black wins on time.";
+    }
+
+    const lastMove =
+      state.moveHistory[
+        state.moveHistory.length - 1
+      ];
+
+    if (
+      lastMove &&
+      reason === "checkmate"
+    ) {
+      message +=
+        " Final move: " +
+        lastMove.notation;
+    }
+
+    showOverlay(
+      icon,
+      title,
+      message
+    );
+
+    updateAllUI();
   }
 
   /* =========================================================
-     CLOCKS
+     RESIGN
      ========================================================= */
 
-  function renderClocks() {
-    if (els.whiteClock) {
-      els.whiteClock.textContent =
-        formatTime(
-          state.whiteTime
-        );
-    }
-
-    if (els.blackClock) {
-      els.blackClock.textContent =
-        formatTime(
-          state.blackTime
-        );
-    }
-  }
-
-  function stopClock() {
+  function resignGame() {
     if (
-      state.timerInterval
-    ) {
-      clearInterval(
-        state.timerInterval
-      );
-
-      state.timerInterval = null;
-    }
-  }
-
-  function startClock() {
-    stopClock();
-
-    if (
-      !state.gameStarted ||
-      state.gameOver ||
-      state.paused
+      !state.started ||
+      state.gameOver
     ) {
       return;
     }
 
-    state.timerInterval =
-      setInterval(() => {
-        if (
-          state.paused ||
-          state.gameOver
-        ) {
-          return;
-        }
+    const winner =
+      state.turn === "w"
+        ? "b"
+        : "w";
 
-        if (state.turn === "w") {
-          state.whiteTime--;
+    finishGame(
+      winner,
+      "resign"
+    );
+  }
+
+  /* =========================================================
+     CLOCK
+     ========================================================= */
+
+  function startClock() {
+    stopClock();
+
+    state.clockTimer =
+      setInterval(
+        () => {
+          if (
+            !state.started ||
+            state.paused ||
+            state.gameOver
+          ) {
+            return;
+          }
+
+          if (
+            state.turn === "w"
+          ) {
+            state.whiteTime--;
+          } else {
+            state.blackTime--;
+          }
+
+          updateClocks();
 
           if (
             state.whiteTime <= 0
           ) {
             state.whiteTime = 0;
 
-            finishGame({
-              winner: "b",
-              reason: "time"
-            });
+            finishGame(
+              "b",
+              "timeout"
+            );
 
             return;
           }
-        } else {
-          state.blackTime--;
 
           if (
             state.blackTime <= 0
           ) {
             state.blackTime = 0;
 
-            finishGame({
-              winner: "w",
-              reason: "time"
-            });
+            finishGame(
+              "w",
+              "timeout"
+            );
 
             return;
           }
-        }
-
-        renderClocks();
-      }, 1000);
+        },
+        1000
+      );
   }
 
-  /* =========================================================
-     STATS
-     ========================================================= */
+  function stopClock() {
+    if (state.clockTimer) {
+      clearInterval(
+        state.clockTimer
+      );
 
-  function loadStats() {
-    try {
-      const saved =
-        JSON.parse(
-          localStorage.getItem(
-            CONFIG.storageKey
-          ) || "null"
-        );
+      state.clockTimer = null;
+    }
+  }
 
-      if (saved) {
-        state.stats = {
-          games:
-            Number(saved.games) || 0,
+  function updateClocks() {
+    setText(
+      whiteClockEl,
+      formatTime(
+        state.whiteTime
+      )
+    );
 
-          wins:
-            Number(saved.wins) || 0,
+    setText(
+      blackClockEl,
+      formatTime(
+        state.blackTime
+      )
+    );
 
-          rating:
-            Number(saved.rating) || 1200
-        };
-      }
-    } catch (error) {
-      state.stats = {
-        games: 0,
-        wins: 0,
-        rating: 1200
-      };
+    if (whiteClockEl) {
+      whiteClockEl.classList.toggle(
+        "clock-warning",
+        state.whiteTime <= 60
+      );
     }
 
-    renderStats();
-  }
-
-  function saveStats() {
-    try {
-      localStorage.setItem(
-        CONFIG.storageKey,
-        JSON.stringify(
-          state.stats
-        )
-      );
-    } catch (error) {
-      console.warn(
-        "Unable to save chess stats.",
-        error
+    if (blackClockEl) {
+      blackClockEl.classList.toggle(
+        "clock-warning",
+        state.blackTime <= 60
       );
     }
   }
 
-  function renderStats() {
-    if (els.commanderRating) {
-      els.commanderRating.textContent =
-        state.stats.rating;
-    }
-
-    if (els.gamesPlayed) {
-      els.gamesPlayed.textContent =
-        state.stats.games;
-    }
-
-    if (els.gamesWon) {
-      els.gamesWon.textContent =
-        state.stats.wins;
-    }
-
-    if (els.winRate) {
-      const rate =
-        state.stats.games > 0
-          ? Math.round(
-              (state.stats.wins /
-                state.stats.games) *
-                100
-            )
-          : 0;
-
-      els.winRate.textContent =
-        `${rate}%`;
-    }
-  }
-
-  function updateStatsForResult(
-    winner,
-    reason
+  function formatTime(
+    seconds
   ) {
-    /*
-      Commander stats are player-focused.
+    const safe =
+      Math.max(
+        0,
+        Math.floor(seconds)
+      );
 
-      PVE:
-        White = Player
-        Black = ACE
+    const minutes =
+      Math.floor(
+        safe / 60
+      );
 
-      PVP:
-        Track completed game.
-        A White win counts as a Player win.
+    const secs =
+      safe % 60;
 
-      AI-vs-AI:
-        Games still register,
-        but no human win is recorded.
-    */
-
-    if (
-      state.gameMode === "eve" ||
-      state.gameMode === "battle"
-    ) {
-      return;
-    }
-
-    state.stats.games++;
-
-    if (
-      state.gameMode === "pve" &&
-      winner === "w"
-    ) {
-      state.stats.wins++;
-      state.stats.rating +=
-        reason === "checkmate"
-          ? 25
-          : 10;
-    } else if (
-      state.gameMode === "pvp" &&
-      winner === "w"
-    ) {
-      state.stats.wins++;
-      state.stats.rating +=
-        reason === "checkmate"
-          ? 15
-          : 5;
-    }
-
-    saveStats();
-    renderStats();
+    return (
+      String(minutes)
+        .padStart(2, "0") +
+      ":" +
+      String(secs)
+        .padStart(2, "0")
+    );
   }
 
   /* =========================================================
-     RESULT OVERLAY
+     AI
      ========================================================= */
 
-  function showResultOverlay(
-    title,
-    message,
-    icon = "♔"
-  ) {
-    if (!els.gameOverlay) {
-      return;
+  function isAIColor(color) {
+    const mode =
+      getGameMode();
+
+    if (
+      mode === "eve" ||
+      mode === "battle"
+    ) {
+      return true;
     }
 
-    if (els.overlayIcon) {
-      els.overlayIcon.textContent =
-        icon;
+    if (
+      mode === "pve"
+    ) {
+      return color === "b";
     }
 
-    if (els.overlayTitle) {
-      els.overlayTitle.textContent =
-        title;
-    }
-
-    if (els.overlayMessage) {
-      els.overlayMessage.textContent =
-        message;
-    }
-
-    els.gameOverlay.classList.add(
-      "active",
-      "show"
-    );
-
-    els.gameOverlay.hidden = false;
+    return false;
   }
 
-  function hideResultOverlay() {
-    if (!els.gameOverlay) {
-      return;
-    }
-
-    els.gameOverlay.classList.remove(
-      "active",
-      "show"
+  function shouldAIPlay() {
+    return (
+      state.started &&
+      !state.gameOver &&
+      !state.paused &&
+      isAIColor(
+        state.turn
+      )
     );
-
-    els.gameOverlay.hidden = true;
   }
 
-  /* =========================================================
-     GAME RESULT
-     ========================================================= */
+  function scheduleAI() {
+    cancelAI();
 
-  function finishGame({
-    winner = null,
-    reason = "unknown"
-  } = {}) {
-    if (state.gameOver) {
-      return;
-    }
+    state.aiThinking = true;
 
-    state.gameOver = true;
-    state.gameStarted = false;
-    state.paused = false;
+    updateAllUI();
 
-    state.winner = winner;
-    state.loser =
-      winner
-        ? opposite(winner)
-        : null;
+    const delay =
+      getAISpeedDelay();
 
-    state.result = reason;
+    state.aiTimer =
+      setTimeout(
+        () => {
+          state.aiTimer = null;
 
-    stopClock();
+          if (
+            !shouldAIPlay()
+          ) {
+            state.aiThinking = false;
+            updateAllUI();
+            return;
+          }
 
+          const move =
+            chooseAIMove(
+              state.turn
+            );
+
+          state.aiThinking = false;
+
+          if (move) {
+            makeMove(move);
+          }
+
+          updateAllUI();
+        },
+        delay
+      );
+  }
+
+  function cancelAI() {
     if (state.aiTimer) {
       clearTimeout(
         state.aiTimer
@@ -1654,637 +2299,252 @@
       state.aiTimer = null;
     }
 
-    let title = "GAME OVER";
-    let message = "";
-    let icon = "♟";
-
-    if (reason === "checkmate") {
-      icon =
-        winner === "w"
-          ? "♔"
-          : "♚";
-
-      title = "CHECKMATE!";
-
-      const winnerName =
-        getPlayerName(winner);
-
-      const loserName =
-        getPlayerName(
-          opposite(winner)
-        );
-
-      message =
-        `${winnerName} wins. ${loserName} has been checkmated.`;
-    }
-
-    else if (
-      reason === "stalemate"
-    ) {
-      icon = "½";
-      title = "STALEMATE";
-      message =
-        "The game ends in a draw by stalemate.";
-    }
-
-    else if (
-      reason === "insufficient"
-    ) {
-      icon = "½";
-      title = "DRAW";
-      message =
-        "The game ends in a draw by insufficient material.";
-    }
-
-    else if (
-      reason === "fifty-move"
-    ) {
-      icon = "½";
-      title = "DRAW";
-      message =
-        "The game ends in a draw by the 50-move rule.";
-    }
-
-    else if (
-      reason === "time"
-    ) {
-      icon =
-        winner === "w"
-          ? "♔"
-          : "♚";
-
-      title = "TIME EXPIRED";
-
-      message =
-        `${getPlayerName(winner)} wins on time.`;
-    }
-
-    else if (
-      reason === "resignation"
-    ) {
-      icon =
-        winner === "w"
-          ? "♔"
-          : "♚";
-
-      title = "RESIGNATION";
-
-      message =
-        `${getPlayerName(winner)} wins by resignation.`;
-    }
-
-    else {
-      title = "GAME OVER";
-
-      message =
-        winner
-          ? `${getPlayerName(winner)} wins.`
-          : "The game has ended.";
-    }
-
-    updateStatsForResult(
-      winner,
-      reason
-    );
-
-    if (els.gameStatus) {
-      els.gameStatus.textContent =
-        reason === "checkmate"
-          ? "Checkmate"
-          : title;
-    }
-
-    if (els.turnStatus) {
-      els.turnStatus.textContent =
-        winner
-          ? `${getPlayerName(winner)} Wins`
-          : "Draw";
-    }
-
-    if (els.checkStatus) {
-      els.checkStatus.textContent =
-        reason === "checkmate"
-          ? "CHECKMATE"
-          : reason === "stalemate"
-            ? "STALEMATE"
-            : reason === "time"
-              ? "TIME"
-              : "GAME OVER";
-
-      els.checkStatus.classList.toggle(
-        "check-active",
-        reason === "checkmate"
-      );
-    }
-
-    showResultOverlay(
-      title,
-      message,
-      icon
-    );
-
-    renderBoard();
-    renderClocks();
-    renderHistory();
-    renderCaptured();
-    renderStats();
+    state.aiThinking = false;
   }
 
-  function getPlayerName(
+  function getAISpeedDelay() {
+    const speed =
+      String(
+        aiSpeedEl &&
+        aiSpeedEl.value
+          ? aiSpeedEl.value
+          : state.aiSpeed
+      ).toLowerCase();
+
+    if (
+      speed === "fast"
+    ) {
+      return 150;
+    }
+
+    if (
+      speed === "slow"
+    ) {
+      return 850;
+    }
+
+    return CONFIG.aiThinkDelay;
+  }
+
+  function getProfileForColor(
     color
   ) {
+    const mode =
+      getGameMode();
+
     if (
-      color === "w"
+      mode === "eve" ||
+      mode === "battle"
     ) {
-      return (
-        els.whitePlayerName
-          ?.textContent
-          ?.trim() ||
-        "White"
-      );
+      return color === "w"
+        ? (
+            AI_PROFILES.ace
+          )
+        : (
+            AI_PROFILES.emg
+          );
     }
 
     return (
-      els.blackPlayerName
-        ?.textContent
-        ?.trim() ||
-      "Black"
+      AI_PROFILES[
+        getAIProfile()
+      ] ||
+      AI_PROFILES.startup
     );
   }
 
-  /* =========================================================
-     TERMINAL POSITION CHECK
-     ========================================================= */
+  function chooseAIMove(
+    color
+  ) {
+    const moves =
+      getLegalMoves(
+        color
+      );
 
-  function evaluatePosition() {
-    const sideToMove =
-      state.turn;
-
-    if (
-      isCheckmate(
-        state.board,
-        sideToMove
-      )
-    ) {
-      finishGame({
-        winner:
-          opposite(sideToMove),
-        reason: "checkmate"
-      });
-
-      return true;
+    if (!moves.length) {
+      return null;
     }
 
-    if (
-      isStalemate(
-        state.board,
-        sideToMove
-      )
-    ) {
-      finishGame({
-        winner: null,
-        reason: "stalemate"
-      });
+    const profile =
+      getProfileForColor(
+        color
+      );
 
-      return true;
+    const scored =
+      moves.map(
+        move => ({
+          move,
+          score:
+            evaluateMove(
+              move,
+              color
+            )
+        })
+      );
+
+    scored.sort(
+      (a, b) =>
+        b.score -
+        a.score
+    );
+
+    /*
+     * Deliberate randomness at lower AI levels.
+     */
+
+    if (
+      Math.random() <
+      profile.randomness
+    ) {
+      const pool =
+        scored.slice(
+          0,
+          Math.min(
+            4,
+            scored.length
+          )
+        );
+
+      return pool[
+        Math.floor(
+          Math.random() *
+          pool.length
+        )
+      ].move;
     }
 
-    if (
-      state.halfmove >= 100
-    ) {
-      finishGame({
-        winner: null,
-        reason: "fifty-move"
-      });
+    let bestMove =
+      scored[0].move;
 
-      return true;
+    let bestScore =
+      color === "w"
+        ? -Infinity
+        : Infinity;
+
+    const depth =
+      Math.max(
+        1,
+        profile.depth
+      );
+
+    if (depth === 1) {
+      return bestMove;
     }
 
-    if (
-      insufficientMaterial(
-        state.board
-      )
+    for (
+      const entry of scored
     ) {
-      finishGame({
-        winner: null,
-        reason: "insufficient"
-      });
+      const next =
+        cloneBoard(
+          state.board
+        );
 
-      return true;
+      applyMoveToBoard(
+        next,
+        entry.move
+      );
+
+      const opponent =
+        color === "w"
+          ? "b"
+          : "w";
+
+      const future =
+        minimax(
+          next,
+          opponent,
+          depth - 1,
+          -Infinity,
+          Infinity
+        );
+
+      const total =
+        color === "w"
+          ? future
+          : future;
+
+      if (
+        color === "w"
+          ? total > bestScore
+          : total < bestScore
+      ) {
+        bestScore =
+          total;
+
+        bestMove =
+          entry.move;
+      }
     }
 
-    return false;
+    return bestMove;
   }
 
-  /* =========================================================
-     MAKE MOVE
-     ========================================================= */
+  function evaluateMove(
+    move,
+    color
+  ) {
+    let score = 0;
 
-  function makeMove(move) {
-    if (
-      state.gameOver ||
-      state.paused
-    ) {
-      return false;
+    const target =
+      state.board[
+        move.to.r
+      ][move.to.c];
+
+    if (target) {
+      score +=
+        PIECE_VALUES[
+          target.type
+        ] * 1.4;
     }
 
-    const movingColor =
-      state.turn;
+    if (move.enPassant) {
+      score +=
+        PIECE_VALUES.P;
+    }
 
-    const beforeBoard =
+    if (move.promotion) {
+      score +=
+        PIECE_VALUES.Q;
+    }
+
+    if (move.castle) {
+      score += 60;
+    }
+
+    const centerDistance =
+      Math.abs(
+        move.to.r - 3.5
+      ) +
+      Math.abs(
+        move.to.c - 3.5
+      );
+
+    score +=
+      (7 - centerDistance) *
+      4;
+
+    const test =
       cloneBoard(
         state.board
       );
 
-    const movingPiece =
-      state.board[
-        move.from.r
-      ][move.from.c];
+    applyMoveToBoard(
+      test,
+      move
+    );
 
-    if (!movingPiece) {
-      return false;
-    }
-
-    const captured =
-      move.enPassant
-        ? {
-            type: "P",
-            color:
-              opposite(
-                movingColor
-              )
-          }
-        : state.board[
-            move.to.r
-          ][move.to.c];
-
-    const nextBoard =
-      applyMoveToBoard(
-        state.board,
-        move
-      );
-
-    const notation =
-      makeNotation(
-        move,
-        beforeBoard,
-        nextBoard,
-        movingColor
-      );
-
-    state.board =
-      nextBoard;
-
-    /* CAPTURE */
-
-    if (captured) {
-      if (
-        captured.color === "w"
-      ) {
-        state.capturedWhite.push(
-          captured
-        );
-      } else {
-        state.capturedBlack.push(
-          captured
-        );
-      }
-    }
-
-    /* CASTLING RIGHTS */
+    const opponent =
+      color === "w"
+        ? "b"
+        : "w";
 
     if (
-      movingPiece.type === "K"
+      isInCheck(
+        test,
+        opponent
+      )
     ) {
-      if (
-        movingColor === "w"
-      ) {
-        state.castling.wK =
-          false;
-        state.castling.wQ =
-          false;
-      } else {
-        state.castling.bK =
-          false;
-        state.castling.bQ =
-          false;
-      }
-    }
-
-    if (
-      movingPiece.type === "R"
-    ) {
-      if (
-        movingColor === "w"
-      ) {
-        if (
-          move.from.r === 7 &&
-          move.from.c === 0
-        ) {
-          state.castling.wQ =
-            false;
-        }
-
-        if (
-          move.from.r === 7 &&
-          move.from.c === 7
-        ) {
-          state.castling.wK =
-            false;
-        }
-      } else {
-        if (
-          move.from.r === 0 &&
-          move.from.c === 0
-        ) {
-          state.castling.bQ =
-            false;
-        }
-
-        if (
-          move.from.r === 0 &&
-          move.from.c === 7
-        ) {
-          state.castling.bK =
-            false;
-        }
-      }
-    }
-
-    /* CAPTURED ROOK */
-
-    if (captured?.type === "R") {
-      if (
-        move.to.r === 7 &&
-        move.to.c === 0
-      ) {
-        state.castling.wQ =
-          false;
-      }
-
-      if (
-        move.to.r === 7 &&
-        move.to.c === 7
-      ) {
-        state.castling.wK =
-          false;
-      }
-
-      if (
-        move.to.r === 0 &&
-        move.to.c === 0
-      ) {
-        state.castling.bQ =
-          false;
-      }
-
-      if (
-        move.to.r === 0 &&
-        move.to.c === 7
-      ) {
-        state.castling.bK =
-          false;
-      }
-    }
-
-    /* EN PASSANT */
-
-    state.enPassant = null;
-
-    if (
-      movingPiece.type === "P" &&
-      Math.abs(
-        move.to.r -
-        move.from.r
-      ) === 2
-    ) {
-      state.enPassant = {
-        r:
-          (move.from.r +
-            move.to.r) /
-          2,
-
-        c:
-          move.from.c
-      };
-    }
-
-    /* 50-MOVE COUNTER */
-
-    if (
-      movingPiece.type === "P" ||
-      captured
-    ) {
-      state.halfmove = 0;
-    } else {
-      state.halfmove++;
-    }
-
-    /* HISTORY */
-
-    state.moveHistory.push({
-      number: state.fullmove,
-      color: movingColor,
-      notation,
-      move: {
-        ...move,
-        piece: {
-          ...movingPiece
-        }
-      }
-    });
-
-    /* TURN */
-
-    if (
-      movingColor === "b"
-    ) {
-      state.fullmove++;
-    }
-
-    state.turn =
-      opposite(
-        movingColor
-      );
-
-    state.selected = null;
-    state.legalTargets = [];
-
-    renderBoard();
-    renderCaptured();
-    renderHistory();
-    renderClocks();
-    updateStatus();
-
-    /* IMPORTANT:
-       Evaluate BEFORE starting the next AI turn.
-    */
-
-    if (
-      evaluatePosition()
-    ) {
-      return true;
-    }
-
-    updateStatus();
-
-    if (
-      isAITurn() &&
-      !state.gameOver
-    ) {
-      scheduleAI();
-    }
-
-    return true;
-  }
-
-  /* =========================================================
-     PLAYER INPUT
-     ========================================================= */
-
-  function handleSquareClick(
-    r,
-    c
-  ) {
-    if (
-      !state.gameStarted ||
-      state.gameOver ||
-      state.paused
-    ) {
-      return;
-    }
-
-    if (
-      state.gameMode === "pve" &&
-      state.turn === "b"
-    ) {
-      return;
-    }
-
-    if (
-      state.gameMode === "eve" ||
-      state.gameMode === "battle"
-    ) {
-      return;
-    }
-
-    const piece =
-      state.board[r][c];
-
-    /* SELECT PIECE */
-
-    if (!state.selected) {
-      if (
-        piece &&
-        piece.color ===
-          state.turn
-      ) {
-        state.selected = {
-          r,
-          c
-        };
-
-        state.legalTargets =
-          getLegalMovesFromBoard(
-            state.board,
-            r,
-            c,
-            state.turn
-          );
-
-        renderBoard();
-      }
-
-      return;
-    }
-
-    /* CLICK SAME SQUARE */
-
-    if (
-      state.selected.r === r &&
-      state.selected.c === c
-    ) {
-      state.selected = null;
-      state.legalTargets = [];
-
-      renderBoard();
-
-      return;
-    }
-
-    /* CLICK ANOTHER FRIENDLY PIECE */
-
-    if (
-      piece &&
-      piece.color ===
-        state.turn
-    ) {
-      state.selected = {
-        r,
-        c
-      };
-
-      state.legalTargets =
-        getLegalMovesFromBoard(
-          state.board,
-          r,
-          c,
-          state.turn
-        );
-
-      renderBoard();
-
-      return;
-    }
-
-    /* MAKE MOVE */
-
-    const move =
-      state.legalTargets.find(
-        target =>
-          target.to.r === r &&
-          target.to.c === c
-      );
-
-    if (move) {
-      makeMove(move);
-    }
-  }
-
-  /* =========================================================
-     AI
-     ========================================================= */
-
-  function evaluateBoard(
-    board,
-    color
-  ) {
-    const values = {
-      P: 100,
-      N: 320,
-      B: 330,
-      R: 500,
-      Q: 900,
-      K: 20000
-    };
-
-    let score = 0;
-
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const piece =
-          board[r][c];
-
-        if (!piece) continue;
-
-        const value =
-          values[piece.type];
-
-        score +=
-          piece.color === color
-            ? value
-            : -value;
-      }
+      score += 80;
     }
 
     return score;
@@ -2294,30 +2554,31 @@
     board,
     color,
     depth,
-    maximizingColor
+    alpha,
+    beta
   ) {
-    if (depth <= 0) {
+    if (
+      depth <= 0
+    ) {
       return evaluateBoard(
-        board,
-        maximizingColor
+        board
       );
     }
 
     const moves =
-      getAllLegalMoves(
+      getLegalMovesFromBoard(
         board,
         color
       );
 
-    if (moves.length === 0) {
+    if (!moves.length) {
       if (
         isInCheck(
           board,
           color
         )
       ) {
-        return color ===
-          maximizingColor
+        return color === "w"
           ? -999999
           : 999999;
       }
@@ -2325,190 +2586,349 @@
       return 0;
     }
 
-    const maximizing =
-      color === maximizingColor;
+    if (
+      color === "w"
+    ) {
+      let best =
+        -Infinity;
 
-    let best =
-      maximizing
-        ? -Infinity
-        : Infinity;
+      for (
+        const move of moves
+      ) {
+        const next =
+          cloneBoard(board);
 
-    for (const move of moves) {
-      const next =
         applyMoveToBoard(
-          board,
+          next,
           move
         );
 
-      const value =
-        minimax(
-          next,
-          opposite(color),
-          depth - 1,
-          maximizingColor
-        );
+        const value =
+          minimax(
+            next,
+            "b",
+            depth - 1,
+            alpha,
+            beta
+          );
 
-      if (maximizing) {
         best =
           Math.max(
             best,
             value
           );
-      } else {
-        best =
-          Math.min(
-            best,
+
+        alpha =
+          Math.max(
+            alpha,
             value
           );
+
+        if (
+          beta <= alpha
+        ) {
+          break;
+        }
+      }
+
+      return best;
+    }
+
+    let best =
+      Infinity;
+
+    for (
+      const move of moves
+    ) {
+      const next =
+        cloneBoard(board);
+
+      applyMoveToBoard(
+        next,
+        move
+      );
+
+      const value =
+        minimax(
+          next,
+          "w",
+          depth - 1,
+          alpha,
+          beta
+        );
+
+      best =
+        Math.min(
+          best,
+          value
+        );
+
+      beta =
+        Math.min(
+          beta,
+          value
+        );
+
+      if (
+        beta <= alpha
+      ) {
+        break;
       }
     }
 
     return best;
   }
 
-  function chooseAIMove() {
-    const color =
-      state.turn;
+  function evaluateBoard(
+    board
+  ) {
+    let score = 0;
 
-    const moves =
-      getAllLegalMoves(
-        state.board,
-        color
-      );
-
-    if (!moves.length) {
-      return null;
-    }
-
-    const profile =
-      AI_PROFILES[
-        state.aiProfile
-      ] ||
-      AI_PROFILES.ace;
-
-    const depth =
-      Math.max(
-        1,
-        Math.min(
-          3,
-          Number(
-            profile.depth
-          ) || 1
-        )
-      );
-
-    let bestMoves = [];
-    let bestScore =
-      -Infinity;
-
-    for (const move of moves) {
-      const next =
-        applyMoveToBoard(
-          state.board,
-          move
-        );
-
-      const score =
-        minimax(
-          next,
-          opposite(color),
-          depth - 1,
-          color
-        );
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestMoves = [move];
-      } else if (
-        score === bestScore
+    for (
+      let r = 0;
+      r < 8;
+      r++
+    ) {
+      for (
+        let c = 0;
+        c < 8;
+        c++
       ) {
-        bestMoves.push(move);
+        const p =
+          board[r][c];
+
+        if (!p) {
+          continue;
+        }
+
+        const value =
+          PIECE_VALUES[
+            p.type
+          ];
+
+        const positional =
+          p.type === "P"
+            ? (
+                p.color === "w"
+                  ? 6 - r
+                  : r - 1
+              ) * 5
+            : 0;
+
+        if (
+          p.color === "w"
+        ) {
+          score +=
+            value +
+            positional;
+        } else {
+          score -=
+            value +
+            positional;
+        }
       }
     }
 
-    if (
-      !bestMoves.length
-    ) {
-      return moves[
-        Math.floor(
-          Math.random() *
-            moves.length
-        )
-      ];
-    }
-
-    return bestMoves[
-      Math.floor(
-        Math.random() *
-          bestMoves.length
-      )
-    ];
-  }
-
-  function getAISpeedDelay() {
-    const speeds = {
-      fast: 250,
-      normal: 700,
-      slow: 1300
-    };
-
-    return (
-      speeds[
-        state.aiSpeed
-      ] || 700
-    );
-  }
-
-  function scheduleAI() {
-    if (
-      state.gameOver ||
-      state.paused ||
-      !isAITurn()
-    ) {
-      return;
-    }
-
-    if (state.aiTimer) {
-      clearTimeout(
-        state.aiTimer
-      );
-    }
-
-    state.aiTimer =
-      setTimeout(() => {
-        state.aiTimer = null;
-
-        if (
-          state.gameOver ||
-          state.paused ||
-          !isAITurn()
-        ) {
-          return;
-        }
-
-        const move =
-          chooseAIMove();
-
-        if (move) {
-          makeMove(move);
-        }
-      }, getAISpeedDelay());
+    return score;
   }
 
   /* =========================================================
-     START / RESET
+     HISTORY
      ========================================================= */
 
-  function resetState() {
-    stopClock();
+  function pieceName(
+    pieceData
+  ) {
+    if (!pieceData) {
+      return "Unknown Piece";
+    }
 
-    if (state.aiTimer) {
-      clearTimeout(
-        state.aiTimer
+    const color =
+      pieceData.color === "w"
+        ? "White"
+        : "Black";
+
+    const name =
+      PIECE_NAMES[
+        pieceData.type
+      ] ||
+      "Piece";
+
+    return (
+      color +
+      " " +
+      name
+    );
+  }
+
+  function renderHistory() {
+    if (!moveHistoryEl) {
+      return;
+    }
+
+    if (
+      state.moveHistory.length === 0
+    ) {
+      moveHistoryEl.innerHTML =
+        '<div class="history-empty">No moves yet.</div>';
+
+      return;
+    }
+
+    moveHistoryEl.innerHTML = "";
+
+    let pairNumber = 0;
+
+    for (
+      let index = 0;
+      index <
+      state.moveHistory.length;
+      index += 2
+    ) {
+      pairNumber++;
+
+      const white =
+        state.moveHistory[index];
+
+      const black =
+        state.moveHistory[
+          index + 1
+        ];
+
+      if (white) {
+        appendHistoryRow(
+          pairNumber + ".",
+          white
+        );
+      }
+
+      if (black) {
+        appendHistoryRow(
+          "…",
+          black
+        );
+      }
+    }
+
+    moveHistoryEl.scrollTop =
+      moveHistoryEl.scrollHeight;
+  }
+
+  function appendHistoryRow(
+    numberText,
+    entry
+  ) {
+    const row =
+      document.createElement(
+        "div"
       );
 
-      state.aiTimer = null;
+    row.className =
+      "history-move";
+
+    const number =
+      document.createElement(
+        "span"
+      );
+
+    number.className =
+      "history-number";
+
+    number.textContent =
+      numberText;
+
+    const pieceLabel =
+      document.createElement(
+        "span"
+      );
+
+    pieceLabel.className =
+      "history-piece-name";
+
+    pieceLabel.textContent =
+      pieceName(
+        entry.move &&
+        entry.move.piece
+      );
+
+    const notation =
+      document.createElement(
+        "span"
+      );
+
+    notation.className =
+      "history-notation";
+
+    notation.textContent =
+      entry.notation;
+
+    row.appendChild(number);
+    row.appendChild(pieceLabel);
+    row.appendChild(notation);
+
+    moveHistoryEl.appendChild(row);
+  }
+
+  /* =========================================================
+     CAPTURED PIECES
+     ========================================================= */
+
+  function renderCaptured() {
+    renderCapturedSide(
+      whiteCapturedEl,
+      state.captured.w
+    );
+
+    renderCapturedSide(
+      blackCapturedEl,
+      state.captured.b
+    );
+  }
+
+  function renderCapturedSide(
+    element,
+    pieces
+  ) {
+    if (!element) {
+      return;
     }
+
+    element.innerHTML = "";
+
+    pieces.forEach(
+      p => {
+        const span =
+          document.createElement(
+            "span"
+          );
+
+        span.className =
+          "captured-piece";
+
+        span.textContent =
+          PIECES[
+            p.color
+          ][p.type];
+
+        span.title =
+          pieceName(p);
+
+        element.appendChild(
+          span
+        );
+      }
+    );
+  }
+
+  /* =========================================================
+     RESET / START
+     ========================================================= */
+
+  function resetGame(
+    autoStart = false
+  ) {
+    cancelAI();
+    stopClock();
 
     state.board =
       createInitialBoard();
@@ -2516,12 +2936,26 @@
     state.turn = "w";
 
     state.selected = null;
-    state.legalTargets = [];
+    state.legalMoves = [];
+
+    state.started = false;
+    state.paused = false;
+    state.gameOver = false;
+
+    state.whiteTime =
+      CONFIG.startingTime;
+
+    state.blackTime =
+      CONFIG.startingTime;
+
+    state.lastMove = null;
 
     state.moveHistory = [];
 
-    state.capturedWhite = [];
-    state.capturedBlack = [];
+    state.captured = {
+      w: [],
+      b: []
+    };
 
     state.halfmove = 0;
     state.fullmove = 1;
@@ -2534,54 +2968,60 @@
     };
 
     state.enPassant = null;
-
-    state.whiteTime =
-      CONFIG.startingTime;
-
-    state.blackTime =
-      CONFIG.startingTime;
-
-    state.gameStarted = false;
-    state.gameOver = false;
-    state.paused = false;
-
     state.result = null;
-    state.winner = null;
-    state.loser = null;
 
-    hideResultOverlay();
+    hideOverlay();
 
     renderBoard();
-    renderCaptured();
     renderHistory();
-    renderClocks();
+    renderCaptured();
+    updateAllUI();
 
-    updatePlayerLabels();
-    updateStatus();
+    if (pauseGameButton) {
+      pauseGameButton.textContent =
+        "Pause";
+    }
+
+    if (autoStart) {
+      startGame();
+    }
   }
 
   function startGame() {
-    resetState();
-
-    state.gameStarted = true;
-
-    state.gameOver = false;
-
-    if (els.gameOverlay) {
-      els.gameOverlay.hidden =
-        true;
+    if (state.gameOver) {
+      resetGame(false);
     }
 
+    state.started = true;
+    state.paused = false;
+    state.gameOver = false;
+
+    hideOverlay();
+
     startClock();
-    updateStatus();
-    renderBoard();
+
+    updateAllUI();
 
     if (
-      state.gameMode === "eve" ||
-      state.gameMode === "battle"
+      shouldAIPlay()
     ) {
       scheduleAI();
     }
+  }
+
+  function startAIvsAI() {
+    state.gameMode = "eve";
+
+    if (gameModeEl) {
+      gameModeEl.value = "eve";
+    }
+
+    resetGame(false);
+
+    updatePlayerLabels();
+    updateAllUI();
+
+    startGame();
   }
 
   /* =========================================================
@@ -2590,7 +3030,7 @@
 
   function togglePause() {
     if (
-      !state.gameStarted ||
+      !state.started ||
       state.gameOver
     ) {
       return;
@@ -2600,43 +3040,421 @@
       !state.paused;
 
     if (state.paused) {
-      stopClock();
-
-      if (state.aiTimer) {
-        clearTimeout(
-          state.aiTimer
-        );
-
-        state.aiTimer = null;
+      if (pauseGameButton) {
+        pauseGameButton.textContent =
+          "Resume";
       }
-    } else {
-      startClock();
 
-      if (isAITurn()) {
+      cancelAI();
+
+      showOverlay(
+        "Ⅱ",
+        "Game Paused",
+        "The chess clock is paused."
+      );
+    } else {
+      if (pauseGameButton) {
+        pauseGameButton.textContent =
+          "Pause";
+      }
+
+      hideOverlay();
+
+      if (
+        shouldAIPlay()
+      ) {
         scheduleAI();
       }
     }
 
-    updateStatus();
+    updateAllUI();
   }
 
   /* =========================================================
-     RESIGN
+     OVERLAY
      ========================================================= */
 
-  function resignGame() {
-    if (
-      !state.gameStarted ||
-      state.gameOver
-    ) {
-      return;
+  function showOverlay(
+    icon,
+    title,
+    message
+  ) {
+    if (overlayIconEl) {
+      overlayIconEl.textContent =
+        icon;
     }
 
-    finishGame({
-      winner:
-        opposite(state.turn),
-      reason: "resignation"
-    });
+    setText(
+      overlayTitleEl,
+      title
+    );
+
+    setText(
+      overlayMessageEl,
+      message
+    );
+
+    if (overlayEl) {
+      overlayEl.classList.add(
+        "active"
+      );
+
+      overlayEl.removeAttribute(
+        "hidden"
+      );
+    }
+  }
+
+  function hideOverlay() {
+    if (overlayEl) {
+      overlayEl.classList.remove(
+        "active"
+      );
+
+      overlayEl.setAttribute(
+        "hidden",
+        ""
+      );
+    }
+  }
+
+  /* =========================================================
+     MODES
+     ========================================================= */
+
+  function getGameMode() {
+    const value =
+      gameModeEl &&
+      gameModeEl.value
+        ? gameModeEl.value
+        : state.gameMode;
+
+    state.gameMode =
+      String(
+        value || "pvp"
+      ).toLowerCase();
+
+    return state.gameMode;
+  }
+
+  function setGameMode(
+    mode
+  ) {
+    state.gameMode =
+      String(
+        mode || "pvp"
+      ).toLowerCase();
+
+    if (gameModeEl) {
+      gameModeEl.value =
+        state.gameMode;
+    }
+
+    /*
+     * If a running game changes mode,
+     * stop AI and reset cleanly.
+     */
+
+    if (state.started) {
+      cancelAI();
+      stopClock();
+
+      state.started = false;
+      state.paused = false;
+      state.gameOver = false;
+
+      resetGame(false);
+    }
+
+    updatePlayerLabels();
+    updateAllUI();
+  }
+
+  function getAIProfile() {
+    const value =
+      aiProfileEl &&
+      aiProfileEl.value
+        ? aiProfileEl.value
+        : state.aiProfile;
+
+    state.aiProfile =
+      String(
+        value || "startup"
+      ).toLowerCase();
+
+    return state.aiProfile;
+  }
+
+  function updatePlayerLabels() {
+    const mode =
+      getGameMode();
+
+    let whiteName =
+      "Player";
+
+    let blackName =
+      "Player";
+
+    if (
+      mode === "pve"
+    ) {
+      blackName =
+        AI_PROFILES[
+          getAIProfile()
+        ]?.name ||
+        "ACE";
+    }
+
+    if (
+      mode === "eve" ||
+      mode === "battle"
+    ) {
+      whiteName = "ACE";
+      blackName = "EMG";
+    }
+
+    setText(
+      whitePlayerNameEl,
+      whiteName
+    );
+
+    setText(
+      blackPlayerNameEl,
+      blackName
+    );
+
+    setText(
+      whitePlayerLevelEl,
+      mode === "pvp"
+        ? "PLAYER"
+        : "AI"
+    );
+
+    setText(
+      blackPlayerLevelEl,
+      mode === "pvp"
+        ? "PLAYER"
+        : "AI"
+    );
+  }
+
+  /* =========================================================
+     UI
+     ========================================================= */
+
+  function updateAllUI() {
+    updateBoardStatus();
+    updateClocks();
+    updateStatsUI();
+    updatePlayerLabels();
+    renderCaptured();
+    updateMoveInfo();
+  }
+
+  function updateBoardStatus() {
+    const mode =
+      getGameMode();
+
+    let gameStatus =
+      "Ready";
+
+    if (state.gameOver) {
+      if (
+        state.result &&
+        state.result.reason ===
+          "checkmate"
+      ) {
+        gameStatus =
+          "Checkmate";
+      } else {
+        gameStatus =
+          "Game Over";
+      }
+    }
+
+    else if (state.paused) {
+      gameStatus =
+        "Paused";
+    }
+
+    else if (state.started) {
+      gameStatus =
+        "Live";
+    }
+
+    setText(
+      gameStatusEl,
+      gameStatus
+    );
+
+    if (state.gameOver) {
+      if (
+        state.result &&
+        state.result.winner
+      ) {
+        setText(
+          turnStatusEl,
+          state.result.winner === "w"
+            ? "White Wins"
+            : "Black Wins"
+        );
+      } else {
+        setText(
+          turnStatusEl,
+          "Draw"
+        );
+      }
+    } else {
+      setText(
+        turnStatusEl,
+        state.turn === "w"
+          ? "White"
+          : "Black"
+      );
+    }
+
+    setText(
+      modeStatusEl,
+      modeLabel(mode)
+    );
+
+    setText(
+      moveStatusEl,
+      state.moveHistory.length
+        ? state.moveHistory[
+            state.moveHistory.length - 1
+          ].notation
+        : "—"
+    );
+
+    setText(
+      moveNumberEl,
+      state.fullmove
+    );
+  }
+
+  function updateMoveInfo() {
+    setText(
+      moveNumberEl,
+      state.fullmove
+    );
+  }
+
+  function modeLabel(
+    mode
+  ) {
+    const labels = {
+      pvp:
+        "Player vs Player",
+
+      pve:
+        "Player vs ACE",
+
+      eve:
+        "ACE vs EMG",
+
+      battle:
+        "ACE vs EMG"
+    };
+
+    return (
+      labels[mode] ||
+      "Player vs Player"
+    );
+  }
+
+  function updateStatsUI() {
+    setText(
+      commanderRatingEl,
+      state.stats.rating
+    );
+
+    setText(
+      gamesPlayedEl,
+      state.stats.played
+    );
+
+    setText(
+      gamesWonEl,
+      state.stats.wins
+    );
+
+    const rate =
+      state.stats.played
+        ? Math.round(
+            (
+              state.stats.wins /
+              state.stats.played
+            ) *
+            100
+          )
+        : 0;
+
+    setText(
+      winRateEl,
+      rate + "%"
+    );
+  }
+
+  function setText(
+    element,
+    value
+  ) {
+    if (element) {
+      element.textContent =
+        value;
+    }
+  }
+
+  /* =========================================================
+     STATS
+     ========================================================= */
+
+  function loadStats() {
+    try {
+      const saved =
+        localStorage.getItem(
+          CONFIG.storageKey
+        );
+
+      if (!saved) {
+        return;
+      }
+
+      const parsed =
+        JSON.parse(saved);
+
+      if (
+        parsed &&
+        typeof parsed === "object"
+      ) {
+        state.stats = {
+          ...state.stats,
+          ...parsed
+        };
+      }
+    } catch (error) {
+      console.warn(
+        "RO’Lyfe Chess stats could not be loaded.",
+        error
+      );
+    }
+  }
+
+  function saveStats() {
+    try {
+      localStorage.setItem(
+        CONFIG.storageKey,
+        JSON.stringify(
+          state.stats
+        )
+      );
+    } catch (error) {
+      console.warn(
+        "RO’Lyfe Chess stats could not be saved.",
+        error
+      );
+    }
   }
 
   /* =========================================================
@@ -2644,46 +3462,10 @@
      ========================================================= */
 
   function clearHistory() {
-    try {
-      localStorage.removeItem(
-        "rolyfe-chess-history"
-      );
-    } catch (error) {}
+    state.moveHistory = [];
 
-    if (els.moveHistory) {
-      els.moveHistory.innerHTML =
-        `<div class="history-empty">No moves yet.</div>`;
-    }
-  }
-
-  /* =========================================================
-     SETTINGS
-     ========================================================= */
-
-  function readSettings() {
-    if (els.gameMode) {
-      state.gameMode =
-        els.gameMode.value ||
-        "pve";
-    }
-
-    if (els.aiProfile) {
-      state.aiProfile =
-        els.aiProfile.value ||
-        "ace";
-    }
-
-    if (els.difficultyLevel) {
-      state.difficulty =
-        els.difficultyLevel.value ||
-        "5";
-    }
-
-    if (els.aiSpeed) {
-      state.aiSpeed =
-        els.aiSpeed.value ||
-        "normal";
-    }
+    renderHistory();
+    updateAllUI();
   }
 
   /* =========================================================
@@ -2692,53 +3474,91 @@
 
   function cycleTheme() {
     if (
-      window.ROLyfeChessThemes
+      window.ROLyfeChessThemes &&
+      typeof
+        window.ROLyfeChessThemes.next ===
+          "function"
     ) {
-      window.ROLyfeChessThemes.next();
+      const next =
+        window.ROLyfeChessThemes.next();
+
+      notifyTheme(next);
+
+      return;
     }
+
+    const themes = [
+      "rolyfe",
+      "investor",
+      "midnight",
+      "classic",
+      "neon"
+    ];
+
+    const current =
+      document.documentElement
+        .dataset
+        .chessTheme ||
+      "rolyfe";
+
+    const index =
+      themes.indexOf(
+        current
+      );
+
+    const next =
+      themes[
+        (index + 1) %
+        themes.length
+      ];
+
+    document.documentElement.dataset
+      .chessTheme =
+      next;
   }
 
-  /* =========================================================
-     KEYBOARD
-     ========================================================= */
-
-  function handleKeydown(
-    event
+  function notifyTheme(
+    theme
   ) {
     if (
-      event.key === "Escape"
+      window.ROLyfeGameUI &&
+      typeof
+        window.ROLyfeGameUI.notify ===
+          "function"
     ) {
-      state.selected = null;
-      state.legalTargets = [];
-
-      renderBoard();
+      window.ROLyfeGameUI.notify(
+        "Theme: " + theme
+      );
     }
   }
 
   /* =========================================================
-     VISIBILITY SAFETY
+     VISIBILITY
      ========================================================= */
 
   function handleVisibility() {
     if (
       document.hidden &&
-      state.gameStarted &&
-      !state.gameOver &&
-      !state.paused
+      state.started &&
+      !state.paused &&
+      !state.gameOver
     ) {
       state.paused = true;
 
-      stopClock();
+      cancelAI();
 
-      if (state.aiTimer) {
-        clearTimeout(
-          state.aiTimer
-        );
-
-        state.aiTimer = null;
+      if (pauseGameButton) {
+        pauseGameButton.textContent =
+          "Resume";
       }
 
-      updateStatus();
+      showOverlay(
+        "Ⅱ",
+        "Game Paused",
+        "Game paused because the page became inactive."
+      );
+
+      updateAllUI();
     }
   }
 
@@ -2747,98 +3567,153 @@
      ========================================================= */
 
   function bindEvents() {
-    els.startGameButton?.addEventListener(
+    startGameButton?.addEventListener(
       "click",
-      () => {
-        readSettings();
-        startGame();
-      }
+      startGame
     );
 
-    els.aiStartButton?.addEventListener(
+    aiStartButton?.addEventListener(
       "click",
-      () => {
-        readSettings();
-
-        if (
-          state.gameMode === "pvp"
-        ) {
-          state.gameMode =
-            "pve";
-        }
-
-        startGame();
-      }
+      startAIvsAI
     );
 
-    els.pauseGameButton?.addEventListener(
+    pauseGameButton?.addEventListener(
       "click",
       togglePause
     );
 
-    els.resignButton?.addEventListener(
+    resignButton?.addEventListener(
       "click",
       resignGame
     );
 
-    els.resetGameButton?.addEventListener(
+    resetGameButton?.addEventListener(
       "click",
-      startGame
+      () => resetGame(false)
     );
 
-    els.themeButton?.addEventListener(
+    themeButton?.addEventListener(
       "click",
       cycleTheme
     );
 
-    els.overlayRestartButton?.addEventListener(
+    overlayRestartButton?.addEventListener(
       "click",
-      startGame
+      () => {
+        hideOverlay();
+        resetGame(true);
+      }
     );
 
-    els.overlayCloseButton?.addEventListener(
+    overlayCloseButton?.addEventListener(
       "click",
-      hideResultOverlay
+      () => {
+        if (!state.paused) {
+          hideOverlay();
+        }
+      }
     );
 
-    els.clearHistoryButton?.addEventListener(
+    clearHistoryButton?.addEventListener(
       "click",
       clearHistory
     );
 
-    els.gameMode?.addEventListener(
+    gameModeEl?.addEventListener(
       "change",
       () => {
-        readSettings();
-        updatePlayerLabels();
-        updateStatus();
+        setGameMode(
+          gameModeEl.value
+        );
       }
     );
 
-    els.aiProfile?.addEventListener(
+    aiProfileEl?.addEventListener(
       "change",
-      readSettings
+      () => {
+        state.aiProfile =
+          String(
+            aiProfileEl.value ||
+            "startup"
+          ).toLowerCase();
+
+        updatePlayerLabels();
+        updateAllUI();
+      }
     );
 
-    els.difficultyLevel?.addEventListener(
+    difficultyEl?.addEventListener(
       "change",
-      readSettings
+      () => {
+        state.aiProfile =
+          difficultyToProfile(
+            difficultyEl.value
+          );
+
+        if (aiProfileEl) {
+          aiProfileEl.value =
+            state.aiProfile;
+        }
+
+        updatePlayerLabels();
+        updateAllUI();
+      }
     );
 
-    els.aiSpeed?.addEventListener(
+    aiSpeedEl?.addEventListener(
       "change",
-      readSettings
+      () => {
+        state.aiSpeed =
+          aiSpeedEl.value;
+      }
     );
 
     document.addEventListener(
       "keydown",
-      handleKeydown
+      event => {
+        if (
+          event.key === "Escape"
+        ) {
+          clearSelection();
+        }
+      }
     );
 
     document.addEventListener(
       "visibilitychange",
       handleVisibility
     );
+  }
+
+  function difficultyToProfile(
+    value
+  ) {
+    const text =
+      String(
+        value || ""
+      ).toLowerCase();
+
+    if (
+      text.includes("7") ||
+      text.includes("expert")
+    ) {
+      return "sevenfigures";
+    }
+
+    if (
+      text.includes("investor") ||
+      text.includes("normal")
+    ) {
+      return "investor";
+    }
+
+    if (
+      text.includes("credit")
+    ) {
+      return "credit";
+    }
+
+    return "startup";
   }
 
   /* =========================================================
@@ -2850,83 +3725,115 @@
 
     state,
 
-    start: startGame,
-    reset: startGame,
-    pause: togglePause,
-    resign: resignGame,
+    start:
+      startGame,
 
-    getBoard: () =>
-      cloneBoard(
-        state.board
-      ),
+    reset:
+      resetGame,
 
-    getLegalMoves: (
-      r,
-      c
-    ) =>
-      getLegalMovesFromBoard(
-        state.board,
-        r,
-        c,
-        state.board[r]?.[c]
-          ?.color
-      ),
+    pause:
+      togglePause,
 
-    getHistory: () =>
-      [...state.moveHistory],
+    resign:
+      resignGame,
 
-    getStats: () =>
-      ({ ...state.stats }),
+    getLegalMoves:
+      getLegalMoves,
 
-    isCheck: color =>
-      isInCheck(
-        state.board,
-        color
-      ),
+    makeMove:
+      makeMove,
 
-    isCheckmate: color =>
-      isCheckmate(
-        state.board,
-        color
-      ),
+    getMode:
+      getGameMode,
 
-    getResult: () =>
-      ({
-        gameOver:
-          state.gameOver,
+    setMode:
+      setGameMode,
 
-        result:
-          state.result,
+    getAIProfile:
+      getAIProfile,
 
-        winner:
-          state.winner,
+    chooseAI:
+      chooseAIMove,
 
-        loser:
-          state.loser
-      })
+    render:
+      renderBoard,
+
+    history:
+      renderHistory,
+
+    clearHistory:
+      clearHistory,
+
+    cycleTheme:
+      cycleTheme,
+
+    getStats:
+      () => ({
+        ...state.stats
+      }),
+
+    getBoard:
+      () =>
+        cloneBoard(
+          state.board
+        )
   };
 
   window.ROlyfeChess =
     window.ROLyfeChess;
 
   /* =========================================================
-     INIT
+     INITIALIZE
      ========================================================= */
 
   function init() {
     loadStats();
 
-    readSettings();
+    if (
+      gameModeEl &&
+      gameModeEl.value
+    ) {
+      state.gameMode =
+        String(
+          gameModeEl.value
+        ).toLowerCase();
+    }
 
-    resetState();
+    if (
+      aiProfileEl &&
+      aiProfileEl.value
+    ) {
+      state.aiProfile =
+        String(
+          aiProfileEl.value
+        ).toLowerCase();
+    }
+
+    if (
+      aiSpeedEl &&
+      aiSpeedEl.value
+    ) {
+      state.aiSpeed =
+        aiSpeedEl.value;
+    }
+
+    state.board =
+      createInitialBoard();
 
     bindEvents();
 
-    updatePlayerLabels();
-    updateStatus();
+    renderBoard();
+    renderHistory();
+    renderCaptured();
+    updateAllUI();
+
+    if (pauseGameButton) {
+      pauseGameButton.textContent =
+        "Pause";
+    }
 
     console.log(
-      "♟️ RO’Lyfe Chess v1.2 loaded — Checkmate Result System Active"
+      "♟️ RO’Lyfe Chess Engine v1.2 loaded."
     );
   }
 
