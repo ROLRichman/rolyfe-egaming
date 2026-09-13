@@ -1,1 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RO’Lyfe Docs Center™</title>
 
+<style>
+:root{
+  --bg:#070b16;
+  --panel:#10182b;
+  --panel2:#0c1324;
+  --line:#263657;
+  --text:#f4f7ff;
+  --muted:#9caecc;
+  --blue:#5b8cff;
+  --teal:#22d3ee;
+  --purple:#8b5cf6;
+  --green:#22c55e;
+  --gold:#fbbf24;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at top,#111d38 0,#070b16 48%,#050811 100%);
+  color:var(--text);
+  line-height:1.55;
+}
+
+a{
+  text-decoration:none;
+  color:inherit;
+}
+
+.wrap{
+  max-width:1180px;
+  margin:auto;
+  padding:24px 16px 60px;
+}
+
+/* HERO */
+
+.hero{
+  padding:38px 22px;
+  text-align:center;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:
+    linear-gradient(145deg,rgba(24,38,72,.96),rgba(10,16,31,.96));
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+
+.eyebrow{
+  font-weight:800;
+  letter-spacing:.1em;
+  color:#cbd7ff;
+}
+
+.hero h1{
+  font-size:clamp(2.3rem,6vw,4.5rem);
+  line-height:1;
+  margin:12px 0;
+}
+
+.hero h2{
+  font-size:1.2rem;
+  color:var(--teal);
+  letter-spacing:.1em;
+  margin:0;
+}
+
+.hero p{
+  max-width:800px;
+  margin:18px auto 0;
+  color:var(--muted);
+}
+
+/* SECTIONS */
+
+section{
+  margin-top:32px;
+}
+
+.head{
+  margin-bottom:15px;
+}
+
+.head h2{
+  margin:0;
+  font-size:1.55rem;
+}
+
+.head p{
+  margin:4px 0;
+  color:var(--muted);
+}
+
+/* CARDS */
+
+.grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(250px,1fr));
+  gap:15px;
+}
+
+.card{
+  display:flex;
+  flex-direction:column;
+  min-height:205px;
+  padding:21px;
+  border:1px solid var(--line);
+  border-radius:19px;
+  background:
+    linear-gradient(145deg,var(--panel),var(--panel2));
+  transition:.2s;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  border-color:#4563a0;
+}
+
+.icon{
+  font-size:2rem;
+}
+
+.card h3{
+  margin:8px 0 5px;
+  font-size:1.2rem;
+}
+
+.card p{
+  margin:0;
+  color:var(--muted);
+  font-size:.92rem;
+}
+
+.btn{
+  margin-top:auto;
+  padding-top:17px;
+  color:#91b0ff;
+  font-weight:800;
+}
+
+/* CARD TYPES */
+
+.green{
+  border-color:#245b3a;
+}
+
+.green .btn{
+  color:#86efac;
+}
+
+.purple{
+  border-color:#4f3b80;
+}
+
+.purple .btn{
+  color:#c4b5fd;
+}
+
+.gold{
+  border-color:#5d4b19;
+}
+
+.gold .btn{
+  color:var(--gold);
+}
+
+.teal{
+  border-color:#1c5965;
+}
+
+.teal .btn{
+  color:#67e8f9;
+}
+
+.resource{
+  min-height:160px;
+}
+
+/* TAGS */
+
+.tag{
+  display:inline-block;
+  width:max-content;
+  margin-top:12px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#17223b;
+  color:#b9c9ee;
+  font-size:.7rem;
+  font-weight:800;
+}
+
+/* TOOLS */
+
+.tools{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.tool{
+  padding:17px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#0d1527;
+}
+
+.tool h3{
+  margin:0 0 4px;
+}
+
+.tool p{
+  margin:0;
+  color:var(--muted);
+  font-size:.88rem;
+}
+
+/* NOTE */
+
+.note{
+  padding:18px;
+  border:1px dashed #3a4b70;
+  border-radius:16px;
+  background:#0b1222;
+  color:var(--muted);
+}
+
+/* FOOTER */
+
+footer{
+  text-align:center;
+  color:#7788aa;
+  margin-top:42px;
+  font-size:.88rem;
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+  .wrap{
+    padding:12px 11px 45px;
+  }
+
+  .hero{
+    padding:30px 16px;
+  }
+
+  .card{
+    min-height:190px;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<main class="wrap">
+
+<!-- =====================================================
+     HERO
+===================================================== -->
+
+<header class="hero">
+
+  <div class="eyebrow">
+    📚 RO’LYFE DOCS CENTER™
+  </div>
+
+  <h1>
+    DOWNLOAD. DOCUMENT. CONNECT.
+  </h1>
+
+  <h2>
+    One Command Center for RO’Lyfe Resources
+  </h2>
+
+  <p>
+    Documents, PDFs, email tools, funding resources, useful links
+    and future document utilities — organized under the RO’Lyfe ecosystem.
+  </p>
+
+</header>
+
+
+<!-- =====================================================
+     DOCUMENT TOOLS
+===================================================== -->
+
+<section>
+
+  <div class="head">
+
+    <h2>
+      🧰 Document Tools
+    </h2>
+
+    <p>
+      Core tools planned for the Docs Center.
+    </p>
+
+  </div>
+
+
+  <div class="grid">
+
+
+    <!-- DOWNLOADER -->
+
+    <article class="card teal">
+
+      <div class="icon">
+        📥
+      </div>
+
+      <h3>
+        Downloader
+      </h3>
+
+      <p>
+        Use this area for supported downloads, document resources
+        and future URL/file utilities. Browser security may limit
+        downloads from some third-party sites.
+      </p>
+
+      <span class="tag">
+        TOOL CENTER
+      </span>
+
+      <a
+        class="btn"
+        href="#downloader">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <!-- PDF -->
+
+    <article class="card purple">
+
+      <div class="icon">
+        📄
+      </div>
+
+      <h3>
+        PDF Center
+      </h3>
+
+      <p>
+        Organize PDF viewing, downloads and future PDF utilities
+        such as document conversion and browser-based processing.
+      </p>
+
+      <span class="tag">
+        PDF TOOLS
+      </span>
+
+      <a
+        class="btn"
+        href="#pdf">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <!-- EMAIL -->
+
+    <article class="card green">
+
+      <div class="icon">
+        📧
+      </div>
+
+      <h3>
+        Email Center
+      </h3>
+
+      <p>
+        Prepare professional messages and document-related emails.
+        The first version uses your device email client through
+        a mailto workflow.
+      </p>
+
+      <span class="tag">
+        EMAIL
+      </span>
+
+      <a
+        class="btn"
+        href="#email">
+        OPEN →
+      </a>
+
+    </article>
+
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     DOWNLOADER
+===================================================== -->
+
+<section id="downloader">
+
+  <div class="head">
+
+    <h2>
+      📥 Downloader
+    </h2>
+
+    <p>
+      A launch point for document and resource downloads.
+    </p>
+
+  </div>
+
+
+  <div class="tools">
+
+
+    <div class="tool">
+
+      <h3>
+        🔗 URL Resource
+      </h3>
+
+      <p>
+        Paste or open a trusted resource URL. Some sites prevent
+        direct browser downloads because of CORS or security rules.
+      </p>
+
+    </div>
+
+
+    <div class="tool">
+
+      <h3>
+        📁 Local Files
+      </h3>
+
+      <p>
+        Use your browser/device file tools to open documents you
+        already have. Future versions can add richer file handling.
+      </p>
+
+    </div>
+
+
+    <div class="tool">
+
+      <h3>
+        🧾 RO’Lyfe Documents
+      </h3>
+
+      <p>
+        Central location for future generated calculators,
+        worksheets, agreements, reports and other RO’Lyfe files.
+      </p>
+
+    </div>
+
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     PDF CENTER
+===================================================== -->
+
+<section id="pdf">
+
+  <div class="head">
+
+    <h2>
+      📄 PDF Center
+    </h2>
+
+    <p>
+      Useful PDF and document resources.
+    </p>
+
+  </div>
+
+
+  <div class="grid">
+
+
+    <article class="card resource">
+
+      <div class="icon">
+        📖
+      </div>
+
+      <h3>
+        PDF Workspace
+      </h3>
+
+      <p>
+        Future browser tools for viewing, organizing and working
+        with PDFs.
+      </p>
+
+      <span class="tag">
+        COMING NEXT
+      </span>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <div class="icon">
+        🖨️
+      </div>
+
+      <h3>
+        Print / Save
+      </h3>
+
+      <p>
+        Use your browser's print dialog to save supported pages
+        and documents as PDF.
+      </p>
+
+      <span class="tag">
+        BROWSER TOOL
+      </span>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <div class="icon">
+        🗂️
+      </div>
+
+      <h3>
+        Document Library
+      </h3>
+
+      <p>
+        Keep generated RO’Lyfe documents organized for quick access.
+      </p>
+
+      <span class="tag">
+        LIBRARY
+      </span>
+
+    </article>
+
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     EMAIL CENTER
+===================================================== -->
+
+<section id="email">
+
+  <div class="head">
+
+    <h2>
+      📧 Email Center
+    </h2>
+
+    <p>
+      Prepare and launch professional email workflows.
+    </p>
+
+  </div>
+
+
+  <div class="grid">
+
+
+    <article class="card green">
+
+      <div class="icon">
+        ✉️
+      </div>
+
+      <h3>
+        Compose Email
+      </h3>
+
+      <p>
+        Create a message in your normal email application using
+        a mailto link. No email credentials are stored by this page.
+      </p>
+
+      <a
+        class="btn"
+        href="mailto:?subject=RO’Lyfe%20Document%20Request">
+        OPEN EMAIL →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <div class="icon">
+        📝
+      </div>
+
+      <h3>
+        Email Templates
+      </h3>
+
+      <p>
+        Future templates for funding requests, document delivery,
+        client follow-up, referrals and business outreach.
+      </p>
+
+      <span class="tag">
+        COMING NEXT
+      </span>
+
+    </article>
+
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     BUSINESS FUNDING
+===================================================== -->
+
+<section>
+
+  <div class="head">
+
+    <h2>
+      💰 Business Funding
+    </h2>
+
+    <p>
+      External resources and referral destinations.
+      Review each provider's terms before applying.
+    </p>
+
+  </div>
+
+
+  <div class="grid">
+
+
+    <article class="card gold">
+
+      <div class="icon">
+        💼
+      </div>
+
+      <h3>
+        Business Financing
+      </h3>
+
+      <p>
+        Business financing resource through the RO’Lyfe
+        referral pathway.
+      </p>
+
+      <a
+        class="btn"
+        href="https://go.mypartner.io/business-financing/?ref=001Qk00000MkqgTIAR"
+        target="_blank"
+        rel="noopener noreferrer">
+        VISIT RESOURCE →
+      </a>
+
+    </article>
+
+
+    <article class="card gold">
+
+      <div class="icon">
+        🌎
+      </div>
+
+      <h3>
+        Business Financing — Español
+      </h3>
+
+      <p>
+        Spanish-language financing resource through the
+        same referral pathway.
+      </p>
+
+      <a
+        class="btn"
+        href="https://go.mypartner.io/business-financing/?ref=001Qk00000MkqgTIAR&amp;lang=es"
+        target="_blank"
+        rel="noopener noreferrer">
+        VISIT RESOURCE →
+      </a>
+
+    </article>
+
+
+    <article class="card gold">
+
+      <div class="icon">
+        🤝
+      </div>
+
+      <h3>
+        Referral Partner
+      </h3>
+
+      <p>
+        Referral-partner information and enrollment resource.
+      </p>
+
+      <a
+        class="btn"
+        href="https://go.mypartner.io/referral-partner/?ref=001Qk00000MkqgTIAR"
+        target="_blank"
+        rel="noopener noreferrer">
+        VISIT RESOURCE →
+      </a>
+
+    </article>
+
+
+    <article class="card gold">
+
+      <div class="icon">
+        🌎
+      </div>
+
+      <h3>
+        Referral Partner — Español
+      </h3>
+
+      <p>
+        Spanish-language referral-partner resource.
+      </p>
+
+      <a
+        class="btn"
+        href="https://go.mypartner.io/referral-partner/?ref=001Qk00000MkqgTIAR&amp;lang=es"
+        target="_blank"
+        rel="noopener noreferrer">
+        VISIT RESOURCE →
+      </a>
+
+    </article>
+
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     GRANTS & RESOURCES
+===================================================== -->
+
+<section>
+
+  <div class="head">
+
+    <h2>
+      🎓 Grants &amp; Resources
+    </h2>
+
+    <p>
+      Useful starting points for research, worksheets and
+      business resources.
+    </p>
+
+  </div>
+
+
+  <div class="grid">
+
+
+    <article class="card purple">
+
+      <div class="icon">
+        🎓
+      </div>
+
+      <h3>
+        Grant Funding Worksheet
+      </h3>
+
+      <p>
+        External worksheet resource for organizing grant-funding
+        research.
+      </p>
+
+      <a
+        class="btn"
+        href="https://grantfundingexpert.org/grant-funding-worksheet/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN WORKSHEET →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <div class="icon">
+        📚
+      </div>
+
+      <h3>
+        Resource Library
+      </h3>
+
+      <p>
+        Space for future grants, business tools, financing resources,
+        forms and educational links.
+      </p>
+
+      <span class="tag">
+        EXPANDING
+      </span>
+
+    </article>
+
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     RO'LYFE NETWORK
+===================================================== -->
+
+<section>
+
+  <div class="head">
+
+    <h2>
+      🌐 RO’Lyfe Network
+    </h2>
+
+    <p>
+      Jump between RO’Lyfe ecosystem projects.
+    </p>
+
+  </div>
+
+
+  <div class="grid">
+
+
+    <article class="card resource">
+
+      <h3>
+        🏠 Acquisition Engine
+      </h3>
+
+      <p>
+        Real-estate acquisition and deal workflow.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/rolyfe-acquisition-engine/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <h3>
+        🤝 Buyer Network OS
+      </h3>
+
+      <p>
+        Buyer and deal-network system.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/RO-Lyfe-Buyer-Network-OS/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <h3>
+        📑 Contract Documents Hub
+      </h3>
+
+      <p>
+        RO’Lyfe contract and document ecosystem.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/rolyfe-contract-documents-hub/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <h3>
+        🧠 RO’Lyfe OS
+      </h3>
+
+      <p>
+        Core RO’Lyfe operating-system project.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/rolyfe-os/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <h3>
+        📈 Tactical Intelligence Center
+      </h3>
+
+      <p>
+        RO’Lyfe trading intelligence system.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/RO-Lyfe-Tactical-Intelligence-Center-/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <h3>
+        ⚔️ Strategy Arena
+      </h3>
+
+      <p>
+        RO’Lyfe strategy and competition project.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/RO-Lyfe-Strategy-Arena-/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <h3>
+        🎯 Closers OS
+      </h3>
+
+      <p>
+        RO’Lyfe sales and closing workflow.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/RO-Lyfe-Closers-OS/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+    <article class="card resource">
+
+      <h3>
+        ⚒️ DealForge OS
+      </h3>
+
+      <p>
+        Deal-building and transaction workflow.
+      </p>
+
+      <a
+        class="btn"
+        href="https://rolrichman.github.io/Root-DealForge-OS-/"
+        target="_blank"
+        rel="noopener noreferrer">
+        OPEN →
+      </a>
+
+    </article>
+
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     ROADMAP
+===================================================== -->
+
+<section>
+
+  <div class="note">
+
+    <strong>
+      📌 Docs Center roadmap:
+    </strong>
+
+    This first page establishes the command-center architecture.
+    Downloader processing, richer PDF utilities, email templates,
+    generated documents and additional resource categories can be
+    wired in later without rebuilding the page structure.
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+  📚 RO’Lyfe Docs Center™<br>
+
+  Organize. Document. Connect. Build.<br>
+
+  Part of the RO’Lyfe ecosystem.
+
+</footer>
+
+</main>
+
+</body>
+  </html>
