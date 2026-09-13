@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="RO'Lyfe Docs Center — documents, PDFs, downloads, email tools, funding resources, grants, and business resources."
+    >
+
+    <title>RO'Lyfe Docs Center™</title>
+
+    <!-- RO'Lyfe Docs Styling -->
+    <link rel="stylesheet" href="docs.css">
+</head>
+
+<body>
+
+<!-- =====================================================
+     NAVIGATION
+     ===================================================== -->
+
+<nav class="top-nav">
+
+    <div class="top-nav-inner">
+
+        <a
+            class="nav-brand"
+            href="../../index.html"
+        >
+            RO'Lyfe™ Docs
+        </a>
+
+        <div class="nav-links">
+
+            <a
+                class="nav-link"
+                href="#tools"
+            >
+                Tools
+            </a>
+
+            <a
+                class="nav-link"
+                href="#pdf"
+            >
+                PDF
+            </a>
+
+            <a
+                class="nav-link"
+                href="#email"
+            >
+                Email
+            </a>
+
+            <a
+                class="nav-link"
+                href="#funding"
+            >
+                Funding
+            </a>
+
+            <a
+                class="nav-link"
+                href="#resources"
+            >
+                Resources
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<!-- =====================================================
+     HERO
+     ===================================================== -->
+
+<header class="hero">
+
+    <div class="container">
+
+        <h1>
+            📚 RO'LYFE DOCS CENTER™
+        </h1>
+
+        <div class="tagline">
+            DOWNLOAD. DOCUMENT. CONNECT.
+        </div>
+
+        <p class="subtitle">
+            A centralized workspace for documents, PDFs,
+            downloads, email tools, business funding,
+            grants, and RO'Lyfe resources.
+        </p>
+
+        <div class="feature-strip">
+
+            <div class="feature">
+                <strong>📥 Documents</strong>
+                <span>
+                    Organize and access useful files and resources.
+                </span>
+            </div>
+
+            <div class="feature">
+                <strong>📄 PDF Workspace</strong>
+                <span>
+                    Build the document and PDF tool layer.
+                </span>
+            </div>
+
+            <div class="feature">
+                <strong>📧 Communication</strong>
+                <span>
+                    Prepare documents and email workflows.
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+
+<!-- =====================================================
+     DOCUMENT TOOLS
+     ===================================================== -->
+
+<section
+    class="section"
+    id="tools"
+>
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            🧰 Document Tools
+        </h2>
+
+        <p class="section-description">
+            Core utilities for working with RO'Lyfe documents.
+        </p>
+
+    </div>
+
+
+    <div class="card-grid">
+
+
+        <!-- DOWNLOADER -->
+
+        <article class="card tool-card">
+
+            <div class="card-icon">
+                📥
+            </div>
+
+            <h3>
+                Downloader
+            </h3>
+
+            <p>
+                Save supported resources, documents,
+                and files for use inside your RO'Lyfe workflow.
+            </p>
+
+            <span class="badge badge-ready">
+                Ready
+            </span>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn btn-primary"
+                    href="#downloader"
+                >
+                    Open Downloader
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <!-- PDF -->
+
+        <article class="card tool-card">
+
+            <div class="card-icon">
+                📄
+            </div>
+
+            <h3>
+                PDF Center
+            </h3>
+
+            <p>
+                Create a dedicated workspace for PDF viewing,
+                printing, saving, and future PDF utilities.
+            </p>
+
+            <span class="badge badge-next">
+                Building
+            </span>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="#pdf"
+                >
+                    Open PDF Center
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <!-- EMAIL -->
+
+        <article class="card tool-card">
+
+            <div class="card-icon">
+                📧
+            </div>
+
+            <h3>
+                Email Center
+            </h3>
+
+            <p>
+                Prepare messages, document requests,
+                referrals, and business communication.
+            </p>
+
+            <span class="badge badge-ready">
+                Ready
+            </span>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn btn-teal"
+                    href="#email"
+                >
+                    Open Email Center
+                </a>
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     DOWNLOADER
+     ===================================================== -->
+
+<section
+    class="section"
+    id="downloader"
+>
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            📥 Downloader Workspace
+        </h2>
+
+        <p class="section-description">
+            A central location for supported document and resource downloads.
+        </p>
+
+    </div>
+
+
+    <div class="two-column">
+
+
+        <!-- URL RESOURCE -->
+
+        <div class="panel">
+
+            <h3>
+                🌐 Resource URL
+            </h3>
+
+            <p>
+                Enter a resource address. Browser security
+                may prevent direct downloads from some websites.
+            </p>
+
+            <div class="input-group">
+
+                <label for="resourceUrl">
+                    Resource URL
+                </label>
+
+                <input
+                    id="resourceUrl"
+                    class="input"
+                    type="url"
+                    placeholder="https://example.com/document.pdf"
+                >
+
+            </div>
+
+            <div class="btn-row">
+
+                <button
+                    class="btn btn-primary"
+                    type="button"
+                    onclick="openResourceUrl()"
+                >
+                    Open Resource
+                </button>
+
+            </div>
+
+            <div
+                id="downloadStatus"
+                class="notice hidden"
+            ></div>
+
+        </div>
+
+
+        <!-- LOCAL FILES -->
+
+        <div class="panel">
+
+            <h3>
+                📁 Local Files
+            </h3>
+
+            <p>
+                Select documents from your device for
+                browser-based processing.
+            </p>
+
+            <div class="file-drop">
+
+                <div class="file-drop-icon">
+                    📂
+                </div>
+
+                <div class="file-drop-title">
+                    Choose Files
+                </div>
+
+                <div class="file-drop-description">
+                    PDF, TXT, DOC, images, and other supported files.
+                </div>
+
+                <div class="btn-row">
+
+                    <label
+                        class="btn"
+                        for="fileInput"
+                    >
+                        Select Files
+                    </label>
+
+                    <input
+                        id="fileInput"
+                        type="file"
+                        multiple
+                        hidden
+                        onchange="handleSelectedFiles(this.files)"
+                    >
+
+                </div>
+
+            </div>
+
+            <div
+                id="fileStatus"
+                class="notice hidden"
+            ></div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     PDF CENTER
+     ===================================================== -->
+
+<section
+    class="section"
+    id="pdf"
+>
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            📄 PDF Center
+        </h2>
+
+        <p class="section-description">
+            The document engine for viewing, printing,
+            saving, and future PDF processing.
+        </p>
+
+    </div>
+
+
+    <div class="card-grid">
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                📑
+            </div>
+
+            <h3>
+                PDF Workspace
+            </h3>
+
+            <p>
+                Future workspace for PDF viewing,
+                merging, splitting, compression,
+                and document preparation.
+            </p>
+
+            <span class="badge badge-next">
+                Coming Next
+            </span>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🖨️
+            </div>
+
+            <h3>
+                Print / Save
+            </h3>
+
+            <p>
+                Use your browser's native print system
+                to save supported pages as PDF.
+            </p>
+
+            <div class="btn-row">
+
+                <button
+                    class="btn btn-primary"
+                    type="button"
+                    onclick="window.print()"
+                >
+                    Print / Save PDF
+                </button>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🗂️
+            </div>
+
+            <h3>
+                Document Library
+            </h3>
+
+            <p>
+                Store your project documents in the
+                Docs Center file structure.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="./files/"
+                >
+                    Open Files
+                </a>
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     EMAIL CENTER
+     ===================================================== -->
+
+<section
+    class="section"
+    id="email"
+>
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            📧 Email Center
+        </h2>
+
+        <p class="section-description">
+            Prepare business communication and document requests.
+        </p>
+
+    </div>
+
+
+    <div class="two-column">
+
+
+        <!-- COMPOSE -->
+
+        <div class="panel">
+
+            <h3>
+                ✉️ Compose Email
+            </h3>
+
+            <p>
+                Open your device's default email application
+                with a prepared RO'Lyfe subject.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn btn-teal"
+                    href="mailto:?subject=RO%27Lyfe%20Document%20Request"
+                >
+                    Open Email
+                </a>
+
+            </div>
+
+            <div class="notice">
+
+                <strong>
+                    Email note:
+                </strong>
+
+                This page does not directly send email.
+                Direct sending can be connected later
+                to an approved email service.
+
+            </div>
+
+        </div>
+
+
+        <!-- TEMPLATES -->
+
+        <div class="panel">
+
+            <h3>
+                📝 Email Templates
+            </h3>
+
+            <p>
+                Business outreach, funding referrals,
+                document requests, follow-ups, and
+                professional templates.
+            </p>
+
+            <span class="badge badge-next">
+                Coming Next
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     BUSINESS FUNDING
+     ===================================================== -->
+
+<section
+    class="section"
+    id="funding"
+>
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            💰 Business Funding
+        </h2>
+
+        <p class="section-description">
+            External funding and referral resources.
+            Review provider terms before submitting information.
+        </p>
+
+    </div>
+
+
+    <div class="card-grid">
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                💼
+            </div>
+
+            <h3>
+                Business Financing
+            </h3>
+
+            <p>
+                Explore available business financing options.
+            </p>
+
+            <span class="badge badge-external">
+                External
+            </span>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn btn-primary"
+                    href="https://go.mypartner.io/business-financing/?ref=001Qk00000MkqgTIAR"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open Financing
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🇪🇸
+            </div>
+
+            <h3>
+                Business Financing — Spanish
+            </h3>
+
+            <p>
+                Spanish-language business financing resource.
+            </p>
+
+            <span class="badge badge-external">
+                External
+            </span>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://go.mypartner.io/business-financing/?ref=001Qk00000MkqgTIAR&lang=es"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Abrir Financiamiento
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🤝
+            </div>
+
+            <h3>
+                Referral Partner
+            </h3>
+
+            <p>
+                Explore the referral partner opportunity.
+            </p>
+
+            <span class="badge badge-external">
+                External
+            </span>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn btn-teal"
+                    href="https://go.mypartner.io/referral-partner/?ref=001Qk00000MkqgTIAR"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open Partner Page
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🌎
+            </div>
+
+            <h3>
+                Referral Partner — Spanish
+            </h3>
+
+            <p>
+                Spanish-language referral partner resource.
+            </p>
+
+            <span class="badge badge-external">
+                External
+            </span>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://go.mypartner.io/referral-partner/?ref=001Qk00000MkqgTIAR&lang=es"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Abrir Socios
+                </a>
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     GRANTS & RESOURCES
+     ===================================================== -->
+
+<section
+    class="section"
+    id="resources"
+>
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            🎓 Grants & Resources
+        </h2>
+
+        <p class="section-description">
+            Research tools and external resources that can
+            support business planning and funding research.
+        </p>
+
+    </div>
+
+
+    <div class="resource-list">
+
+
+        <div class="resource-item">
+
+            <div class="resource-info">
+
+                <div class="resource-name">
+                    Grant Funding Worksheet
+                </div>
+
+                <div class="resource-description">
+                    External worksheet for organizing grant-funding research.
+                </div>
+
+            </div>
+
+            <a
+                class="btn"
+                href="https://grantfundingexpert.org/grant-funding-worksheet/?inf_contact_key=37402a7fc437bbe28e887138b8e2a6537e470d92b8b75168d98a0b8cac0e9c09"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Open Worksheet
+            </a>
+
+        </div>
+
+
+        <div class="resource-item">
+
+            <div class="resource-info">
+
+                <div class="resource-name">
+                    Contractor / Equipment Funding
+                </div>
+
+                <div class="resource-description">
+                    Resource category for equipment financing
+                    and contractor-business funding research.
+                </div>
+
+            </div>
+
+            <span class="badge badge-next">
+                Resource Hub
+            </span>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     RO'LYFE NETWORK
+     ===================================================== -->
+
+<section class="section">
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            🌐 RO'Lyfe Network
+        </h2>
+
+        <p class="section-description">
+            Connected RO'Lyfe systems and operating environments.
+        </p>
+
+    </div>
+
+
+    <div class="card-grid">
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🏠
+            </div>
+
+            <h3>
+                Acquisition Engine
+            </h3>
+
+            <p>
+                Real-estate acquisition and deal workflow.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/rolyfe-acquisition-engine/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🤝
+            </div>
+
+            <h3>
+                Buyer Network OS
+            </h3>
+
+            <p>
+                Buyer and deal-network workflow.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/RO-Lyfe-Buyer-Network-OS/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                📑
+            </div>
+
+            <h3>
+                Contract Documents Hub
+            </h3>
+
+            <p>
+                Contract and document resources.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/rolyfe-contract-documents-hub/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🧠
+            </div>
+
+            <h3>
+                RO'Lyfe OS
+            </h3>
+
+            <p>
+                Main RO'Lyfe operating environment.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/rolyfe-os/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                📈
+            </div>
+
+            <h3>
+                Tactical Intelligence Center
+            </h3>
+
+            <p>
+                Market and trading intelligence environment.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/RO-Lyfe-Tactical-Intelligence-Center-/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🎯
+            </div>
+
+            <h3>
+                Strategy Arena
+            </h3>
+
+            <p>
+                Strategy and decision environment.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/RO-Lyfe-Strategy-Arena-/index.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                🚀
+            </div>
+
+            <h3>
+                Closers OS
+            </h3>
+
+            <p>
+                Deal-closing and execution workflow.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/RO-Lyfe-Closers-OS/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+
+        <article class="card">
+
+            <div class="card-icon">
+                ⚒️
+            </div>
+
+            <h3>
+                DealForge OS
+            </h3>
+
+            <p>
+                Deal-building and transaction workflow.
+            </p>
+
+            <div class="btn-row">
+
+                <a
+                    class="btn"
+                    href="https://rolrichman.github.io/Root-DealForge-OS-/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     ROADMAP
+     ===================================================== -->
+
+<section class="section">
+
+    <div class="panel center">
+
+        <h2>
+            🛠️ Docs Center Roadmap
+        </h2>
+
+        <p>
+            The Docs Center is being built as a separate
+            RO'Lyfe utility system — similar to the Gaming Hub
+            architecture, but focused on documents and business workflows.
+        </p>
+
+        <div class="feature-strip">
+
+            <div class="feature">
+                <strong>📥 Downloader</strong>
+                <span>
+                    Resource handling and supported downloads.
+                </span>
+            </div>
+
+            <div class="feature">
+                <strong>📄 PDF Engine</strong>
+                <span>
+                    PDF viewing and document utilities.
+                </span>
+            </div>
+
+            <div class="feature">
+                <strong>📧 Email Engine</strong>
+                <span>
+                    Templates and communication workflows.
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+</main>
+
+
+<!-- =====================================================
+     FOOTER
+     ===================================================== -->
+
+<footer class="footer">
+
+    <strong>
+        RO'Lyfe Docs Center™
+    </strong>
+
+    <br>
+
+    Documents. Resources. Funding. Strategy.
+
+    <br><br>
+
+    RO'Lyfe™ — Built for People Who Move With Purpose.
+
+</footer>
+
+
+<!-- =====================================================
+     TEMPORARY INLINE FUNCTIONS
+     These will move into docs.js next.
+     ===================================================== -->
+
+<script>
+
+function openResourceUrl() {
+
+    const input =
+        document.getElementById("resourceUrl");
+
+    const status =
+        document.getElementById("downloadStatus");
+
+    const url =
+        input.value.trim();
+
+    if (!url) {
+
+        status.classList.remove("hidden");
+
+        status.innerHTML =
+            "<strong>Enter a URL first.</strong>";
+
+        return;
+    }
+
+    try {
+
+        const parsed =
+            new URL(url);
+
+        if (
+            parsed.protocol !== "http:" &&
+            parsed.protocol !== "https:"
+        ) {
+
+            throw new Error(
+                "Unsupported protocol"
+            );
+
+        }
+
+        window.open(
+            parsed.href,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+        status.classList.remove("hidden");
+
+        status.innerHTML =
+            "<strong>Resource opened.</strong> " +
+            "If the website prevents direct browser downloads, " +
+            "use its own download controls.";
+
+    } catch (error) {
+
+        status.classList.remove("hidden");
+
+        status.innerHTML =
+            "<strong>Invalid URL.</strong> " +
+            "Please enter a complete web address.";
+
+    }
+
+}
+
+
+function handleSelectedFiles(files) {
+
+    const status =
+        document.getElementById("fileStatus");
+
+    if (!files || files.length === 0) {
+
+        status.classList.add("hidden");
+
+        return;
+    }
+
+    const names =
+        Array.from(files)
+            .map(file => file.name)
+            .join(", ");
+
+    status.classList.remove("hidden");
+
+    status.innerHTML =
+        "<strong>" +
+        files.length +
+        " file" +
+        (files.length === 1 ? "" : "s") +
+        " selected.</strong> " +
+        names;
+
+}
+
+</script>
+
+</body>
+  </html>
