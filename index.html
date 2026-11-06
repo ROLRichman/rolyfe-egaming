@@ -15,7 +15,7 @@ a{color:inherit;text-decoration:none}button{font:inherit}
 .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px clamp(14px,4vw,44px);background:#07110eea;border-bottom:1px solid #294438;backdrop-filter:blur(16px)}
 .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.08em}.brandmark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,var(--green),#126a40);color:#041109;font-size:15px;box-shadow:0 0 24px #25d87933}
 .nav{display:flex;align-items:center;gap:18px;color:var(--muted);font-size:.9rem}.nav a:hover{color:var(--green)}
-.menu{display:none;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);padding:8px 11px}
+.menu{display:none;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);padding:8px 11px}.tools{display:flex;align-items:center;gap:8px}.tools select,.tools button{min-height:38px;border:1px solid var(--line);border-radius:10px;background:#101d18;color:var(--text);padding:7px 10px}.tools button[aria-pressed="true"]{border-color:var(--orange);color:var(--orange)}
 main{width:100%;max-width:1440px;margin:auto;padding:clamp(14px,3vw,34px)}
 .hero{position:relative;overflow:hidden;min-height:300px;display:flex;align-items:center;border:1px solid #31533f;border-radius:26px;padding:clamp(25px,6vw,68px);background:linear-gradient(115deg,#12291e 0%,#0c1a14 60%,#111c18 100%);box-shadow:0 24px 70px #0006}
 .hero:after{content:"🎮";position:absolute;right:5%;bottom:-40px;font-size:clamp(9rem,25vw,19rem);opacity:.09;transform:rotate(-12deg);pointer-events:none}
@@ -29,7 +29,7 @@ h1{font-size:clamp(2.4rem,7vw,5.8rem);line-height:.98;letter-spacing:-.055em;mar
 .game.featured{grid-column:span 6;min-height:320px;border-color:#a65f2e;background:radial-gradient(circle at 100% 0,#713e20 0,transparent 45%),linear-gradient(145deg,#1c2b20,#111a15)}
 .gameicon{font-size:2.7rem;line-height:1}.tag{align-self:flex-start;margin-top:14px;padding:5px 9px;border-radius:999px;background:#183a27;color:#8cf2b4;font-size:.7rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.tag.orange{background:#422817;color:#ffc18a}.tag.soon{background:#26302a;color:#c0cec5}
 .game h3{margin:12px 0 6px;font-size:1.45rem}.game p{margin:0;color:var(--muted);max-width:48ch;line-height:1.55}.gamefoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:20px;font-weight:850;color:var(--green)}.game.featured .gamefoot{color:#ffb276}.game.disabled{opacity:.84}.game.disabled .gamefoot{color:#8ea195}
-.smallnote{font-size:.82rem;color:var(--muted)}
+.smallnote{font-size:.82rem;color:var(--muted)}.airoom{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;padding:clamp(20px,4vw,34px);border:1px solid #86552f;border-radius:22px;background:radial-gradient(circle at 100% 0,#63391f 0,transparent 48%),linear-gradient(140deg,#1b2b20,#101914)}.airoom h2{margin:8px 0;font-size:clamp(1.5rem,3vw,2.2rem)}.airoom p{color:#c0cfc4;line-height:1.6}.aipanel{padding:18px;border:1px solid #65452d;border-radius:16px;background:#0b1510}.aipanel label{display:block;margin:10px 0 6px;color:#d5e1d8;font-size:.86rem}.aipanel select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;background:#101d18;color:var(--text);padding:8px}.aihint{font-size:.8rem;color:#b4c2b8}.soundnote{font-size:.78rem;color:#ffbd87;margin-top:10px}
 .utility{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.utility a{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid var(--line);border-radius:16px;background:#101d18}.utility a:hover{border-color:var(--blue)}.utilityicon{font-size:1.8rem}.utility strong{display:block}.utility span{color:var(--muted);font-size:.85rem}
 .platform{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature{padding:18px;border:1px solid var(--line);border-radius:16px;background:#0d1913}.feature b{display:block;margin-bottom:5px}.feature p{margin:0;color:var(--muted);font-size:.9rem}
 footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
@@ -41,22 +41,22 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
 <body>
 <header class="topbar">
   <a class="brand" href="./" aria-label="RO'Lyfe Gaming home"><span class="brandmark">RO</span><span>RO'LYFE <span style="color:var(--green)">GAMING</span>™</span></a>
-  <nav class="nav" aria-label="Main navigation"><a href="#games">Games</a><a href="#extras">More from RO'Lyfe</a><a href="#systems">Platform</a></nav>
-  <button class="menu" id="menuBtn" type="button" aria-expanded="false">☰ Menu</button>
+  <nav class="nav" aria-label="Main navigation"><a href="#games" data-i18n="navGames">Games</a><a href="#extras" data-i18n="navMore">More from RO'Lyfe</a><a href="#systems" data-i18n="navPlatform">Platform</a><a href="#ai">AI Arena</a></nav>
+  <div class="tools"><label class="smallnote" for="languageSelect">Language</label><select id="languageSelect" aria-label="Choose language"><option value="en">English</option><option value="ht">Kreyòl</option><option value="es">Español</option><option value="fr">Français</option></select><button id="soundToggle" type="button" aria-pressed="false">🔇 Sound</button><button class="menu" id="menuBtn" type="button" aria-expanded="false">☰ Menu</button></div>
 </header>
-<div class="drawerback" id="drawerBack"><nav class="drawer" aria-label="Mobile navigation"><button class="menu" id="closeMenu" type="button">✕ Close</button><a href="#games">Game Library</a><a href="#extras">More from RO'Lyfe</a><a href="#systems">Platform Systems</a><a href="./games/docs/">Docs Center</a></nav></div>
+<div class="drawerback" id="drawerBack"><nav class="drawer" aria-label="Mobile navigation"><button class="menu" id="closeMenu" type="button">✕ Close</button><a href="#games">Game Library</a><a href="#extras">More from RO'Lyfe</a><a href="#systems">Platform Systems</a><a href="#ai">AI Arena</a><a href="./games/docs/">Docs Center</a></nav></div>
 <main>
 <header class="hero">
   <div class="hero-copy">
-    <div class="eyebrow">Play • Compete • Think • Build</div>
-    <h1>Your next move<br>starts here.</h1>
+    <div class="eyebrow" data-i18n="eyebrow">Play • Compete • Think • Build</div>
+    <h1 data-i18n="heroTitle">Your next move<br>starts here.</h1>
     <p>Welcome to RO'Lyfe Gaming — a growing home for classic games, friendly competition, strategy and AI-powered play. Pick a table, challenge yourself and build your level.</p>
     <div class="hero-actions"><a class="button primary" href="#games">Explore the games ↓</a><a class="button" href="./games/pool/">Play RO'Lyfe Pool 🎱</a></div>
   </div>
 </header>
 
 <section class="section" id="games">
-  <div class="sectionhead"><div><h2>🎮 Game Library</h2><p>Start with a game that's ready. More rooms are being prepared.</p></div><span class="smallnote">RO'Lyfe Gaming™</span></div>
+  <div class="sectionhead"><div><h2 data-i18n="libraryTitle">🎮 Game Library</h2><p>Start with a game that's ready. More rooms are being prepared.</p></div><span class="smallnote">RO'Lyfe Gaming™</span></div>
   <div class="grid">
     <a class="game featured" href="./games/pool/">
       <div class="gameicon">🎱</div><span class="tag orange">Pool • Ready to play</span><h3>RO'Lyfe Pool™</h3>
@@ -72,6 +72,7 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
   </div>
 </section>
 
+<section class="section" id="ai"><div class="airoom"><div><div class="eyebrow">RO’LYFE INTELLIGENCE</div><h2>🧠 Meet your AI opponent.</h2><p>Play against the RO’Lyfe AI in Pool, choose your challenge level, and build your strategy. The shared AI engine is already connected to Pool and is designed to support more game rooms as they open.</p><div class="hero-actions"><a class="button primary" href="./games/pool/">Challenge the AI 🎱</a><a class="button" href="./games/docs/">AI & Game Guide</a></div><p class="aihint">Player vs. AI · AI difficulty levels · AI personalities · Practice and challenge play</p></div><div class="aipanel"><strong>Set your challenge</strong><label for="aiLevel">AI difficulty</label><select id="aiLevel"><option value="1">1 · START-UP — Beginner</option><option value="2">2 · START-UP+ — Casual</option><option value="3" selected>3 · INVESTOR — Skilled</option><option value="4">4 · INVESTOR+ — Advanced</option><option value="5">5 · 7FIGURES — Expert</option></select><label for="aiStyle">Opponent personality</label><select id="aiStyle"><option>Balanced Strategist</option><option>Patient Planner</option><option>Aggressive Challenger</option><option>Unpredictable</option></select><p class="aihint">Choose your style here, then open Pool to start a match. Game-specific controls remain inside the game.</p><div class="soundnote">🟠 Sound effects are optional. Use the sound control above to mute or enable hub feedback.</div></div></div></section>
 <section class="section" id="extras">
   <div class="sectionhead"><div><h2>🧭 More from RO'Lyfe</h2><p>Keep the gaming hub connected without mixing separate products together.</p></div></div>
   <div class="utility">
@@ -82,7 +83,7 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
 </section>
 
 <section class="section" id="systems">
-  <div class="sectionhead"><div><h2>⚙️ Built to grow</h2><p>A shared foundation helps each game feel part of one family.</p></div></div>
+  <div class="sectionhead"><div><h2 data-i18n="systemsTitle">⚙️ Built to grow</h2><p>A shared foundation helps each game feel part of one family.</p></div></div>
   <div class="platform">
     <div class="feature"><b>🎨 Themes</b><p>Distinct looks and table styles for a more personal game experience.</p></div>
     <div class="feature"><b>🔊 Audio</b><p>Sound controls and game feedback, with player choice at the center.</p></div>
@@ -98,6 +99,17 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
  open.addEventListener('click',()=>setOpen(true));close.addEventListener('click',()=>setOpen(false));
  back.addEventListener('click',e=>{if(e.target===back||e.target.tagName==='A')setOpen(false)});
  document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
+ const translations={
+ en:{navGames:'Games',navMore:'More from RO’Lyfe',navPlatform:'Platform',eyebrow:'Play • Compete • Think • Build',heroTitle:'Your next move<br>starts here.',libraryTitle:'🎮 Game Library',systemsTitle:'⚙️ Built to grow'},
+ ht:{navGames:'Jwèt',navMore:'Plis nan RO’Lyfe',navPlatform:'Platfòm',eyebrow:'Jwe • Konpetisyon • Reflechi • Avanse',heroTitle:'Pwochen mouvman ou<br>kòmanse la.',libraryTitle:'🎮 Bibliyotèk jwèt',systemsTitle:'⚙️ Yon platfòm k ap grandi'},
+ es:{navGames:'Juegos',navMore:'Más de RO’Lyfe',navPlatform:'Plataforma',eyebrow:'Juega • Compite • Piensa • Crece',heroTitle:'Tu próximo movimiento<br>comienza aquí.',libraryTitle:'🎮 Biblioteca de juegos',systemsTitle:'⚙️ Diseñado para crecer'},
+ fr:{navGames:'Jeux',navMore:'Plus de RO’Lyfe',navPlatform:'Plateforme',eyebrow:'Jouer • Rivaliser • Réfléchir • Progresser',heroTitle:'Votre prochain coup<br>commence ici.',libraryTitle:'🎮 Bibliothèque de jeux',systemsTitle:'⚙️ Conçu pour évoluer'}
+ };
+ const lang=document.getElementById('languageSelect');
+ function applyLanguage(code){const dict=translations[code]||translations.en;document.documentElement.lang=code;document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(dict[key])el.innerHTML=dict[key]});}
+ lang.addEventListener('change',()=>applyLanguage(lang.value));
+ const sound=document.getElementById('soundToggle');let audio=null,enabled=false;
+ sound.addEventListener('click',()=>{enabled=!enabled;sound.setAttribute('aria-pressed',String(enabled));sound.textContent=enabled?'🔊 Sound':'🔇 Sound';if(enabled){try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const osc=audio.createOscillator(),gain=audio.createGain();osc.frequency.value=660;gain.gain.value=.035;osc.connect(gain);gain.connect(audio.destination);osc.start();osc.stop(audio.currentTime+.09)}catch(e){}}});
 })();
 </script>
 </body>
