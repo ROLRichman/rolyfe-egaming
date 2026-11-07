@@ -138,3 +138,42 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
  .pool-focus-dock{max-height:40dvh}
  .pool-stage.is-focused .pool-table{width:min(90vw,calc((100dvh - 230px)*1.72))}
 }
+
+
+/* Landscape focus: let the player scroll the focused scene vertically. */
+@media (orientation:landscape) and (max-height:560px) {
+  .pool-stage.is-focused{
+    height:100dvh;min-height:100dvh;max-height:100dvh;
+    grid-template-rows:auto minmax(180px,auto) auto;
+    align-content:start;justify-content:start;
+    overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;
+    touch-action:pan-y;
+    padding:calc(10px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom));
+  }
+  .pool-stage.is-focused .table-focus-toolbar{position:sticky;top:0;z-index:5}
+  .pool-stage.is-focused .pool-table{
+    width:min(92vw,calc((100dvh - 185px)*2));
+    max-width:100%;max-height:none;flex:0 0 auto;
+  }
+  .pool-focus-dock{max-height:none;overflow:visible;margin-bottom:10px}
+  .pool-focus-dock .pool-actions{grid-template-columns:1fr 1.35fr 1fr}
+  .pool-focus-dock .pool-controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+/* A visible wooden cue stick sits behind the cue ball, aligned to the aim angle. */
+.aim-line::before{
+  content:"";position:absolute;left:calc(-1 * clamp(48px,10vw,92px));top:50%;
+  width:clamp(48px,10vw,92px);height:clamp(4px,.75vw,7px);
+  transform:translateY(-50%);border-radius:999px;
+  background:linear-gradient(180deg,#f6d89a 0%,#a66b2e 24%,#e8bd70 48%,#71411e 72%,#3b2417 100%);
+  border:1px solid rgba(34,19,8,.8);
+  box-shadow:0 1px 3px rgba(0,0,0,.75),0 0 5px rgba(245,193,105,.3);
+}
+.aim-line::after{
+  content:"";position:absolute;left:-2px;top:50%;width:clamp(5px,.8vw,8px);height:clamp(5px,.8vw,8px);
+  transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff,#dcebf2 45%,#8297a3 100%);
+  box-shadow:0 0 5px rgba(220,240,255,.65);
+}
+.aim-line{overflow:visible}
