@@ -2173,7 +2173,7 @@ function setAimAngle(
      */
 
     tableSurface.style.touchAction =
-      "none";
+      "pan-y";
 
     /*
      TOUCH START
@@ -2206,11 +2206,9 @@ function setAimAngle(
           touch.clientX,
           touch.clientY
         );
-
-        event.preventDefault();
       },
       {
-        passive: false
+        passive: true
       }
     );
 
@@ -2238,11 +2236,9 @@ function setAimAngle(
           touch.clientX,
           touch.clientY
         );
-
-        event.preventDefault();
       },
       {
-        passive: false
+        passive: true
       }
     );
 
@@ -2259,11 +2255,9 @@ function setAimAngle(
           false;
 
         renderAim();
-
-        event.preventDefault();
       },
       {
-        passive: false
+        passive: true
       }
     );
 
@@ -2274,11 +2268,9 @@ function setAimAngle(
           false;
 
         renderAim();
-
-        event.preventDefault();
       },
       {
-        passive: false
+        passive: true
       }
     );
 
