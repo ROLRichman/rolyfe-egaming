@@ -8,6 +8,7 @@
   const zoomFit = document.getElementById("tableZoomFit");
   const zoomValue = document.getElementById("tableZoomValue");
   const focusBtn = document.getElementById("tableFocusBtn");
+  const backdropSelect = document.getElementById("focusBackdrop");
   if (!stage || !table || !zoomOut || !zoomIn || !zoomFit || !focusBtn) return;
 
   let zoom = 1;
@@ -48,6 +49,12 @@
     if (focused || shotInMotion) lockPage();
     else unlockPage();
   }
+  function setBackdrop(value) {
+    const allowed = ["midnight", "ocean", "slate", "plum", "forest"];
+    const chosen = allowed.includes(value) ? value : "midnight";
+    stage.dataset.backdrop = chosen;
+    if (backdropSelect && backdropSelect.value !== chosen) backdropSelect.value = chosen;
+  }
   function setFocus(value) {
     focused = !!value;
     stage.classList.toggle("is-focused", focused);
@@ -57,6 +64,8 @@
     if (focused) setTimeout(() => focusBtn.focus({preventScroll:true}), 0);
   }
 
+  setBackdrop(backdropSelect ? backdropSelect.value : "midnight");
+  backdropSelect?.addEventListener("change", () => setBackdrop(backdropSelect.value));
   zoomOut.addEventListener("click", () => setZoom(zoom - 0.1));
   zoomIn.addEventListener("click", () => setZoom(zoom + 0.1));
   zoomFit.addEventListener("click", () => setZoom(1));
