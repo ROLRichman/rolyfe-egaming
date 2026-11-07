@@ -22,6 +22,7 @@
     </div>
     <div class="header-actions">
       <button id="soundBtn" class="icon-btn" type="button" aria-label="Toggle sound">🔊</button>
+      <button id="voiceBtn" class="icon-btn" type="button" aria-label="Turn voice announcements off" aria-pressed="true" title="Voice announcements on">🗣️</button>
       <button id="fullscreenBtn" class="icon-btn" type="button" aria-label="Fullscreen">⛶</button>
     </div>
   </header>
@@ -70,6 +71,15 @@
         <option value="championship">Championship</option>
       </select>
     </div>
+    <div class="setting-group">
+      <label for="aiLanguage">AI VOICE</label>
+      <select id="aiLanguage" aria-label="AI voice language">
+        <option value="en-US">English</option>
+        <option value="fr-FR">Français</option>
+        <option value="ht-HT">Kreyòl Ayisyen</option>
+        <option value="es-ES">Español</option>
+      </select>
+    </div>
   </section>
 
   <section class="players" aria-label="Players">
@@ -101,6 +111,7 @@
   </section>
 
   <section class="pool-center-status">
+    <div id="turnStatus" class="turn-status">PLAYER 1 TURN</div>
     <div id="poolMessage" class="pool-message">Break the rack to begin.</div>
     <div id="aiStatus" class="ai-status hidden">AI READY</div>
   </section>

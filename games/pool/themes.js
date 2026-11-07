@@ -15,7 +15,7 @@ const POOL_THEMES={
  sevenfigures:{id:"sevenfigures",name:"7FIGURES",colors:{background:"#09090b",table:"#312e81",tableDark:"#1e1b4b",rail:"#18181b",railDark:"#000",cushion:"#4338ca",pocket:"#000",text:"#fff",accent:"#facc15",secondary:"#a1a1aa"}},
  midnight:{id:"midnight",name:"Midnight",colors:{background:"#000",table:"#172554",tableDark:"#020617",rail:"#111827",railDark:"#000",cushion:"#1e3a8a",pocket:"#000",text:"#fff",accent:"#60a5fa",secondary:"#64748b"}},
  neon:{id:"neon",name:"Neon",colors:{background:"#020617",table:"#172554",tableDark:"#020617",rail:"#0f172a",railDark:"#000",cushion:"#1d4ed8",pocket:"#000",text:"#fff",accent:"#22d3ee",secondary:"#c084fc"}},
- championship:{id:"championship",name:"Championship",colors:{background:"#18181b",table:"#064e3b",tableDark:"#022c22",rail:"#78350f",railDark:"#451a03",cushion:"#047857",pocket:"#000",text:"#fff",accent:"#fbbf24",secondary:"#d4d4d8"}}
+ championship:{id:"championship",name:"Championship",colors:{background:"#08111f",table:"#17469e",tableDark:"#0b2b65",rail:"#172554",railDark:"#020617",cushion:"#d4a63a",pocket:"#020617",text:"#ffffff",accent:"#f5c542",secondary:"#e8edf7"}}
 };
 
 const DEFAULT_POOL_THEME="rolyfe";
