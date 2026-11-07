@@ -163,8 +163,8 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 
 /* A visible wooden cue stick sits behind the cue ball, aligned to the aim angle. */
 .aim-line::before{
-  content:"";position:absolute;left:calc(-1 * clamp(48px,10vw,92px));top:50%;
-  width:clamp(48px,10vw,92px);height:clamp(4px,.75vw,7px);
+  content:"";position:absolute;left:calc(-1 * var(--cue-stick-length,72px));top:50%;
+  width:var(--cue-stick-length,72px);height:clamp(4px,.75vw,7px);
   transform:translateY(-50%);border-radius:999px;
   background:linear-gradient(180deg,#f6d89a 0%,#a66b2e 24%,#e8bd70 48%,#71411e 72%,#3b2417 100%);
   border:1px solid rgba(34,19,8,.8);
