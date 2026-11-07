@@ -703,7 +703,7 @@ V3.4.5
 
     if (turnStatus) {
       turnStatus.textContent =
-        `${name}'s turn`;
+        translateAnnouncement(`${name}, you're up.`);
     }
 
     /*
@@ -5201,7 +5201,7 @@ function setAimAngle(
 
     if (turnStatus) {
       turnStatus.textContent =
-        `${name}'s turn`;
+        translateAnnouncement(`${name}, you're up.`);
     }
 
     if (aiStatus) {
