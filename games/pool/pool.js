@@ -5553,8 +5553,8 @@ function setAimAngle(
       "click",
       () => {
         if (rulesModal) {
-          rulesModal.style.display =
-            "flex";
+          rulesModal.classList.remove("hidden");
+          rulesModal.setAttribute("aria-hidden", "false");
         }
       }
     );
@@ -5563,8 +5563,8 @@ function setAimAngle(
       "click",
       () => {
         if (rulesModal) {
-          rulesModal.style.display =
-            "none";
+          rulesModal.classList.add("hidden");
+          rulesModal.setAttribute("aria-hidden", "true");
         }
       }
     );
