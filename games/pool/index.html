@@ -22,6 +22,7 @@
     </div>
     <div class="header-actions">
       <button id="soundBtn" class="icon-btn" type="button" aria-label="Toggle sound">🔊</button>
+      <button id="voiceBtn" class="icon-btn" type="button" aria-label="Turn voice announcements off" aria-pressed="true" title="Voice announcements on">🗣️</button>
       <button id="fullscreenBtn" class="icon-btn" type="button" aria-label="Fullscreen">⛶</button>
     </div>
   </header>
@@ -68,6 +69,15 @@
         <option value="midnight">Midnight</option>
         <option value="neon">Neon</option>
         <option value="championship">Championship</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label for="aiLanguage">AI VOICE</label>
+      <select id="aiLanguage" aria-label="AI voice language">
+        <option value="en-US">English</option>
+        <option value="fr-FR">Français</option>
+        <option value="ht-HT">Kreyòl Ayisyen</option>
+        <option value="es-ES">Español</option>
       </select>
     </div>
   </section>
