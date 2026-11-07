@@ -37,3 +37,52 @@ html.pool-scroll-locked{overflow:hidden!important;overscroll-behavior:none}
   .pool-stage.is-focused .pool-table{width:96vw}
 }
 @media(prefers-reduced-motion:reduce){.pool-table{transition:none}}
+
+
+/* Mobile-first fit: keep every game control inside the viewport. */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+.pool-app{width:100%;max-width:1200px;min-width:0;overflow-x:clip}
+.pool-stage,.pool-center-status,.pool-power-panel,.pool-actions,.pool-controls,.pool-info,.players,.pool-settings{min-width:0;max-width:100%}
+.pool-table{min-width:0}
+.table-focus-toolbar{min-width:0;max-width:100%}
+.focus-backdrop-label{color:var(--pool-muted);font-size:.58rem;font-weight:900;letter-spacing:.04em}
+#focusBackdrop{min-height:34px;max-width:110px;padding:5px 7px;color:var(--pool-text);background:#09140e;border:1px solid var(--pool-border);border-radius:8px;font-size:.64rem}
+.pool-stage.is-focused{width:100vw;max-width:100vw;overflow:hidden}
+.pool-stage.is-focused .pool-table{max-width:calc(100vw - 20px)}
+.pool-stage.is-focused[data-backdrop="midnight"]{background:radial-gradient(ellipse at center,#15223a 0%,#080d19 70%,#03060d 100%)}
+.pool-stage.is-focused[data-backdrop="ocean"]{background:radial-gradient(ellipse at center,#07506a 0%,#082a3c 65%,#03121e 100%)}
+.pool-stage.is-focused[data-backdrop="slate"]{background:radial-gradient(ellipse at center,#46515f 0%,#202936 65%,#10151d 100%)}
+.pool-stage.is-focused[data-backdrop="plum"]{background:radial-gradient(ellipse at center,#54285f 0%,#27152f 65%,#100b17 100%)}
+.pool-stage.is-focused[data-backdrop="forest"]{background:radial-gradient(ellipse at center,#174b35 0%,#0b241a 65%,#030d08 100%)}
+@media(max-width:760px){
+  .pool-app{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
+  .pool-header,.pool-settings,.player-card,.pool-power-panel{min-width:0}
+  .pool-header{gap:6px;padding:8px}
+  .brand{gap:7px}.header-actions{gap:4px}.icon-btn{width:32px;height:32px}
+  .pool-settings{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .players{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px}
+  .players .turn-status{grid-column:1/-1;grid-row:2}
+  .player-card{padding:7px 6px;gap:5px}
+  .player-name{font-size:clamp(.62rem,3vw,.78rem);overflow-wrap:anywhere}
+  .player-timer{font-size:.62rem}
+  .pool-stage{display:block;width:100%;overflow:hidden;padding:4px 0 8px}
+  .pool-table{width:100%;max-width:100%;aspect-ratio:1.72/1;padding:7px;border-width:3px}
+  .table-focus-toolbar{justify-content:center;gap:4px}
+  .table-focus-toolbar button{padding:5px 7px;min-height:32px;font-size:.58rem}
+  #focusBackdrop{max-width:88px;min-height:32px;font-size:.58rem}
+  .pool-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .pool-actions button{min-width:0;white-space:normal;overflow-wrap:anywhere;padding:5px 3px}
+  .pool-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  .pool-controls button{min-width:0;white-space:normal}
+  .power-controls{grid-template-columns:32px minmax(0,1fr) 32px}
+  .power-btn{width:32px}
+  .pool-info{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pool-stage.is-focused{position:fixed;inset:0;width:100vw;height:100dvh;max-width:100vw;min-height:0;padding:58px 8px 12px;overflow:hidden;justify-content:center}
+  .pool-stage.is-focused .pool-table{width:min(96vw,calc((100dvh - 100px)*1.72));max-width:96vw;flex:0 0 auto}
+}
+@media(max-width:380px){
+  .brand-title{font-size:.82rem}.brand-subtitle{font-size:.42rem}
+  .header-actions{gap:3px}.icon-btn{width:29px;height:29px}
+  .table-focus-toolbar{gap:3px}
+  .table-focus-toolbar button{padding:4px 6px;font-size:.54rem}
+}
