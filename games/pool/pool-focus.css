@@ -86,3 +86,55 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .table-focus-toolbar{gap:3px}
   .table-focus-toolbar button{padding:4px 6px;font-size:.54rem}
 }
+
+
+/* Focus mode keeps the complete shot workflow in view. */
+.pool-stage.is-focused{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr) auto;
+  align-content:stretch;
+  justify-items:center;
+  gap:8px;
+  padding:58px 10px max(10px,env(safe-area-inset-bottom));
+  overflow:hidden;
+}
+.pool-stage.is-focused .table-focus-toolbar{
+  position:relative;inset:auto;width:100%;max-width:1080px;grid-row:1;
+}
+.pool-stage.is-focused .pool-table{
+  grid-row:2;align-self:center;justify-self:center;
+  width:min(96vw,calc((100dvh - 250px)*1.72));
+  max-width:1080px;max-height:100%;flex:0 1 auto;
+}
+.pool-focus-dock{
+  grid-row:3;width:min(100%,760px);max-height:34dvh;overflow-y:auto;
+  display:grid;grid-template-columns:minmax(0,1fr);gap:6px;
+  padding:8px;border:1px solid rgba(140,210,235,.24);border-radius:14px;
+  background:rgba(4,12,22,.88);backdrop-filter:blur(12px);
+  box-shadow:0 10px 32px rgba(0,0,0,.35);overscroll-behavior:contain;
+}
+.pool-focus-dock .pool-power-panel,
+.pool-focus-dock .pool-actions,
+.pool-focus-dock .pool-controls{width:100%;margin:0;min-width:0}
+.pool-focus-dock .pool-power-panel{padding:8px}
+.pool-focus-dock .pool-actions,
+.pool-focus-dock .pool-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.pool-focus-dock .pool-controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pool-focus-dock button{min-width:0;min-height:42px;white-space:normal;overflow-wrap:anywhere}
+.pool-focus-dock .shoot-btn{font-weight:1000;box-shadow:0 0 18px rgba(58,190,255,.22)}
+@media(max-width:760px){
+ .pool-stage.is-focused{height:100dvh;grid-template-rows:auto minmax(110px,1fr) auto;padding:54px 7px max(7px,env(safe-area-inset-bottom));gap:6px}
+ .pool-stage.is-focused .table-focus-toolbar{justify-content:center;flex-wrap:wrap}
+ .pool-stage.is-focused .pool-table{width:min(96vw,calc((100dvh - 275px)*1.72));max-width:96vw;max-height:100%}
+ .pool-focus-dock{width:100%;max-height:36dvh;padding:6px;gap:5px}
+ .pool-focus-dock .pool-power-panel{padding:6px}
+ .pool-focus-dock .pool-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .pool-focus-dock .pool-controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .pool-focus-dock button{min-height:38px;padding:5px 3px;font-size:.64rem}
+}
+@media(max-height:650px) and (max-width:760px){
+ .pool-stage.is-focused{grid-template-rows:auto minmax(90px,1fr) auto}
+ .pool-focus-dock{max-height:40dvh}
+ .pool-stage.is-focused .pool-table{width:min(90vw,calc((100dvh - 230px)*1.72))}
+}
