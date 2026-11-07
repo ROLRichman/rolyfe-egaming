@@ -114,6 +114,12 @@
 
   function monitor() {
     syncLock();
+    const gameState = window.ROLYFE_POOL && window.ROLYFE_POOL.state;
+    const aim = document.getElementById("aimLine");
+    if (aim && gameState) {
+      const power = Math.max(0, Math.min(1, Number(gameState.power) || 0));
+      aim.style.setProperty("--cue-stick-length", (48 + power * 56) + "px");
+    }
     raf = window.requestAnimationFrame(monitor);
   }
   applyZoom();
