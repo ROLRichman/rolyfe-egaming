@@ -177,3 +177,62 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   box-shadow:0 0 5px rgba(220,240,255,.65);
 }
 .aim-line{overflow:visible}
+
+
+/* Galaxy A14 / compact Android tuning — 360px-class viewports. */
+.pool-stage{min-width:0;max-width:100%;overflow-x:auto;overflow-y:visible;justify-content:flex-start;-webkit-overflow-scrolling:touch}
+.pool-table{flex:0 0 auto;width:min(100%,1080px);max-width:none;aspect-ratio:1.72/1;transform:none!important}
+@media(max-width:430px){
+  .pool-app{padding-left:7px;padding-right:7px}
+  .pool-header{gap:5px;padding:7px}
+  .brand-mark{width:31px;height:31px;flex-basis:31px}
+  .brand-title{font-size:.88rem}
+  .brand-subtitle{font-size:.42rem;letter-spacing:.04em}
+  .header-actions{gap:3px}
+  .icon-btn{width:29px;height:29px}
+  .pool-settings{gap:5px;padding:6px}
+  .setting-group select{min-width:0;padding:5px 4px;font-size:.59rem}
+  .players{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px}
+  .player-card{min-width:0;padding:6px 5px;gap:4px}
+  .player-info{min-width:0}
+  .player-name{font-size:.62rem;white-space:nowrap}
+  .player-status{font-size:.48rem}
+  .player-timer{font-size:.56rem}
+  .pool-center-status{min-width:0}
+  .pool-message{overflow-wrap:anywhere}
+  .pool-stage{width:100%;padding:4px 0 8px;overflow-x:auto;overflow-y:visible}
+  .pool-table{width:100%;min-width:0;aspect-ratio:1.58/1;padding:6px;border-width:3px;border-radius:10px}
+  .pocket{width:clamp(19px,6vw,26px);height:clamp(19px,6vw,26px)}
+  .ball{width:clamp(13px,4.1vw,18px);height:clamp(13px,4.1vw,18px);font-size:clamp(5px,1.6vw,7px)}
+  .pool-power-panel{padding:7px 8px}
+  .pool-actions{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) minmax(0,1fr);gap:4px}
+  .pool-actions button{min-width:0;min-height:42px;padding:4px 2px;font-size:.55rem}
+  .pool-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+  .pool-controls button{min-width:0;min-height:38px;padding:4px 2px;font-size:.56rem}
+  .pool-info{gap:4px}
+  .table-focus-toolbar{display:flex;justify-content:center;gap:3px;flex-wrap:wrap}
+  .table-focus-toolbar button{padding:4px 6px;min-height:31px;font-size:.54rem}
+  #focusBackdrop{max-width:78px;min-height:31px;font-size:.55rem}
+}
+@media(max-width:430px) and (orientation:portrait){
+  .pool-stage.is-focused{
+    display:grid;width:100vw;max-width:100vw;height:100dvh;min-height:100dvh;
+    grid-template-rows:auto minmax(160px,1fr) auto;gap:5px;
+    padding:calc(7px + env(safe-area-inset-top)) 7px max(7px,env(safe-area-inset-bottom));
+    overflow-x:auto;overflow-y:auto;justify-items:stretch;align-content:start;
+  }
+  .pool-stage.is-focused .table-focus-toolbar{position:sticky;top:0;z-index:8;grid-row:1;width:100%}
+  .pool-stage.is-focused .pool-table{
+    grid-row:2;justify-self:center;align-self:center;width:min(100%,1080px);
+    aspect-ratio:1.58/1;max-width:none;max-height:none;flex:0 0 auto;
+  }
+  .pool-stage.is-focused .pool-focus-dock{grid-row:3;width:100%;max-height:none;overflow:visible;padding:5px;gap:4px}
+  .pool-stage.is-focused .pool-focus-dock .pool-power-panel{padding:5px}
+  .pool-stage.is-focused .pool-focus-dock .pool-actions{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr)}
+  .pool-stage.is-focused .pool-focus-dock .pool-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pool-stage.is-focused .pool-focus-dock button{min-height:38px;font-size:.56rem}
+}
+@media(max-width:900px) and (orientation:landscape){
+  .pool-stage.is-focused{overflow-x:auto;overflow-y:auto;touch-action:pan-x pan-y}
+  .pool-stage.is-focused .pool-table{width:min(92vw,1080px);max-width:none}
+}

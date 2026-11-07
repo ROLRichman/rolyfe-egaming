@@ -18,7 +18,10 @@
   let raf = 0;
 
   function applyZoom() {
-    table.style.transform = "scale(" + zoom.toFixed(2) + ")";
+    table.style.transform = "none";
+    table.style.width = zoom === 1
+      ? ""
+      : (zoom * 100).toFixed(0) + "%";
     if (zoomValue) zoomValue.textContent = Math.round(zoom * 100) + "%";
     zoomOut.disabled = zoom <= 0.8;
     zoomIn.disabled = zoom >= 1.5;
