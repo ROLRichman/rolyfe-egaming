@@ -32,6 +32,8 @@
     savedScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.classList.add("pool-scroll-locked");
     document.body.classList.add("pool-scroll-locked");
+    document.documentElement.style.touchAction = focused ? "pan-y" : "none";
+    document.body.style.touchAction = focused ? "pan-y" : "none";
     document.body.style.top = "-" + savedScrollY + "px";
     locked = true;
   }
@@ -40,6 +42,8 @@
     document.documentElement.classList.remove("pool-scroll-locked");
     document.body.classList.remove("pool-scroll-locked");
     document.body.style.top = "";
+    document.body.style.touchAction = "";
+    document.documentElement.style.touchAction = "";
     locked = false;
     window.scrollTo(0, savedScrollY);
   }
