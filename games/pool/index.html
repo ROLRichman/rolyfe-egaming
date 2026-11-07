@@ -7,6 +7,7 @@
 <meta name="description" content="RO'Lyfe Pool™ — Competitive pool with AI, themes, challenge mode and tactical gameplay.">
 <title>RO'Lyfe Pool™</title>
 <link rel="stylesheet" href="./pool.css">
+<link rel="stylesheet" href="./pool-focus.css">
 </head>
 
 <body>
@@ -116,7 +117,14 @@
     <div id="aiStatus" class="ai-status hidden">AI READY</div>
   </section>
 
-  <section class="pool-stage">
+  <section class="pool-stage" id="poolStage">
+    <div class="table-focus-toolbar" role="group" aria-label="Table zoom and focus">
+      <button id="tableZoomOut" type="button" aria-label="Zoom out">−</button>
+      <span id="tableZoomValue" aria-live="polite">100%</span>
+      <button id="tableZoomIn" type="button" aria-label="Zoom in">+</button>
+      <button id="tableZoomFit" type="button">FIT</button>
+      <button id="tableFocusBtn" type="button" aria-pressed="false">⛶ FOCUS TABLE</button>
+    </div>
     <div id="poolTable" class="pool-table" aria-label="Pool table">
       <div class="rail rail-top"></div>
       <div class="rail rail-bottom"></div>
@@ -211,5 +219,6 @@
 <script src="../../shared/physics-engine.js"></script>
 <script src="./themes.js"></script>
 <script src="./pool.js"></script>
+<script src="./pool-focus.js"></script>
 </body>
 </html>

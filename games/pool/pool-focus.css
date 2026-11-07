@@ -1,0 +1,39 @@
+/* RO'Lyfe Pool — table focus and zoom */
+.table-focus-toolbar{
+  width:100%;max-width:1080px;display:flex;align-items:center;justify-content:flex-end;
+  gap:7px;margin:0 auto 8px;flex-wrap:wrap;
+}
+.table-focus-toolbar button{
+  min-height:34px;padding:6px 11px;color:var(--pool-text);
+  background:linear-gradient(180deg,#172b20,#09140e);
+  border:1px solid var(--pool-border);border-radius:8px;font-size:.68rem;font-weight:950;
+}
+.table-focus-toolbar button:hover,.table-focus-toolbar button[aria-pressed="true"]{
+  border-color:var(--pool-accent);color:var(--pool-accent-light);
+}
+#tableZoomValue{min-width:42px;text-align:center;color:var(--pool-accent-light);font-size:.68rem;font-weight:950;font-variant-numeric:tabular-nums}
+.pool-table{transform-origin:center center;transition:transform .16s ease}
+.pool-stage.is-focused{
+  position:fixed;inset:0;z-index:950;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:8px;padding:62px 12px 18px;margin:0;
+  background:rgba(2,8,5,.97);overflow:auto;overscroll-behavior:contain;
+}
+.pool-stage.is-focused .table-focus-toolbar{
+  position:absolute;top:max(10px,env(safe-area-inset-top));left:0;right:0;
+  width:calc(100% - 24px);justify-content:center;margin:0 auto;
+}
+.pool-stage.is-focused .pool-table{
+  width:min(96vw,1080px);max-width:none;flex:0 0 auto;
+}
+body.pool-scroll-locked{
+  position:fixed!important;left:0;right:0;width:100%;overflow:hidden!important;
+  overscroll-behavior:none;touch-action:none;
+}
+html.pool-scroll-locked{overflow:hidden!important;overscroll-behavior:none}
+@media(max-width:600px){
+  .table-focus-toolbar{justify-content:center;gap:5px;margin-bottom:6px}
+  .table-focus-toolbar button{min-height:32px;padding:5px 9px;font-size:.62rem}
+  .pool-stage.is-focused{padding:58px 8px 12px}
+  .pool-stage.is-focused .pool-table{width:96vw}
+}
+@media(prefers-reduced-motion:reduce){.pool-table{transition:none}}
