@@ -236,3 +236,47 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .pool-stage.is-focused{overflow-x:auto;overflow-y:auto;touch-action:pan-x pan-y}
   .pool-stage.is-focused .pool-table{width:min(92vw,1080px);max-width:none}
 }
+
+
+/* Fire HD 10 / 10-inch tablet layout: roomy controls without stretching the game engine. */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .pool-app{width:min(100%,1040px);margin-inline:auto;padding-left:clamp(16px,2.6vw,28px);padding-right:clamp(16px,2.6vw,28px)}
+  .pool-header{padding:14px 18px;gap:16px}
+  .pool-settings{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:13px}
+  .setting-group{min-width:0;font-size:.68rem}
+  .setting-group select{width:100%;min-height:42px;font-size:.82rem}
+  .players{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch}
+  .player-card{min-width:0;min-height:82px;padding:12px 14px;gap:10px}
+  .player-avatar{width:40px;height:40px;flex-basis:40px}
+  .player-name{font-size:.9rem}
+  .player-status{font-size:.68rem}
+  .player-timer{font-size:.78rem}
+  .turn-status{min-width:112px;padding:10px 14px}
+  .pool-stage{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:visible;padding:10px 0 14px;justify-content:center}
+  .pool-table{width:min(100%,980px);max-width:980px;aspect-ratio:1.72/1;flex:0 0 auto}
+  .table-focus-toolbar{gap:8px;flex-wrap:wrap;justify-content:center}
+  .table-focus-toolbar button{min-height:40px;padding:7px 12px;font-size:.72rem}
+  .pool-power-panel{padding:12px 16px}
+  .power-controls{grid-template-columns:48px minmax(0,1fr) 48px;gap:12px}
+  .power-btn{width:48px;height:44px;font-size:1.15rem}
+  .power-meter{height:15px}
+  .pool-actions{grid-template-columns:minmax(0,1fr) minmax(180px,1.35fr) minmax(0,1fr);gap:10px}
+  .pool-actions button,.pool-controls button{min-height:50px;font-size:.78rem;padding:9px 12px}
+  .pool-controls{gap:10px}
+  .pool-info{gap:10px}
+  .info-card{padding:12px 14px}
+  .info-card span{font-size:.62rem}
+  .info-card strong{font-size:.82rem}
+  .pool-stage.is-focused{width:100%;height:100dvh;min-height:100dvh;max-height:100dvh;grid-template-rows:auto minmax(220px,1fr) auto;gap:10px;padding:12px clamp(14px,2vw,24px) max(12px,env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;touch-action:pan-y}
+  .pool-stage.is-focused .table-focus-toolbar{position:sticky;top:0;z-index:8;background:rgba(4,12,22,.9);padding:7px;border-radius:12px}
+  .pool-stage.is-focused .pool-table{width:min(100%,980px);max-width:980px;max-height:none;justify-self:center;align-self:center}
+  .pool-focus-dock{width:min(100%,980px);max-width:980px;margin-inline:auto;max-height:none;overflow:visible;padding:10px;gap:9px}
+  .pool-focus-dock .pool-actions{grid-template-columns:minmax(0,1fr) minmax(180px,1.35fr) minmax(0,1fr)}
+  .pool-focus-dock .pool-controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pool-focus-dock button{min-height:48px;font-size:.75rem}
+}
+@media (min-width: 761px) and (max-width: 1100px) and (orientation:landscape) and (max-height: 700px) {
+  .pool-stage.is-focused{grid-template-rows:auto auto auto;align-content:start}
+  .pool-stage.is-focused .pool-table{width:min(92vw,calc((100dvh - 220px)*1.72));max-width:980px}
+  .pool-focus-dock{padding:8px}
+}
