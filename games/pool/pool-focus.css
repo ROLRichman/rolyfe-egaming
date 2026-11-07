@@ -280,3 +280,42 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .pool-stage.is-focused .pool-table{width:min(92vw,calc((100dvh - 220px)*1.72));max-width:980px}
   .pool-focus-dock{padding:8px}
 }
+
+
+/* Fullscreen needs a real scroll surface so the lower controls stay reachable. */
+html.pool-app-fullscreen,
+body.pool-app-fullscreen{
+  height:100%;
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+.pool-app.pool-app-fullscreen,
+.pool-app:fullscreen,
+.pool-app:-webkit-full-screen{
+  width:100vw;
+  max-width:none;
+  height:100dvh;
+  min-height:100dvh;
+  max-height:100dvh;
+  margin:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  touch-action:pan-y;
+}
+.pool-app.pool-app-fullscreen .pool-stage.is-focused,
+.pool-app:fullscreen .pool-stage.is-focused,
+.pool-app:-webkit-full-screen .pool-stage.is-focused{
+  height:100dvh;
+  min-height:100dvh;
+  max-height:100dvh;
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  touch-action:pan-y;
+}
+
+/* Vertical touch gestures scroll; horizontal drags remain available for aiming. */
+.pool-table,.table-surface{touch-action:pan-y}

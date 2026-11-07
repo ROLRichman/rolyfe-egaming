@@ -1,6 +1,7 @@
 /* RO'Lyfe Pool — table focus, zoom and shot scroll lock */
 (() => {
   "use strict";
+  const app = document.getElementById("poolApp");
   const stage = document.getElementById("poolStage");
   const table = document.getElementById("poolTable");
   const zoomOut = document.getElementById("tableZoomOut");
@@ -30,13 +31,23 @@
     zoom = Math.max(0.8, Math.min(1.5, Math.round(next * 10) / 10));
     applyZoom();
   }
+  function appIsFullscreen() {
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+    return !!(app && fullscreenElement === app);
+  }
+
   function lockPage() {
-    if (locked) return;
+    const touchAction = focused || appIsFullscreen() ? "pan-y" : "none";
+    if (locked) {
+      document.documentElement.style.touchAction = touchAction;
+      document.body.style.touchAction = touchAction;
+      return;
+    }
     savedScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.classList.add("pool-scroll-locked");
     document.body.classList.add("pool-scroll-locked");
-    document.documentElement.style.touchAction = focused ? "pan-y" : "none";
-    document.body.style.touchAction = focused ? "pan-y" : "none";
+    document.documentElement.style.touchAction = touchAction;
+    document.body.style.touchAction = touchAction;
     document.body.style.top = "-" + savedScrollY + "px";
     locked = true;
   }
@@ -111,6 +122,18 @@
       setFocus(false);
     }
   });
+  function syncFullscreenLayout() {
+    const active = appIsFullscreen();
+    app?.classList.toggle("pool-app-fullscreen", active);
+    document.documentElement.classList.toggle("pool-app-fullscreen", active);
+    document.body.classList.toggle("pool-app-fullscreen", active);
+    syncLock();
+  }
+
+  document.addEventListener("fullscreenchange", syncFullscreenLayout);
+  document.addEventListener("webkitfullscreenchange", syncFullscreenLayout);
+  syncFullscreenLayout();
+
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && !focused) unlockPage();
   });
