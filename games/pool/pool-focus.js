@@ -32,6 +32,8 @@
     savedScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.classList.add("pool-scroll-locked");
     document.body.classList.add("pool-scroll-locked");
+    document.documentElement.style.touchAction = focused ? "pan-y" : "none";
+    document.body.style.touchAction = focused ? "pan-y" : "none";
     document.body.style.top = "-" + savedScrollY + "px";
     locked = true;
   }
@@ -40,6 +42,8 @@
     document.documentElement.classList.remove("pool-scroll-locked");
     document.body.classList.remove("pool-scroll-locked");
     document.body.style.top = "";
+    document.body.style.touchAction = "";
+    document.documentElement.style.touchAction = "";
     locked = false;
     window.scrollTo(0, savedScrollY);
   }
@@ -110,6 +114,12 @@
 
   function monitor() {
     syncLock();
+    const gameState = window.ROLYFE_POOL && window.ROLYFE_POOL.state;
+    const aim = document.getElementById("aimLine");
+    if (aim && gameState) {
+      const power = Math.max(0, Math.min(1, Number(gameState.power) || 0));
+      aim.style.setProperty("--cue-stick-length", (48 + power * 56) + "px");
+    }
     raf = window.requestAnimationFrame(monitor);
   }
   applyZoom();
