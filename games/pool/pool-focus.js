@@ -55,9 +55,37 @@
     stage.dataset.backdrop = chosen;
     if (backdropSelect && backdropSelect.value !== chosen) backdropSelect.value = chosen;
   }
+  const focusDock = document.createElement("div");
+  focusDock.className = "pool-focus-dock";
+  focusDock.setAttribute("aria-label", "Pool shooting controls");
+  focusDock.hidden = true;
+  stage.appendChild(focusDock);
+
+  const dockTargets = ["pool-power-panel", "pool-actions", "pool-controls"]
+    .map(className => document.querySelector("." + className))
+    .filter(Boolean);
+  const dockPlaceholders = dockTargets.map(node => {
+    const marker = document.createComment("ROLYFE_POOL_DOCK_HOME");
+    node.parentNode.insertBefore(marker, node);
+    return marker;
+  });
+  function moveControlsIntoFocus() {
+    dockTargets.forEach(node => focusDock.appendChild(node));
+    focusDock.hidden = false;
+  }
+  function restoreControlsToPage() {
+    dockTargets.forEach((node, index) => {
+      const marker = dockPlaceholders[index];
+      if (marker && marker.parentNode) marker.parentNode.insertBefore(node, marker);
+    });
+    focusDock.hidden = true;
+  }
+
   function setFocus(value) {
     focused = !!value;
+    if (focused) moveControlsIntoFocus();
     stage.classList.toggle("is-focused", focused);
+    if (!focused) restoreControlsToPage();
     focusBtn.setAttribute("aria-pressed", String(focused));
     focusBtn.textContent = focused ? "✕ EXIT FOCUS" : "⛶ FOCUS TABLE";
     syncLock();
