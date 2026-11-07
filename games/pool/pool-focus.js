@@ -21,7 +21,7 @@
     table.style.transform = "none";
     table.style.width = zoom === 1
       ? ""
-      : "calc(100% * " + zoom.toFixed(2) + ")";
+      : (zoom * 100).toFixed(0) + "%";
     if (zoomValue) zoomValue.textContent = Math.round(zoom * 100) + "%";
     zoomOut.disabled = zoom <= 0.8;
     zoomIn.disabled = zoom >= 1.5;
