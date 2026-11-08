@@ -27,6 +27,12 @@ function applyPoolTheme(id=DEFAULT_POOL_THEME){
   const t=getPoolTheme(id),c=t.colors,r=document.documentElement;
   const vars={
     "--pool-bg":c.background,
+    "--pool-bg-2":c.railDark||c.tableDark,
+    "--pool-panel":c.panel||c.background,
+    "--pool-panel-2":c.panel2||c.rail,
+    "--pool-border":c.border||c.secondary,
+    "--pool-muted":c.muted||c.secondary,
+    "--pool-glow":c.glow||c.accent,
     "--pool-cloth":c.table,
     "--pool-cloth-dark":c.tableDark,
     "--pool-rail":c.rail,
@@ -34,7 +40,9 @@ function applyPoolTheme(id=DEFAULT_POOL_THEME){
     "--pool-pocket":c.pocket,
     "--pool-text":c.text,
     "--pool-accent":c.accent,
-    "--pool-accent-light":c.secondary
+    "--pool-accent-light":c.secondary,
+    "--pool-control-bg":c.panel||c.background,
+    "--pool-control-bg-2":c.panel2||c.rail
   };
   Object.entries(vars).forEach(([k,v])=>r.style.setProperty(k,v));
   r.dataset.poolTheme=t.id;
