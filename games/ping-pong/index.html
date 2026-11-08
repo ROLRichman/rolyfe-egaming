@@ -44,7 +44,7 @@ function reset(){playerScore=0;opponentScore=0;mode=$("mode").value;level=Number
 function start(){if(over)reset();mode=$("mode").value;level=Number($("level").value);active=true;paused=false;over=false;setOverlay(false,"","","START MATCH");last=performance.now();sync();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function pause(){if(!active||over)return;paused=!paused;$("pauseBtn").textContent=paused?"▶ Resume":"Ⅱ Pause";sync();if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}}
 function matchPoint(){active=false;over=true;sync();const won=playerScore>=winAt;$("atlasTip").textContent=won?"Strong rally control. Try increasing the AI level next match.":"Reset your paddle position and return the ball earlier. A deeper rally is the next target.";setOverlay(true,won?"You win the match!":"Atlas takes the match",playerScore+" – "+opponentScore+". "+(won?"Great table control.":"Run it back and adjust your timing."),"PLAY AGAIN");beep(won?850:170,.3)}
-function scorePoint(forPlayer){if(forPlayer)playerScore++;else opponentScore++;sync();beep(forPlayer?760:250,.12);if(playerScore>=winAt||opponentScore>=winAt){matchPoint();return}resetBall(forPlayer?-1:1)}
+function scorePoint(forPlayer){if(forPlayer)playerScore++;else opponentScore++;sync();beep(forPlayer?760:250,.12);if(playerScore>=winAt||opponentScore>=winAt){matchPoint();return}resetBall(forPlayer?1:-1)}
 function setPaddle(which,y){if(which===1)p1=clamp(y,paddleH/2,h-paddleH/2);else p2=clamp(y,paddleH/2,h-paddleH/2)}
 function update(dt){
  if(keys.w||keys.W)setPaddle(1,p1-330*dt);if(keys.s||keys.S)setPaddle(1,p1+330*dt);
