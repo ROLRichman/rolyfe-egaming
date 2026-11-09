@@ -11,7 +11,7 @@
 <section class="health"><div class="fighterstat"><b>PLAYER 1 · CYAN</b><div class="bar"><i id="pHealth"></i></div></div><div class="round" id="round">ROUND 1</div><div class="fighterstat enemy"><b>ATLAS · AMBER</b><div class="bar"><i id="eHealth"></i></div></div></section>
 <section class="stage"><canvas id="arena" aria-label="Stick Fighter Arena"></canvas><div class="overlay" id="overlay"><div><div class="eyebrow">RO’LYFE AI ARENA</div><h2 id="overlayTitle">Ready to spar?</h2><p id="overlayText">Move, jump, punch, kick, and block. Watch the amber fighter’s wind-up before committing to an attack.</p><button class="btn primary" id="startBtn">START ROUND</button></div></div></section>
 <div class="toolbar"><button id="pauseBtn">Ⅱ Pause</button><button id="soundBtn">🔇 Sound off</button><button id="restartBtn">↻ New Match</button></div>
-<div class="settings"><label>ATLAS DIFFICULTY<select id="difficulty"><option value="1">1 · START-UP</option><option value="2" selected>2 · INVESTOR</option><option value="3">3 · ADVANCED</option></select></label><label>ROUND LENGTH<select id="roundLength"><option value="30">30 seconds</option><option value="45" selected>45 seconds</option><option value="60">60 seconds</option></select></label></div>
+<div class="settings"><label>ATLAS DIFFICULTY<select id="difficulty"><option value="1">1 · START-UP</option><option value="2" selected>2 · INVESTOR</option><option value="3">3 · ADVANCED</option></select></label><label>ROUND LENGTH<select id="roundLength"><option value="30">30 seconds</option><option value="50" selected>50 seconds</option><option value="100">100 seconds</option><option value="infinity">INFINITY</option></select></label></div>
 <div class="fight-controls"><button id="left">◀ MOVE</button><button id="right">MOVE ▶</button><button id="jump">⬆ JUMP</button><button class="attack" id="punch">✊ PUNCH</button><button class="attack" id="kick">🦶 KICK</button><button class="block" id="guard">🛡️ BLOCK</button></div>
 <section class="panel"><h3>🧠 Atlas · Fight Coach</h3><p id="coach">Keep a little distance, block the first rush, then counter with a kick. Controls: A/D or arrows to move, W/↑ to jump, F to punch, G to kick, H to block.</p></section>
 </div>
@@ -28,7 +28,7 @@ function resize(){const r=canvas.getBoundingClientRect();dpr=Math.min(2,devicePi
 function resetPositions(){p.x=w*.28;e.x=w*.72;p.y=e.y=h*.72;p.vy=e.vy=0}
 function hud(){$("pHealth").style.width=clamp(p.hp,0,100)+"%";$("eHealth").style.width=clamp(e.hp,0,100)+"%";$("round").textContent="ROUND "+round}
 function overlay(show,title,msg,button){$("overlay").hidden=!show;$("overlayTitle").textContent=title;$("overlayText").textContent=msg;$("startBtn").textContent=button}
-function reset(){p.hp=e.hp=100;p.attack=e.attack=p.cool=e.cool=0;p.block=e.block=false;round=1;timeLeft=Number($("roundLength").value);difficulty=Number($("difficulty").value);active=false;paused=false;over=false;sparks=[];resetPositions();hud();overlay(true,"Ready to spar?","Move, jump, punch, kick and block. Win the round to face a faster Atlas.","START ROUND")}
+function reset(){p.hp=e.hp=100;p.attack=e.attack=p.cool=e.cool=0;p.block=e.block=false;round=1;timeLeft=$("roundLength").value==="infinity"?Infinity:Number($("roundLength").value);difficulty=Number($("difficulty").value);active=false;paused=false;over=false;sparks=[];resetPositions();hud();overlay(true,"Ready to spar?","Move, jump, punch, kick and block. Win the round to face a faster Atlas.","START ROUND")}
 function start(){if(over)reset();active=true;paused=false;over=false;last=performance.now();overlay(false,"","","");cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function finish(won){active=false;over=true;if(won){window.ROLYFE_ARCADE_PROFILE?.award("EMG");if(round>=3)window.ROLYFE_ARCADE_PROFILE?.award("RJ C&D");if(difficulty===3)window.ROLYFE_ARCADE_PROFILE?.award("7Figures")}const title=won?"ROUND WON!":"ATLAS WINS THIS ROUND";overlay(true,title,"Round "+round+" complete. "+(won?"Great timing and spacing.":"Try blocking the opening rush, then counter when Atlas recovers."),"NEXT ROUND");$("coach").textContent=won?"Nice work. Atlas will adapt next round. Keep varying your attack timing.":"Try a shorter combo and use the guard when the opponent closes distance.";beep(won?850:180,.22)}
 function attack(fighter,type){if(!active||paused||fighter.cool>0||fighter.block)return;fighter.attack=.22;fighter.attackType=type;fighter.cool=type==="kick"?.65:.42;beep(type==="kick"?250:520,.05)}
@@ -49,7 +49,7 @@ function update(dt){
  hit(p,e);hit(e,p);
  p.x=clamp(p.x,32,w-32);e.x=clamp(e.x,32,w-32);
  sparks.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt});sparks=sparks.filter(s=>s.life>0);
- if(timeLeft<=0){finish(p.hp>=e.hp);return}hud()
+ if(Number.isFinite(timeLeft)&&timeLeft<=0){finish(p.hp>=e.hp);return}hud()
 }
 function drawFighter(f,color){const x=f.x,y=f.y;ctx.save();ctx.strokeStyle=color;ctx.lineWidth=5;ctx.lineCap="round";ctx.shadowColor=color;ctx.shadowBlur=13;
 const lean=f.attack>0?f.face*18:0;ctx.beginPath();ctx.arc(x,y-75,13,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-61);ctx.lineTo(x+lean,y-25);ctx.lineTo(x,y-4);ctx.stroke();
@@ -64,7 +64,7 @@ window.addEventListener("keydown",e=>{keys[e.key]=true;if(["ArrowLeft","ArrowRig
 $("startBtn").addEventListener("click",()=>{if(over){round++;p.hp=e.hp=100;p.cool=e.cool=p.attack=e.attack=0;resetPositions();timeLeft=Number($("roundLength").value);over=false}start()});
 $("pauseBtn").addEventListener("click",()=>{if(!active)return;paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}});
 $("restartBtn").addEventListener("click",reset);$("soundBtn").addEventListener("click",()=>{sound=!sound;$("soundBtn").textContent=sound?"🔊 Sound on":"🔇 Sound off"});
-$("difficulty").addEventListener("change",()=>difficulty=Number($("difficulty").value));$("roundLength").addEventListener("change",()=>timeLeft=Number($("roundLength").value));
+$("difficulty").addEventListener("change",()=>difficulty=Number($("difficulty").value));$("roundLength").addEventListener("change",()=>timeLeft=$("roundLength").value==="infinity"?Infinity:Number($("roundLength").value));
 window.addEventListener("resize",resize);document.addEventListener("visibilitychange",()=>{if(document.hidden&&active&&!paused){paused=true}});resize();reset();
 })();
 </script><script src="../../shared/arcade-controls.js"></script></body></html>
