@@ -54,7 +54,7 @@ for(const d of drops){d.y+=d.vy*dt;if(d.y>paddle.y-8&&d.y<paddle.y+20&&Math.abs(
 drops=drops.filter(d=>d.y<h+20&&!(d.y>paddle.y-8&&d.y<paddle.y+20&&Math.abs(d.x-paddle.x)<paddle.w/2));
 particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt});particles=particles.filter(p=>p.life>0);
 if(!balls.length){if(shield>0){shield--;balls=[{x:paddle.x,y:paddle.y-20,vx:150,vy:-250,r:7}]}else{lives--;if(lives<=0){finish();return}balls=[{x:paddle.x,y:paddle.y-20,vx:150,vy:-250,r:7}]}}
-if(!bricks.length){level++;if(level%5===0){$("bossFlash").classList.add("on");setTimeout(()=>$("bossFlash").classList.remove("on"),260)}makeLevel()}
+if(!bricks.length){level++;if(level%5===0&&lives<5){lives++;beep(1120,.16)}if(level%5===0){$("bossFlash").classList.add("on");setTimeout(()=>$("bossFlash").classList.remove("on"),260)}makeLevel()}
 hud()}
 function fire(){if(charges<=0||!active||paused)return;charges--;const color=weapon==="laser"?"#73f5ff":weapon==="plasma"?"#ff9a62":"#a4a5ff";for(let i=0;i<3;i++)particles.push({x:paddle.x+(i-1)*18,y:paddle.y-20,vx:(i-1)*15,vy:-240,life:.5,color});const target=bricks[0];if(target)hitBrick(target);hud()}
 function draw(){if(!w||!h)return;ctx.clearRect(0,0,w,h);const bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,"#071d34");bg.addColorStop(1,"#040b16");ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.strokeStyle="#43d9ef22";for(let x=0;x<w;x+=36){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
