@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101d"><title>RO’Lyfe Stick Fighter Arena™</title>
+<style>
+:root{color-scheme:dark;--bg:#050b16;--panel:#0b192b;--line:#29445f;--text:#f2f8ff;--muted:#9eb4ca;--cyan:#5de6f4;--green:#5ce8ad;--amber:#ffc66d;--red:#ff6e83}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}body{background:radial-gradient(ellipse at 15% 0%,#17395a,transparent 38%),#050b16;overflow-x:hidden}.shell{width:min(1080px,calc(100% - 20px));margin:auto;padding:12px 0 42px}.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.top a{color:var(--cyan);text-decoration:none}.brand{font-weight:950;color:var(--text)!important;letter-spacing:.08em}.hero{margin:18px 0}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:900}.hero h1{font-size:clamp(30px,6vw,50px);margin:6px 0}.hero p{color:var(--muted);font-size:13px;line-height:1.5}.health{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:12px 0}.fighterstat{background:#0c1d30;border:1px solid var(--line);border-radius:12px;padding:10px}.fighterstat b{display:block;margin-bottom:6px}.bar{height:9px;border-radius:99px;background:#26384a;overflow:hidden}.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#45e1a5,#6cf1d4);transition:width .1s}.fighterstat.enemy .bar i{background:linear-gradient(90deg,#ff7187,#ffbf72)}.round{color:var(--amber);font-weight:900}.stage{position:relative;background:#071525;border:1px solid #345b7a;border-radius:18px;padding:8px;box-shadow:0 18px 55px #0008}canvas{display:block;width:100%;height:clamp(340px,60svh,590px);background:radial-gradient(ellipse at 50% 100%,#1c3e57,#071525 70%);border-radius:12px;touch-action:none}.overlay{position:absolute;inset:8px;background:#030916c9;display:grid;place-items:center;text-align:center;padding:18px;border-radius:12px}.overlay[hidden]{display:none}.overlay>div{max-width:420px;background:#0c1e31;border:1px solid #3c6684;border-radius:16px;padding:22px}.overlay p{font-size:13px;color:var(--muted);line-height:1.5}.btn,.toolbar button,.fight-controls button,.settings select{border:1px solid #426c88;border-radius:11px;padding:10px 13px;background:#102941;color:var(--text);font-weight:850}.btn.primary{background:linear-gradient(135deg,#66e5f0,#388cc7);color:#06131d}.toolbar,.fight-controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.toolbar button,.fight-controls button{flex:1;min-height:46px}.fight-controls button{touch-action:none;user-select:none}.fight-controls .attack{background:linear-gradient(135deg,#e56a83,#923c62)}.fight-controls .block{background:linear-gradient(135deg,#6b9ee7,#385c9d)}.settings{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}.settings label{display:grid;gap:5px;font-size:10px;color:var(--muted);font-weight:900}.settings select{width:100%}.panel{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#10243a,#091625)}.panel h3{margin:0 0 7px}.panel p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:650px){.health{gap:5px}.fighterstat{padding:7px}.settings{grid-template-columns:1fr 1fr}.fight-controls{display:grid;grid-template-columns:repeat(3,1fr)}.fight-controls button{min-height:54px;padding:7px 3px;font-size:11px}}
+@media(max-height:480px) and (orientation:landscape){canvas{height:65svh}.hero{margin:5px 0}.shell{padding-top:4px}}
+</style></head><body><div class="shell">
+<header class="top"><a class="brand" href="../../">RO’LYFE GAMING™</a><nav><a href="../../">← Game Library</a> · <a href="../block-breaker/">Block Breaker ↗</a></nav></header>
+<section class="hero"><div class="eyebrow">ARCADE ROOM 05 · COMBAT PROTOTYPE</div><h1>STICK <span style="color:var(--red)">FIGHTER</span>™</h1><p>A clean, animated stick-figure sparring game. Read the opponent, time your punches and kicks, guard, and win the round. No graphic violence — just arcade combat.</p></section>
+<section class="health"><div class="fighterstat"><b>PLAYER 1 · CYAN</b><div class="bar"><i id="pHealth"></i></div></div><div class="round" id="round">ROUND 1</div><div class="fighterstat enemy"><b>ATLAS · AMBER</b><div class="bar"><i id="eHealth"></i></div></div></section>
+<section class="stage"><canvas id="arena" aria-label="Stick Fighter Arena"></canvas><div class="overlay" id="overlay"><div><div class="eyebrow">RO’LYFE AI ARENA</div><h2 id="overlayTitle">Ready to spar?</h2><p id="overlayText">Move, jump, punch, kick, and block. Watch the amber fighter’s wind-up before committing to an attack.</p><button class="btn primary" id="startBtn">START ROUND</button></div></div></section>
+<div class="toolbar"><button id="pauseBtn">Ⅱ Pause</button><button id="soundBtn">🔇 Sound off</button><button id="restartBtn">↻ New Match</button></div>
+<div class="settings"><label>ATLAS DIFFICULTY<select id="difficulty"><option value="1">1 · START-UP</option><option value="2" selected>2 · INVESTOR</option><option value="3">3 · ADVANCED</option></select></label><label>ROUND LENGTH<select id="roundLength"><option value="30">30 seconds</option><option value="45" selected>45 seconds</option><option value="60">60 seconds</option></select></label></div>
+<div class="fight-controls"><button id="left">◀ MOVE</button><button id="right">MOVE ▶</button><button id="jump">⬆ JUMP</button><button class="attack" id="punch">✊ PUNCH</button><button class="attack" id="kick">🦶 KICK</button><button class="block" id="guard">🛡️ BLOCK</button></div>
+<section class="panel"><h3>🧠 Atlas · Fight Coach</h3><p id="coach">Keep a little distance, block the first rush, then counter with a kick. Controls: A/D or arrows to move, W/↑ to jump, F to punch, G to kick, H to block.</p></section>
+</div>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id),canvas=$("arena"),ctx=canvas.getContext("2d");
+let w=0,h=0,dpr=1,raf=0,last=0,active=false,paused=false,over=false,sound=false,audio=null,round=1,timeLeft=45,difficulty=2,keys={},touch={},sparks=[];
+let p={x:0,y:0,vx:0,vy:0,hp:100,face:1,attack:0,attackType:"",cool:0,block:false,jump:false};
+let e={x:0,y:0,vx:0,vy:0,hp:100,face:-1,attack:0,attackType:"",cool:0,block:false,jump:false};
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function beep(f=420,d=.07){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=f;g.gain.setValueAtTime(.035,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+d)}catch(x){}}
+function resize(){const r=canvas.getBoundingClientRect();dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.max(1,r.width*dpr);canvas.height=Math.max(1,r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);w=r.width;h=r.height;resetPositions();draw()}
+function resetPositions(){p.x=w*.28;e.x=w*.72;p.y=e.y=h*.72;p.vy=e.vy=0}
+function hud(){$("pHealth").style.width=clamp(p.hp,0,100)+"%";$("eHealth").style.width=clamp(e.hp,0,100)+"%";$("round").textContent="ROUND "+round}
+function overlay(show,title,msg,button){$("overlay").hidden=!show;$("overlayTitle").textContent=title;$("overlayText").textContent=msg;$("startBtn").textContent=button}
+function reset(){p.hp=e.hp=100;p.attack=e.attack=p.cool=e.cool=0;p.block=e.block=false;round=1;timeLeft=Number($("roundLength").value);difficulty=Number($("difficulty").value);active=false;paused=false;over=false;sparks=[];resetPositions();hud();overlay(true,"Ready to spar?","Move, jump, punch, kick and block. Win the round to face a faster Atlas.","START ROUND")}
+function start(){if(over)reset();active=true;paused=false;over=false;last=performance.now();overlay(false,"","","");cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function finish(won){active=false;over=true;const title=won?"ROUND WON!":"ATLAS WINS THIS ROUND";overlay(true,title,"Round "+round+" complete. "+(won?"Great timing and spacing.":"Try blocking the opening rush, then counter when Atlas recovers."),"NEXT ROUND");$("coach").textContent=won?"Nice work. Atlas will adapt next round. Keep varying your attack timing.":"Try a shorter combo and use the guard when the opponent closes distance.";beep(won?850:180,.22)}
+function attack(fighter,type){if(!active||paused||fighter.cool>0||fighter.block)return;fighter.attack=.22;fighter.attackType=type;fighter.cool=type==="kick"?.65:.42;beep(type==="kick"?250:520,.05)}
+function jump(f){if(f.y>=h*.72-1){f.vy=-390;f.jump=true;beep(700,.04)}}
+function hit(attacker,target){if(attacker.attack<=0)return;const reach=attacker.attackType==="kick"?80:62;if(Math.abs(target.x-attacker.x)<reach&&Math.abs(target.y-attacker.y)<80){const blocked=target.block;const damage=blocked?2:(attacker.attackType==="kick"?13:8);target.hp=Math.max(0,target.hp-damage);attacker.attack=0;for(let i=0;i<8;i++)sparks.push({x:target.x,y:target.y-45,vx:(Math.random()-.5)*170,vy:(Math.random()-.5)*170,life:.3,color:blocked?"#72baff":"#ffd36f"});beep(blocked?220:900,.08);hud();if(target.hp<=0)finish(attacker===p)}}
+function update(dt){
+ timeLeft-=dt;
+ p.cool=Math.max(0,p.cool-dt);e.cool=Math.max(0,e.cool-dt);p.attack=Math.max(0,p.attack-dt);e.attack=Math.max(0,e.attack-dt);
+ p.block=!!(keys.h||touch.guard);const move=(keys.a||keys.ArrowLeft||touch.left?-1:0)+(keys.d||keys.ArrowRight||touch.right?1:0);p.x+=move*270*dt;p.face=e.x>=p.x?1:-1;
+ if(keys.w||keys.ArrowUp||touch.jump)jump(p);
+ p.y+=p.vy*dt;p.vy+=900*dt;if(p.y>h*.72){p.y=h*.72;p.vy=0;p.jump=false}
+ if(keys.f||touch.punch)attack(p,"punch");if(keys.g||touch.kick)attack(p,"kick");
+ const gap=e.x-p.x;e.face=gap>=0?-1:1;const aggression=[.6,.8,1][difficulty-1];
+ e.block=Math.abs(gap)<95&&Math.random()<.025*difficulty;
+ if(Math.abs(gap)>90)e.x-=Math.sign(gap)*(95+difficulty*24)*dt;
+ else if(e.cool<=0&&!e.block&&Math.random()<.018*difficulty){attack(e,Math.random()<.55?"punch":"kick")}
+ if(e.y<h*.72){e.y=Math.min(h*.72,e.y+300*dt)}
+ hit(p,e);hit(e,p);
+ p.x=clamp(p.x,32,w-32);e.x=clamp(e.x,32,w-32);
+ sparks.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt});sparks=sparks.filter(s=>s.life>0);
+ if(timeLeft<=0){finish(p.hp>=e.hp);return}hud()
+}
+function drawFighter(f,color){const x=f.x,y=f.y;ctx.save();ctx.strokeStyle=color;ctx.lineWidth=5;ctx.lineCap="round";ctx.shadowColor=color;ctx.shadowBlur=13;
+const lean=f.attack>0?f.face*18:0;ctx.beginPath();ctx.arc(x,y-75,13,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-61);ctx.lineTo(x+lean,y-25);ctx.lineTo(x,y-4);ctx.stroke();
+ctx.beginPath();if(f.block){ctx.moveTo(x,y-52);ctx.lineTo(x-f.face*24,y-78);ctx.lineTo(x-f.face*5,y-94)}else{ctx.moveTo(x,y-52);ctx.lineTo(x+f.face*(f.attack>0?50:25),y-45);ctx.moveTo(x,y-48);ctx.lineTo(x-f.face*20,y-30)}ctx.stroke();
+ctx.beginPath();ctx.moveTo(x,y-4);ctx.lineTo(x-17,y+25);ctx.moveTo(x,y-4);ctx.lineTo(x+17,y+25);ctx.stroke();
+if(f.attack>0){ctx.strokeStyle="#fff2b0";ctx.lineWidth=3;ctx.beginPath();if(f.attackType==="kick"){ctx.moveTo(x,y-15);ctx.lineTo(x+f.face*76,y-35)}else{ctx.moveTo(x,y-50);ctx.lineTo(x+f.face*70,y-49)}ctx.stroke()}ctx.restore()}
+function draw(){if(!w||!h)return;ctx.clearRect(0,0,w,h);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"#08172a");g.addColorStop(1,"#18374b");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.strokeStyle="#6ee7ef22";for(let i=0;i<12;i++){ctx.beginPath();ctx.moveTo(i*w/11,0);ctx.lineTo(i*w/11,h*.72);ctx.stroke()}ctx.fillStyle="#0b1624";ctx.fillRect(0,h*.72,w,h*.28);ctx.strokeStyle="#5de6f4";ctx.beginPath();ctx.moveTo(0,h*.72);ctx.lineTo(w,h*.72);ctx.stroke();drawFighter(p,"#5de6f4");drawFighter(e,"#ffb45f");for(const s of sparks){ctx.globalAlpha=Math.max(0,s.life/.3);ctx.fillStyle=s.color;ctx.fillRect(s.x,s.y,4,4)}ctx.globalAlpha=1;ctx.fillStyle="#b9d1e2";ctx.font="11px system-ui";ctx.fillText("PLAYER 1",p.x-30,24);ctx.fillText("ATLAS",e.x-20,24);ctx.fillText("TIME "+Math.max(0,Math.ceil(timeLeft)),w/2-25,24)}
+function loop(now){if(!active||paused)return;const dt=Math.min(.03,(now-last)/1000||0);last=now;update(dt);draw();if(active&&!paused)raf=requestAnimationFrame(loop)}
+function setTouch(id,on){touch[id]=on}
+["left","right","jump","punch","kick","guard"].forEach(id=>{const b=$(id);b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);setTouch(id,true)});["pointerup","pointercancel","lostpointercapture"].forEach(ev=>b.addEventListener(ev,()=>setTouch(id,false)))});
+window.addEventListener("keydown",e=>{keys[e.key]=true;if(["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key))e.preventDefault();if(e.key.toLowerCase()==="p"&&active){paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}}});window.addEventListener("keyup",e=>keys[e.key]=false);
+$("startBtn").addEventListener("click",()=>{if(over){round++;p.hp=e.hp=100;resetPositions();timeLeft=Number($("roundLength").value)}start()});
+$("pauseBtn").addEventListener("click",()=>{if(!active)return;paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}});
+$("restartBtn").addEventListener("click",reset);$("soundBtn").addEventListener("click",()=>{sound=!sound;$("soundBtn").textContent=sound?"🔊 Sound on":"🔇 Sound off"});
+$("difficulty").addEventListener("change",()=>difficulty=Number($("difficulty").value));$("roundLength").addEventListener("change",()=>timeLeft=Number($("roundLength").value));
+window.addEventListener("resize",resize);document.addEventListener("visibilitychange",()=>{if(document.hidden&&active&&!paused){paused=true}});resize();reset();
+})();
+</script><script src="../../shared/arcade-controls.js"></script></body></html>
