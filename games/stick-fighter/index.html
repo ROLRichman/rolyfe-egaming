@@ -61,7 +61,7 @@ function loop(now){if(!active||paused)return;const dt=Math.min(.03,(now-last)/10
 function setTouch(id,on){touch[id]=on}
 ["left","right","jump","punch","kick","guard"].forEach(id=>{const b=$(id);b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);setTouch(id,true)});["pointerup","pointercancel","lostpointercapture"].forEach(ev=>b.addEventListener(ev,()=>setTouch(id,false)))});
 window.addEventListener("keydown",e=>{keys[e.key]=true;if(["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key))e.preventDefault();if(e.key.toLowerCase()==="p"&&active){paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}}});window.addEventListener("keyup",e=>keys[e.key]=false);
-$("startBtn").addEventListener("click",()=>{if(over){round++;p.hp=e.hp=100;resetPositions();timeLeft=Number($("roundLength").value)}start()});
+$("startBtn").addEventListener("click",()=>{if(over){round++;p.hp=e.hp=100;p.cool=e.cool=p.attack=e.attack=0;resetPositions();timeLeft=Number($("roundLength").value);over=false}start()});
 $("pauseBtn").addEventListener("click",()=>{if(!active)return;paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}});
 $("restartBtn").addEventListener("click",reset);$("soundBtn").addEventListener("click",()=>{sound=!sound;$("soundBtn").textContent=sound?"🔊 Sound on":"🔇 Sound off"});
 $("difficulty").addEventListener("change",()=>difficulty=Number($("difficulty").value));$("roundLength").addEventListener("change",()=>timeLeft=Number($("roundLength").value));
