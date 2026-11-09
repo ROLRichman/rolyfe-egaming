@@ -17,7 +17,7 @@
 <script>
 (function(){
 "use strict";const $=id=>document.getElementById(id),canvas=$("course"),ctx=canvas.getContext("2d");
-let w=0,h=0,dpr=1,raf=0,last=0,active=false,drag=null,level=1,strokes=0,best=0,speed=1,power=55,ball={x:40,y:0,vx:0,vy:0,r:8,rest:true},platforms=[],hole={x:0,y:0},flag={x:0,y:0},aim=null,won=false;
+let w=0,h=0,dpr=1,raf=0,last=0,active=false,drag=null,level=1,strokes=0,best=0,speed=1,power=55,ball={x:40,y:0,vx:0,vy:0,r:8,rest:true},platforms=[],hole={x:0,y:0},flag={x:0,y:0},aim=null,won=false;checkpointIndex=0;
 try{best=Number(localStorage.getItem("rolyfe_golf_best_v1")||0)||0}catch(e){}
 const saveKey="rolyfe_golf_quest_save_v1";
 const layouts=[[[0,.76,.27],[.31,.62,.22],[.57,.72,.18],[.79,.52,.21]],[[0,.7,.2],[.23,.48,.2],[.49,.66,.18],[.72,.42,.28]],[[0,.8,.24],[.27,.57,.17],[.48,.36,.17],[.68,.56,.32]],[[0,.66,.2],[.22,.8,.2],[.44,.54,.2],[.68,.34,.32]],[[0,.8,.2],[.2,.56,.2],[.43,.74,.18],[.64,.42,.36]]];
@@ -28,11 +28,41 @@ function build(){platforms=layoutFor(level).map((v,i)=>({x:v[0]*w,y:v[1]*h,width
 function hud(){$("level").textContent=level;$("strokes").textContent=strokes;$("best").textContent=best||"—";$("powerText").textContent=power+"%";$("speedText").textContent=speed.toFixed(1)+"×"}
 function overlay(show,title,msg,button){$("overlay").hidden=!show;$("title").textContent=title;$("message").textContent=msg;$("start").textContent=button}
 function launch(dx,dy){if(!active||!ball.rest)return;const mag=Math.hypot(dx,dy)||1,force=power/100*520;ball.vx=clamp(dx/mag*force,-force,force);ball.vy=-Math.abs(clamp(dy/mag*force,-force,force));ball.rest=false;strokes++;hud()}
-function update(dt){if(ball.rest)return;ball.vy+=760*dt*speed;ball.x+=ball.vx*dt*speed;ball.y+=ball.vy*dt*speed;ball.vx*=Math.pow(.988,dt*60);if(Math.hypot(ball.x-hole.x,ball.y-hole.y)<70){ball.vx*=.94;ball.vy*=.97;}
-for(const p of platforms){if(ball.x+ball.r>p.x&&ball.x-ball.r<p.x+p.width&&ball.y+ball.r>=p.y&&ball.y+ball.r<=p.y+Math.abs(ball.vy*dt)+ball.r+3&&ball.vy>0){ball.y=p.y-ball.r;if(p.sticky){ball.vy=0;ball.vx=0;ball.rest=true}else{ball.vy=-Math.abs(ball.vy)*.55;ball.vx*=.88;if(Math.abs(ball.vy)<32){ball.vy=0;ball.rest=true}}}}
-if(ball.x<ball.r){ball.x=ball.r;ball.vx=Math.abs(ball.vx)*.55}if(ball.x>w-ball.r){ball.x=w-ball.r;ball.vx=-Math.abs(ball.vx)*.55}
-if(ball.y>h+45){strokes++;build();ball.x=platforms[0].x+35;ball.y=platforms[0].y-ball.r;ball.rest=true;hud()}
-if(Math.hypot(ball.x-hole.x,ball.y-hole.y)<24&&Math.hypot(ball.vx,ball.vy)<340){ball.x=hole.x;ball.y=hole.y;ball.vx=0;ball.vy=0;ball.rest=true;won=true;active=false;window.ROLYFE_ARCADE_PROFILE?.award("Classic RO’Lyfe");try{localStorage.setItem("rolyfe_golf_max_course",String(Math.max(Number(localStorage.getItem("rolyfe_golf_max_course")||1),level+1)))}catch(e){}if(strokes<=3)window.ROLYFE_ARCADE_PROFILE?.award("Ace");if(level>=5)window.ROLYFE_ARCADE_PROFILE?.award("7Figures");if(!best||strokes<best){best=strokes;try{localStorage.setItem("rolyfe_golf_best_v1",String(best))}catch(e){}}$("next").hidden=false;overlay(true,"Hole in one? Course cleared!","You completed course "+level+" in "+strokes+" strokes. Advance to the next layout.","COURSE COMPLETE");hud()}}
+function completeCourse(){
+ if(won)return;
+ won=true;active=false;ball.x=hole.x;ball.y=hole.y;ball.vx=0;ball.vy=0;ball.rest=true;
+ window.ROLYFE_ARCADE_PROFILE?.award("Classic RO’Lyfe");
+ try{localStorage.setItem("rolyfe_golf_max_course",String(Math.max(Number(localStorage.getItem("rolyfe_golf_max_course")||1),level+1)))}catch(e){}
+ if(strokes<=3)window.ROLYFE_ARCADE_PROFILE?.award("Ace");
+ if(level>=5)window.ROLYFE_ARCADE_PROFILE?.award("7Figures");
+ if(!best||strokes<best){best=strokes;try{localStorage.setItem("rolyfe_golf_best_v1",String(best))}catch(e){}}
+ $("next").hidden=false;overlay(true,"Course cleared!","You completed course "+level+" in "+strokes+" strokes. Advance to the next layout.","COURSE COMPLETE");hud();
+}
+function update(dt){
+ if(ball.rest)return;
+ const step=dt*speed;
+ ball.vy+=760*step;ball.x+=ball.vx*step;ball.y+=ball.vy*step;
+ ball.vx*=Math.pow(.988,step*60);ball.vy*=Math.pow(.997,step*60);
+ const cupDx=hole.x-ball.x,cupDy=hole.y-ball.y,cupDist=Math.hypot(cupDx,cupDy);
+ if(cupDist<72){ball.vx+=cupDx*step*5.5;ball.vy+=cupDy*step*5.5;}
+ for(let i=0;i<platforms.length;i++){
+  const p=platforms[i],inCupLane=i===platforms.length-1&&Math.abs(ball.x-hole.x)<38&&ball.y>hole.y-38&&ball.y<hole.y+34;
+  if(inCupLane)continue;
+  if(ball.x+ball.r>p.x&&ball.x-ball.r<p.x+p.width&&ball.y+ball.r>=p.y&&ball.y+ball.r<=p.y+Math.abs(ball.vy*step)+ball.r+3&&ball.vy>0){
+   ball.y=p.y-ball.r;checkpointIndex=i;
+   if(p.sticky){ball.vy=0;ball.vx=0;ball.rest=true}
+   else{ball.vy=-Math.abs(ball.vy)*.42;ball.vx*=.78;if(Math.abs(ball.vy)<48){ball.vy=0;ball.vx=0;ball.rest=true}}
+  }
+ }
+ if(Math.hypot(ball.x-hole.x,ball.y-hole.y)<38&&Math.hypot(ball.vx,ball.vy)<760){completeCourse();return}
+ if(ball.x<ball.r){ball.x=ball.r;ball.vx=Math.abs(ball.vx)*.5}
+ if(ball.x>w-ball.r){ball.x=w-ball.r;ball.vx=-Math.abs(ball.vx)*.5}
+ if(ball.y>h+45){
+  strokes++;const p=platforms[clamp(checkpointIndex,0,platforms.length-1)];
+  ball={x:clamp(p.x+p.width*.55,ball.r,w-ball.r),y:p.y-ball.r-2,vx:0,vy:0,r:8,rest:true};
+  hud();
+ }
+}
 function draw(){if(!w||!h)return;ctx.clearRect(0,0,w,h);const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,"#0c2740");bg.addColorStop(1,"#06121e");ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.fillStyle="#122c37";ctx.fillRect(0,h*.86,w,h*.14);
 for(const p of platforms){ctx.fillStyle=p.sticky?"#42d8a4":"#8b9ab1";ctx.shadowColor=p.sticky?"#42d8a4":"#7893b2";ctx.shadowBlur=12;ctx.fillRect(p.x,p.y,p.width,p.height);ctx.shadowBlur=0;ctx.fillStyle="#1a473b";ctx.fillRect(p.x,p.y+p.height,p.width,5);if(p.bridge){ctx.strokeStyle="#e8bd73";ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(p.x,p.y-5);ctx.lineTo(p.x+p.width,p.y-5);ctx.stroke();ctx.setLineDash([])}}
 ctx.strokeStyle="#f4d47a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(flag.x,flag.y);ctx.lineTo(flag.x,flag.y+43);ctx.stroke();ctx.fillStyle="#ff6c7d";ctx.beginPath();ctx.moveTo(flag.x,flag.y);ctx.lineTo(flag.x+24,flag.y+8);ctx.lineTo(flag.x,flag.y+16);ctx.fill();ctx.fillStyle="#050b12";ctx.beginPath();ctx.arc(hole.x,hole.y,10,0,Math.PI*2);ctx.fill();ctx.fillStyle="#f5fdff";ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.fill();ctx.shadowColor="#fff";ctx.shadowBlur=10;ctx.strokeStyle="#fff";ctx.stroke();ctx.shadowBlur=0;
