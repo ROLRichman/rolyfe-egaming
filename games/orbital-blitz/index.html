@@ -85,7 +85,7 @@ for(let i=shots.length-1;i>=0;i--){const s=shots[i];let collided=false;for(let j
 for(let i=enemyShots.length-1;i>=0;i--){const s=enemyShots[i],dx=s.x-player.x,dy=s.y-player.y;if(dx*dx+dy*dy<(s.r+player.r)*(s.r+player.r)){enemyShots.splice(i,1);hitPlayer();if(over)return}}
 for(let i=powerups.length-1;i>=0;i--){const p=powerups[i];p.y+=p.vy*dt;if(Math.hypot(p.x-player.x,p.y-player.y)<player.r+12){if(p.type==="shield")shield=Math.min(3,shield+1);else weaponCharges=Math.min(20,weaponCharges+5);powerups.splice(i,1);beep(980,.12);updateHud()}else if(p.y>h+20)powerups.splice(i,1)}
 for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt;if(p.life<=0)particles.splice(i,1)}
-if(orbs.length===0){wave++;guideIndex=(guideIndex+1)%tips.length;el("guideTip").textContent=tips[guideIndex];makeWave();beep(900,.12)}
+if(orbs.length===0){wave++;if(wave%5===0&&lives<5){lives++;el("guideTip").textContent="EXTRA LIFE! Wave "+wave+" reached. Keep the ship moving.";beep(1100,.18)}guideIndex=(guideIndex+1)%tips.length;el("guideTip").textContent=tips[guideIndex];makeWave();beep(900,.12)}
 if(score>best){best=score;el("best").textContent=String(best).padStart(4,"0")}
 updateHud()
 }
