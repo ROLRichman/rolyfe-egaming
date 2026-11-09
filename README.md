@@ -5,7 +5,7 @@ Live arcade hub: https://rolrichman.github.io/rolyfe-egaming/
 ## Playable rooms
 
 - **RO’Lyfe Pool** — `games/pool/`; 8-Ball, 9-Ball, Practice, PvP / PvAI / AIvAI / Challenge modes, table themes, and pool-specific rules.
-- **RO’Lyfe Orbital Blitz** — `games/orbital-blitz/`; canvas arcade combat with bouncing energy orbs, escalating waves, touch / keyboard steering, held FIRE, and optional FIRE LOCK auto-fire.
+- **RO’Lyfe Orbital Blitz** — `games/orbital-blitz/`; canvas arcade combat with bouncing energy orbs, escalating waves, touch / keyboard steering, held FIRE, optional FIRE LOCK auto-fire, collectible shields, and selectable charged Pulse / Laser / Plasma weapons.
 - **RO’Lyfe Ping Pong** — `games/ping-pong/`; local Atlas paddle opponent, three AI levels, two-player keyboard mode, left/right player-side selection, and player-color coding.
 - **RO’Lyfe Block Breaker** — `games/block-breaker/`; brick-grid ricochets, speed control, collectible shield / multi-ball / laser drops, selectable special weapons, boss levels with red screen flash, local save points, and RO’Lyfe trophies.
 - **RO’Lyfe Pinball** — `games/pinball/`; touch / keyboard flippers, bumper scoring, bonus shield and multi-ball rewards, and local best score.
