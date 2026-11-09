@@ -18,15 +18,30 @@ const dock=document.createElement("nav");dock.id="rolyfeArcadeDock";dock.setAttr
 const top=document.createElement("button");top.type="button";top.textContent="↑ TOP";top.setAttribute("aria-label","Scroll to top");top.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
 const mid=document.createElement("button");mid.type="button";mid.textContent="↕ GAME";mid.setAttribute("aria-label","Scroll to game");mid.addEventListener("click",()=>{const target=document.querySelector("canvas")||document.querySelector("#games")||document.querySelector("main")||document.querySelector(".arena-wrap")||document.querySelector(".stage");if(target)target.scrollIntoView({behavior:"smooth",block:"center"})});
 const ai=document.createElement("button");ai.type="button";ai.textContent="🧠 AI";ai.setAttribute("aria-label","Open Atlas game guide");
-dock.append(top,mid,ai);
+const trophy=document.createElement("button");trophy.type="button";trophy.textContent="🏆";trophy.setAttribute("aria-label","Open RO’Lyfe trophy case");
+dock.append(top,mid,ai,trophy);
 const panel=document.createElement("section");panel.id="rolyfeArcadePanel";panel.hidden=true;panel.innerHTML='<header><span>🧠 RO’Lyfe Arcade Guide</span><button type="button" aria-label="Close guide">×</button></header><p></p>';
 const close=panel.querySelector("button"),copy=panel.querySelector("p");
+const trophyKey="rolyfe_arcade_trophies_v1",saveKey="rolyfe_arcade_savepoints_v1";
+function readTrophies(){try{return JSON.parse(localStorage.getItem(trophyKey)||"{}")}catch(e){return {}}}
+window.ROLYFE_ARCADE_PROFILE={
+ award(name){const all=readTrophies();if(all[name])return false;all[name]=true;try{localStorage.setItem(trophyKey,JSON.stringify(all))}catch(e){}return true},
+ getTrophies(){return readTrophies()},
+ savePoint(game,data){try{const all=JSON.parse(localStorage.getItem(saveKey)||"{}");all[game]=data;localStorage.setItem(saveKey,JSON.stringify(all));return true}catch(e){return false}},
+ loadPoint(game){try{return (JSON.parse(localStorage.getItem(saveKey)||"{}"))[game]||null}catch(e){return null}}
+};
 function updateHint(){
  const source=document.querySelector("#guideTip,#atlasTip,#aiStatus,.guide,.aihint");
  const hint=source&&source.textContent.trim();
  copy.textContent=hint||"Read the game controls, watch the level pattern, and save special abilities for the toughest waves. Live cross-game Atlas chat is a separate integration.";
 }
-ai.addEventListener("click",()=>{updateHint();panel.hidden=!panel.hidden});
+ai.addEventListener("click",()=>{panel.querySelector("header span").textContent="🧠 RO’Lyfe Arcade Guide";updateHint();panel.hidden=!panel.hidden});
+trophy.addEventListener("click",()=>{
+ const all=readTrophies(),names=Object.keys(all).filter(k=>all[k]);
+ panel.querySelector("header span").textContent="🏆 RO’Lyfe Trophy Case";
+ copy.textContent=names.length?names.map(n=>"🏆 "+n).join("  ·  "):"No trophies unlocked yet. Earn Classic RO’Lyfe, Ace, EMG, RJ C&D, 7Figures and more as you play. Trophies are saved on this device.";
+ panel.hidden=!panel.hidden;
+});
 close.addEventListener("click",()=>panel.hidden=true);
 dock.appendChild(panel);
 document.body.appendChild(dock);
