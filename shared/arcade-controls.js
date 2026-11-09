@@ -16,6 +16,7 @@ style.textContent=`
 #rolyfeArcadeSizePanel label{display:flex;justify-content:space-between;font-weight:900;color:#74e5ef}
 #rolyfeArcadeSizePanel input{width:100%;accent-color:#5de6f4}
 #rolyfeArcadeSizePanel small{color:#c1d3e2}
+#rolyfeArcadeSizePanel .speedrow{margin-top:10px;padding-top:9px;border-top:1px solid #36566c}
 @media(max-height:430px) and (orientation:landscape){#rolyfeArcadeDock{right:8px;bottom:8px;gap:4px;width:54px}#rolyfeArcadeDock button{min-height:34px;font-size:9px}#rolyfeArcadePanel{bottom:8px}}
 `;
 document.head.appendChild(style);
@@ -28,14 +29,18 @@ const size=document.createElement("button");size.type="button";size.textContent=
 dock.append(top,mid,ai,trophy,size);
 const panel=document.createElement("section");panel.id="rolyfeArcadePanel";panel.hidden=true;panel.innerHTML='<header><span>🧠 RO’Lyfe Arcade Guide</span><button type="button" aria-label="Close guide">×</button></header><p></p>';
 const close=panel.querySelector("button"),copy=panel.querySelector("p");
-const sizePanel=document.createElement("section");sizePanel.id="rolyfeArcadeSizePanel";sizePanel.hidden=true;sizePanel.innerHTML='<label for="rolyfeArcadeHeight"><span>GAME SCREEN HEIGHT</span><b id="rolyfeArcadeHeightValue">—</b></label><input id="rolyfeArcadeHeight" type="range" min="300" max="820" step="20" value="520"><small>Adjust the playfield height. Scroll the page as needed.</small>';
+const sizePanel=document.createElement("section");sizePanel.id="rolyfeArcadeSizePanel";sizePanel.hidden=true;sizePanel.innerHTML='<label for="rolyfeArcadeHeight"><span>GAME SCREEN HEIGHT</span><b id="rolyfeArcadeHeightValue">—</b></label><input id="rolyfeArcadeHeight" type="range" min="300" max="820" step="20" value="520"><small>Adjust the playfield height. Scroll the page as needed.</small><div class="speedrow"><label for="rolyfeArcadeSpeed"><span>GAME SPEED</span><b id="rolyfeArcadeSpeedValue">1.0×</b></label><input id="rolyfeArcadeSpeed" type="range" min="0.5" max="1.8" step="0.1" value="1"><small>Slow the action down or speed the game up.</small></div>';
 document.body.appendChild(sizePanel);
-const heightInput=sizePanel.querySelector("input"),heightValue=sizePanel.querySelector("b");
+const heightInput=sizePanel.querySelector("#rolyfeArcadeHeight"),heightValue=sizePanel.querySelector("#rolyfeArcadeHeightValue"),speedInput=sizePanel.querySelector("#rolyfeArcadeSpeed"),speedValue=sizePanel.querySelector("#rolyfeArcadeSpeedValue");
 function gameSurface(){return document.querySelector("#poolTable")||document.querySelector("canvas")||document.querySelector(".stage")||document.querySelector(".arena-wrap")}
 if(!gameSurface())size.hidden=true;
 function applyHeight(value,save){const target=gameSurface();if(!target)return;target.style.height=value+"px";heightValue.textContent=value+" px";if(save){try{localStorage.setItem("rolyfe_arcade_height_"+location.pathname,String(value))}catch(e){}}window.dispatchEvent(new Event("resize"))}
 try{const saved=Number(localStorage.getItem("rolyfe_arcade_height_"+location.pathname)||0);if(saved>=300&&saved<=820){heightInput.value=String(saved);applyHeight(saved,false)}else{const target=gameSurface();const initial=target?Math.round(target.getBoundingClientRect().height):520;heightInput.value=String(Math.max(300,Math.min(820,initial)));heightValue.textContent=heightInput.value+" px"}}catch(e){heightValue.textContent=heightInput.value+" px"}
 heightInput.addEventListener("input",()=>applyHeight(Number(heightInput.value),true));
+const speedKey="rolyfe_arcade_speed_"+location.pathname;
+try{const savedSpeed=Number(localStorage.getItem(speedKey)||1);if(savedSpeed>=.5&&savedSpeed<=1.8)speedInput.value=String(savedSpeed)}catch(e){}
+speedValue.textContent=Number(speedInput.value).toFixed(1)+"×";
+speedInput.addEventListener("input",()=>{speedValue.textContent=Number(speedInput.value).toFixed(1)+"×";try{localStorage.setItem(speedKey,String(speedInput.value))}catch(e){}});
 size.addEventListener("click",()=>{panel.hidden=true;sizePanel.hidden=!sizePanel.hidden});
 
 const trophyKey="rolyfe_arcade_trophies_v1",saveKey="rolyfe_arcade_savepoints_v1";
@@ -44,7 +49,8 @@ window.ROLYFE_ARCADE_PROFILE={
  award(name){const all=readTrophies();if(all[name])return false;all[name]=true;try{localStorage.setItem(trophyKey,JSON.stringify(all))}catch(e){}return true},
  getTrophies(){return readTrophies()},
  savePoint(game,data){try{const all=JSON.parse(localStorage.getItem(saveKey)||"{}");all[game]=data;localStorage.setItem(saveKey,JSON.stringify(all));return true}catch(e){return false}},
- loadPoint(game){try{return (JSON.parse(localStorage.getItem(saveKey)||"{}"))[game]||null}catch(e){return null}}
+ loadPoint(game){try{return (JSON.parse(localStorage.getItem(saveKey)||"{}"))[game]||null}catch(e){return null}},
+ getSpeed(){try{return Number(localStorage.getItem("rolyfe_arcade_speed_"+location.pathname)||1)||1}catch(e){return 1}}
 };
 function updateHint(){
  const source=document.querySelector("#guideTip,#atlasTip,#aiStatus,.guide,.aihint");
