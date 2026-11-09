@@ -36,7 +36,7 @@
   </div>
 </section>
 <div class="toolbar">
-  <button id="pauseBtn">Ⅱ Pause</button><button id="soundBtn">🔇 Sound off</button><button id="restartBtn" class="primary">↻ New run</button>
+  <button id="pauseBtn">Ⅱ Pause</button><button id="soundBtn">🔇 Sound off</button><button id="restartBtn" class="primary">↻ New run</button><button id="fireLockBtn" aria-pressed="false">🔒 FIRE LOCK OFF</button><select id="weaponSelect" class="control" aria-label="Select special weapon"><option value="pulse">Pulse</option><option value="laser">Laser</option><option value="plasma">Plasma</option></select><span id="weaponCharges" class="control">CHARGES 0</span>
 </div>
 <div class="mobile-controls" aria-label="Touch game controls">
   <button id="leftBtn" aria-label="Move left">◀ LEFT</button><button id="fireBtn" class="fire" aria-label="Fire energy bolts">✦ FIRE</button><button id="rightBtn" aria-label="Move right">RIGHT ▶</button>
@@ -54,7 +54,7 @@ const canvas=document.getElementById("arena"),ctx=canvas.getContext("2d");
 const el=id=>document.getElementById(id);
 let w=0,h=0,dpr=1,raf=0,last=0,active=false,paused=false,over=false,sound=false,audio=null;
 let score=0,wave=1,lives=3,player={x:0,y:0,r:13,speed:0},shots=[],enemyShots=[],orbs=[],particles=[],stars=[];
-let fireHeld=false,moveLeft=false,moveRight=false,lastFire=0,lastEnemyFire=0,guideIndex=0;
+let fireHeld=false,fireLocked=false,moveLeft=false,moveRight=false,lastFire=0,lastEnemyFire=0,guideIndex=0,powerups=[],shield=0,weaponCharges=0,weaponType="pulse";
 const tips=["Keep moving between shots. A moving target is harder to surround.","Clear a side lane before the orb group crowds the arena.","Watch the enemy glow: a bright pulse usually means a shot is coming.","Save your last shield. Do not chase a single orb into a corner."];
 const bestKey="rolyfe_orbital_blitz_best_v1";
 let best=0;try{best=Number(localStorage.getItem(bestKey)||0)||0}catch(e){}
@@ -62,26 +62,27 @@ function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function beep(freq=520,duration=.07,type="sine"){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.04,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+duration)}catch(e){}}
 function resize(){const r=canvas.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));ctx.setTransform(dpr,0,0,dpr,0,0);w=r.width;h=r.height;player.y=h-34;player.x=clamp(player.x||w/2,22,w-22);if(!stars.length)stars=Array.from({length:90},()=>({x:Math.random()*w,y:Math.random()*h,a:.18+Math.random()*.6,r:Math.random()*1.5+.3}));draw()}
 function setOverlay(show,title,text,button){el("overlay").hidden=!show;el("overlayTitle").textContent=title;el("overlayText").textContent=text;el("startBtn").textContent=button}
-function updateHud(){el("score").textContent=String(score).padStart(4,"0");el("wave").textContent=String(wave).padStart(2,"0");el("lives").textContent=lives?("♥ ".repeat(lives)).trim():"—";el("best").textContent=String(best).padStart(4,"0");el("stateLabel").textContent=over?"GAME OVER":paused?"PAUSED":active?"IN FLIGHT":"READY"}
-function makeWave(){orbs=[];shots=[];enemyShots=[];const count=Math.min(4+wave,14),rows=Math.ceil(count/7),cols=Math.min(count,7);for(let i=0;i<count;i++){const row=Math.floor(i/7),col=i%7,spacing=Math.min(66,(w-70)/Math.max(1,cols-1));orbs.push({x:Math.max(27,(w-(cols-1)*spacing)/2)+col*spacing,y:50+row*62,r:13+Math.random()*5,vx:(Math.random()>.5?1:-1)*(65+wave*7+Math.random()*25),vy:25+wave*4+Math.random()*14,phase:Math.random()*6,hit:0})}lastEnemyFire=performance.now();updateHud()}
-function reset(){score=0;wave=1;lives=3;shots=[];enemyShots=[];particles=[];player={x:w/2,y:h-34,r:13,speed:0};active=false;paused=false;over=false;fireHeld=false;moveLeft=false;moveRight=false;makeWave();updateHud();setOverlay(true,"Ready to launch?","Pilot the pulse-core along the lower lane. Hold FIRE to send energy bolts upward. Clear every orb to advance. Three shields per run.","START ORBITAL BLITZ");el("pauseBtn").textContent="Ⅱ Pause"}
-function start(){if(over)reset();active=true;paused=false;over=false;setOverlay(false,"","", "START");last=performance.now();el("pauseBtn").textContent="Ⅱ Pause";updateHud();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function updateHud(){el("score").textContent=String(score).padStart(4,"0");el("wave").textContent=String(wave).padStart(2,"0");el("lives").textContent=(lives?("♥ ".repeat(lives)).trim():"—")+(shield?"  ◈"+shield:"");el("best").textContent=String(best).padStart(4,"0");el("weaponCharges").textContent="CHARGES "+weaponCharges;el("stateLabel").textContent=over?"GAME OVER":paused?"PAUSED":active?"IN FLIGHT":"READY"}
+function makeWave(){orbs=[];shots=[];enemyShots=[];powerups=[];const count=Math.min(4+wave,14),rows=Math.ceil(count/7),cols=Math.min(count,7);for(let i=0;i<count;i++){const row=Math.floor(i/7),col=i%7,spacing=Math.min(66,(w-70)/Math.max(1,cols-1));orbs.push({x:Math.max(27,(w-(cols-1)*spacing)/2)+col*spacing,y:50+row*62,r:13+Math.random()*5,vx:(Math.random()>.5?1:-1)*(65+wave*7+Math.random()*25),vy:25+wave*4+Math.random()*14,phase:Math.random()*6,hit:0})}lastEnemyFire=performance.now();updateHud()}
+function reset(){score=0;wave=1;lives=3;shots=[];enemyShots=[];powerups=[];shield=0;weaponCharges=0;particles=[];player={x:w/2,y:h-34,r:13,speed:0};active=false;paused=false;over=false;fireHeld=false;moveLeft=false;moveRight=false;makeWave();updateHud();setOverlay(true,"Ready to launch?","Pilot the pulse-core along the lower lane. Hold FIRE to send energy bolts upward. Clear every orb to advance. Three shields per run.","START ORBITAL BLITZ");el("pauseBtn").textContent="Ⅱ Pause"}
+function start(){if(over)reset();window.ROLYFE_ARCADE_PROFILE?.award("Classic RO’Lyfe");active=true;paused=false;over=false;setOverlay(false,"","", "START");last=performance.now();el("pauseBtn").textContent="Ⅱ Pause";updateHud();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function pause(){if(!active||over)return;paused=!paused;el("pauseBtn").textContent=paused?"▶ Resume":"Ⅱ Pause";el("stateLabel").textContent=paused?"PAUSED":"IN FLIGHT";if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}}
-function finish(){active=false;over=true;paused=false;fireHeld=false;if(score>best){best=score;try{localStorage.setItem(bestKey,String(best))}catch(e){}}updateHud();setOverlay(true,"Run complete","You scored "+score+". Your best run on this device is "+best+". Launch again and try to clear one more wave.","PLAY AGAIN");beep(160,.35,"triangle")}
+function finish(){active=false;over=true;paused=false;fireHeld=false;if(score>=500)window.ROLYFE_ARCADE_PROFILE?.award("Ace");if(wave>=5)window.ROLYFE_ARCADE_PROFILE?.award("7Figures");if(score>best){best=score;try{localStorage.setItem(bestKey,String(best))}catch(e){}}updateHud();setOverlay(true,"Run complete","You scored "+score+". Your best run on this device is "+best+". Launch again and try to clear one more wave.","PLAY AGAIN");beep(160,.35,"triangle")}
 function spawnBurst(x,y,color){for(let i=0;i<12;i++){const a=Math.random()*Math.PI*2,spd=25+Math.random()*120;particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:.35+Math.random()*.45,max:.8,color})}}
-function shoot(now){if(!active||paused||over||now-lastFire<170)return;shots.push({x:player.x,y:player.y-14,vy:-430,r:4});lastFire=now;beep(660,.045,"square")}
-function hitPlayer(){lives--;spawnBurst(player.x,player.y,"#ff6e83");beep(180,.2,"sawtooth");if(lives<=0){finish()}else{player.x=w/2;enemyShots=[];updateHud();guideIndex=(guideIndex+1)%tips.length;el("guideTip").textContent=tips[guideIndex]}}
+function shoot(now){if(!active||paused||over||now-lastFire<170)return;const charged=weaponCharges>0;let r=4,vy=-430,color="#63f4c3";if(charged){weaponCharges--;r=weaponType==="plasma"?8:weaponType==="laser"?6:5;vy=weaponType==="plasma"?-520:weaponType==="laser"?-650:-500;color=weaponType==="plasma"?"#ff9d63":weaponType==="laser"?"#79f3ff":"#b5a4ff"}shots.push({x:player.x,y:player.y-14,vy,r,color});lastFire=now;updateHud();beep(charged?920:660,.045,"square")}
+function hitPlayer(){if(shield>0){shield--;spawnBurst(player.x,player.y,"#5de6f4");updateHud();beep(980,.12);return}lives--;spawnBurst(player.x,player.y,"#ff6e83");beep(180,.2,"sawtooth");if(lives<=0){finish()}else{player.x=w/2;enemyShots=[];updateHud();guideIndex=(guideIndex+1)%tips.length;el("guideTip").textContent=tips[guideIndex]}}
 function update(dt,now){
 const direction=(moveRight?1:0)-(moveLeft?1:0);if(direction)player.x+=direction*330*dt;
 player.x=clamp(player.x,player.r+6,w-player.r-6);
-if(fireHeld)shoot(now);
+if(fireHeld||fireLocked)shoot(now);
 for(const s of shots)s.y+=s.vy*dt;shots=shots.filter(s=>s.y>-20);
 for(const s of enemyShots){s.y+=s.vy*dt;s.x+=s.vx*dt}
 enemyShots=enemyShots.filter(s=>s.y<h+20);
 for(const o of orbs){o.x+=o.vx*dt;o.y+=o.vy*dt+Math.sin(now/500+o.phase)*7*dt;if(o.x<o.r+8){o.x=o.r+8;o.vx=Math.abs(o.vx)}if(o.x>w-o.r-8){o.x=w-o.r-8;o.vx=-Math.abs(o.vx)}if(o.y>h*.64){o.y=h*.64;o.vy=-Math.abs(o.vy)*.9}if(o.y<25){o.y=25;o.vy=Math.abs(o.vy)}if(o.hit>0)o.hit-=dt}
 if(now-lastEnemyFire>Math.max(650,1600-wave*95)&&orbs.length){const shooter=orbs[Math.floor(Math.random()*orbs.length)];enemyShots.push({x:shooter.x,y:shooter.y+10,vy:180+wave*8,vx:(player.x-shooter.x)*.08,r:4});lastEnemyFire=now;beep(260,.05,"triangle")}
-for(let i=shots.length-1;i>=0;i--){const s=shots[i];let collided=false;for(let j=orbs.length-1;j>=0;j--){const o=orbs[j],dx=s.x-o.x,dy=s.y-o.y;if(dx*dx+dy*dy<(s.r+o.r)*(s.r+o.r)){spawnBurst(o.x,o.y,"#5de6f4");score+=10+wave*2;orbs.splice(j,1);shots.splice(i,1);collided=true;beep(820,.07);break}}if(collided)continue}
+for(let i=shots.length-1;i>=0;i--){const s=shots[i];let collided=false;for(let j=orbs.length-1;j>=0;j--){const o=orbs[j],dx=s.x-o.x,dy=s.y-o.y;if(dx*dx+dy*dy<(s.r+o.r)*(s.r+o.r)){spawnBurst(o.x,o.y,"#5de6f4");score+=10+wave*2;orbs.splice(j,1);shots.splice(i,1);if(Math.random()<.18)powerups.push({x:o.x,y:o.y,vy:92,type:Math.random()<.58?"shield":"weapon"});collided=true;beep(820,.07);break}}if(collided)continue}
 for(let i=enemyShots.length-1;i>=0;i--){const s=enemyShots[i],dx=s.x-player.x,dy=s.y-player.y;if(dx*dx+dy*dy<(s.r+player.r)*(s.r+player.r)){enemyShots.splice(i,1);hitPlayer();if(over)return}}
+for(let i=powerups.length-1;i>=0;i--){const p=powerups[i];p.y+=p.vy*dt;if(Math.hypot(p.x-player.x,p.y-player.y)<player.r+12){if(p.type==="shield")shield=Math.min(3,shield+1);else weaponCharges=Math.min(20,weaponCharges+5);powerups.splice(i,1);beep(980,.12);updateHud()}else if(p.y>h+20)powerups.splice(i,1)}
 for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt;if(p.life<=0)particles.splice(i,1)}
 if(orbs.length===0){wave++;guideIndex=(guideIndex+1)%tips.length;el("guideTip").textContent=tips[guideIndex];makeWave();beep(900,.12)}
 if(score>best){best=score;el("best").textContent=String(best).padStart(4,"0")}
@@ -94,8 +95,9 @@ for(const st of stars){ctx.globalAlpha=st.a;ctx.fillStyle="#c3edff";ctx.beginPat
 ctx.strokeStyle="#2b86ab33";ctx.lineWidth=1;for(let x=0;x<w;x+=38){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=38){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
 ctx.strokeStyle="#53dbea55";ctx.setLineDash([5,8]);ctx.beginPath();ctx.moveTo(8,h-70);ctx.lineTo(w-8,h-70);ctx.stroke();ctx.setLineDash([]);
 for(const o of orbs){const pulse=1+Math.sin(now/180+o.phase)*.09;glow(o.x,o.y,o.r*pulse,"#187fce",13);ctx.beginPath();ctx.arc(o.x,o.y,o.r*.55,0,Math.PI*2);ctx.fillStyle="#9af7ff";ctx.fill();ctx.strokeStyle="#eaffff";ctx.lineWidth=1.2;ctx.stroke()}
-for(const s of shots)glow(s.x,s.y,s.r,"#63f4c3",13);
+for(const s of shots)glow(s.x,s.y,s.r,s.color||"#63f4c3",13);
 for(const s of enemyShots)glow(s.x,s.y,s.r,"#ff748b",13);
+for(const p of powerups){glow(p.x,p.y,8,p.type==="shield"?"#5de6f4":"#b5a4ff",15);ctx.fillStyle="#04111c";ctx.font="bold 9px system-ui";ctx.textAlign="center";ctx.fillText(p.type==="shield"?"S":"W",p.x,p.y+3)}
 for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);glow(p.x,p.y,2.1,p.color,8)}ctx.globalAlpha=1;
 glow(player.x,player.y,player.r+4,"#21c7ef",17);ctx.beginPath();ctx.moveTo(player.x,player.y-player.r-5);ctx.lineTo(player.x-player.r*.72,player.y+player.r*.75);ctx.lineTo(player.x+player.r*.72,player.y+player.r*.75);ctx.closePath();ctx.fillStyle="#b5faff";ctx.fill();ctx.strokeStyle="#53e9ff";ctx.lineWidth=2;ctx.stroke();
 ctx.fillStyle="#91b8d1";ctx.font="10px system-ui";ctx.fillText("PULSE-CORE",12,h-12)}
@@ -109,9 +111,12 @@ canvas.addEventListener("pointermove",e=>{if(e.buttons===0&&e.pointerType!=="tou
 window.addEventListener("keydown",e=>{if(["ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault();if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")moveLeft=true;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")moveRight=true;if(e.code==="Space")fireHeld=true;if(e.key.toLowerCase()==="p")pause()});
 window.addEventListener("keyup",e=>{if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")moveLeft=false;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")moveRight=false;if(e.code==="Space")fireHeld=false});
 el("startBtn").addEventListener("click",start);el("restartBtn").addEventListener("click",()=>{reset();start()});el("pauseBtn").addEventListener("click",pause);el("soundBtn").addEventListener("click",()=>{sound=!sound;el("soundBtn").textContent=sound?"🔊 Sound on":"🔇 Sound off";beep()});
+el("weaponSelect").addEventListener("change",()=>{weaponType=el("weaponSelect").value;el("guideTip").textContent="Selected special weapon: "+weaponType.toUpperCase()+". Collect W drops to charge it."});
+el("fireLockBtn").addEventListener("click",()=>{fireLocked=!fireLocked;el("fireLockBtn").textContent=fireLocked?"🔒 FIRE LOCK ON":"🔒 FIRE LOCK OFF";el("fireLockBtn").setAttribute("aria-pressed",String(fireLocked));el("guideTip").textContent=fireLocked?"Auto-fire locked on. Steer LEFT or RIGHT while energy shots continue automatically.":"Fire lock is off. Hold FIRE to shoot manually."});
 window.addEventListener("resize",resize);document.addEventListener("visibilitychange",()=>{if(document.hidden&&active&&!paused)pause()});
 resize();reset();updateHud();
 })();
 </script>
+<script src="../../shared/arcade-controls.js"></script>
 </body>
 </html>
