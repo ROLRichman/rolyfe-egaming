@@ -69,7 +69,7 @@ function draw(){if(!w||!h)return;ctx.clearRect(0,0,w,h);const g=ctx.createLinear
  const leftIsPlayer=playerSide==="left";glowRect(paddleX,leftY(),paddleW,paddleH,leftIsPlayer?"#62e6ef":(mode==="ai"?"#65e6ad":"#ffc66d"));glowRect(opponentX,rightY(),paddleW,paddleH,!leftIsPlayer?"#62e6ef":(mode==="ai"?"#65e6ad":"#ffc66d"));
  ctx.save();ctx.shadowColor="#b8f5ff";ctx.shadowBlur=18;ctx.fillStyle="#e9fdff";ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.fill();ctx.restore();
  ctx.fillStyle="#9cb9d1";ctx.font="10px system-ui";ctx.fillText(leftIsPlayer?"P1":(mode==="ai"?"ATLAS":"P2"),paddleX+8,17);ctx.fillText(!leftIsPlayer?"P1":(mode==="ai"?"ATLAS":"P2"),opponentX-42,17)}
-function loop(now){if(!active||paused||over)return;const dt=Math.min(.03,(now-last)/1000||0);last=now;update(dt);draw();if(active&&!paused&&!over)raf=requestAnimationFrame(loop)}
+function loop(now){if(!active||paused||over)return;const dt=Math.min(.03,(now-last)/1000||0);last=now;update(dt*(window.ROLYFE_ARCADE_PROFILE?.getSpeed?.()||1));draw();if(active&&!paused&&!over)raf=requestAnimationFrame(loop)}
 canvas.addEventListener("pointerdown",e=>{if(!active||paused||over)return;canvas.setPointerCapture(e.pointerId);const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const physicalSide=x<w/2?"left":"right";if(mode==="two"){dragSide=physicalSide===playerSide?1:2}else{if(physicalSide!==playerSide)return;dragSide=1}setPaddle(dragSide,y)});
 canvas.addEventListener("pointermove",e=>{if(dragSide==null||!active||paused)return;const r=canvas.getBoundingClientRect();setPaddle(dragSide,e.clientY-r.top)});
 ["pointerup","pointercancel","lostpointercapture"].forEach(evt=>canvas.addEventListener(evt,()=>dragSide=null));

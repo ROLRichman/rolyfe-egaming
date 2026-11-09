@@ -101,7 +101,7 @@ for(const p of powerups){glow(p.x,p.y,8,p.type==="shield"?"#5de6f4":"#b5a4ff",15
 for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);glow(p.x,p.y,2.1,p.color,8)}ctx.globalAlpha=1;
 glow(player.x,player.y,player.r+4,"#21c7ef",17);ctx.beginPath();ctx.moveTo(player.x,player.y-player.r-5);ctx.lineTo(player.x-player.r*.72,player.y+player.r*.75);ctx.lineTo(player.x+player.r*.72,player.y+player.r*.75);ctx.closePath();ctx.fillStyle="#b5faff";ctx.fill();ctx.strokeStyle="#53e9ff";ctx.lineWidth=2;ctx.stroke();
 ctx.fillStyle="#91b8d1";ctx.font="10px system-ui";ctx.fillText("PULSE-CORE",12,h-12)}
-function loop(now){if(!active||paused||over)return;const dt=Math.min(.035,(now-last)/1000||0);last=now;update(dt,now);draw(now);if(active&&!paused&&!over)raf=requestAnimationFrame(loop)}
+function loop(now){if(!active||paused||over)return;const dt=Math.min(.035,(now-last)/1000||0);last=now;update(dt*(window.ROLYFE_ARCADE_PROFILE?.getSpeed?.()||1),now);draw(now);if(active&&!paused&&!over)raf=requestAnimationFrame(loop)}
 function setMove(which,on){if(which==="left")moveLeft=on;if(which==="right")moveRight=on;if(which==="fire")fireHeld=on}
 function bindHold(id,which){const b=el(id);b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);setMove(which,true)});["pointerup","pointercancel","lostpointercapture"].forEach(evt=>b.addEventListener(evt,()=>setMove(which,false)))}
 bindHold("leftBtn","left");bindHold("rightBtn","right");bindHold("fireBtn","fire");
