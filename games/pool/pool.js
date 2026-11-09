@@ -5707,7 +5707,7 @@ function setAimAngle(
       !state.gameOver
     ) {
       state.accumulator +=
-        frameSeconds;
+        frameSeconds * (window.ROLYFE_ARCADE_PROFILE?.getSpeed?.() || 1);
 
       state.accumulator =
         Math.min(
