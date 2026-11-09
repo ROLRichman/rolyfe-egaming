@@ -14,7 +14,7 @@ Live arcade hub: https://rolrichman.github.io/rolyfe-egaming/
 
 ## Shared arcade interface
 
-- Floating quick controls for **Top**, **Game focus**, **AI guide**, and **Trophy Case** are injected by `shared/arcade-controls.js`.
+- Floating quick controls for **Top**, **Game Focus**, **AI Guide**, **Trophy Case**, per-page **Game Screen Height**, and a shared **Game Speed** slider are injected by `shared/arcade-controls.js`. The speed setting is applied to each playable game loop, including Pool.
 - The shared browser-local arcade profile exposes trophy awards and per-game save-point helpers. Local data is stored in the current browser profile and does not sync across devices.
 - The AI guide surfaces each room's local hint text. It does not claim a live cross-game conversational Atlas integration.
 - The Gaming hub links to playable rooms and keeps GitHub repository / internal resource-directory shortcuts out of visitor-facing buttons. The trading app link points to its live GitHub Pages destination.
