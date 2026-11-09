@@ -19,7 +19,7 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id),canvas=$("arena"),ctx=canvas.getContext("2d");
-let w=0,h=0,dpr=1,raf=0,last=0,active=false,paused=false,over=false,sound=false,audio=null,round=1,timeLeft=45,difficulty=2,keys={},touch={},sparks=[];
+let w=0,h=0,dpr=1,raf=0,last=0,active=false,paused=false,over=false,sound=false,audio=null,round=1,timeLeft=50,difficulty=2,keys={},touch={},sparks=[];
 let p={x:0,y:0,vx:0,vy:0,hp:100,face:1,attack:0,attackType:"",cool:0,block:false,jump:false};
 let e={x:0,y:0,vx:0,vy:0,hp:100,face:-1,attack:0,attackType:"",cool:0,block:false,jump:false};
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
@@ -61,7 +61,7 @@ function loop(now){if(!active||paused)return;const dt=Math.min(.03,(now-last)/10
 function setTouch(id,on){touch[id]=on}
 ["left","right","jump","punch","kick","guard"].forEach(id=>{const b=$(id);b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);setTouch(id,true)});["pointerup","pointercancel","lostpointercapture"].forEach(ev=>b.addEventListener(ev,()=>setTouch(id,false)))});
 window.addEventListener("keydown",e=>{keys[e.key]=true;if(["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key))e.preventDefault();if(e.key.toLowerCase()==="p"&&active){paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}}});window.addEventListener("keyup",e=>keys[e.key]=false);
-$("startBtn").addEventListener("click",()=>{if(over){round++;p.hp=e.hp=100;p.cool=e.cool=p.attack=e.attack=0;resetPositions();timeLeft=Number($("roundLength").value);over=false}start()});
+$("startBtn").addEventListener("click",()=>{if(over){round++;p.hp=e.hp=100;p.cool=e.cool=p.attack=e.attack=0;resetPositions();over=false}timeLeft=$("roundLength").value==="infinity"?Infinity:Number($("roundLength").value);start()});
 $("pauseBtn").addEventListener("click",()=>{if(!active)return;paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}});
 $("restartBtn").addEventListener("click",reset);$("soundBtn").addEventListener("click",()=>{sound=!sound;$("soundBtn").textContent=sound?"🔊 Sound on":"🔇 Sound off"});
 $("difficulty").addEventListener("change",()=>difficulty=Number($("difficulty").value));$("roundLength").addEventListener("change",()=>timeLeft=$("roundLength").value==="infinity"?Infinity:Number($("roundLength").value));
