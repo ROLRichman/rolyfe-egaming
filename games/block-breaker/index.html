@@ -63,7 +63,7 @@ ctx.save();ctx.shadowColor=shield?"#66eaff":"#53e6ad";ctx.shadowBlur=shield?26:1
 for(const b of balls){ctx.save();ctx.shadowColor="#fff";ctx.shadowBlur=15;ctx.fillStyle="#f4fdff";ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();ctx.restore()}
 for(const p of particles){ctx.globalAlpha=Math.min(1,p.life*2);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,3,3)}ctx.globalAlpha=1;
 if(level%5===0){ctx.fillStyle="#ff5168";ctx.font="900 12px system-ui";ctx.textAlign="center";ctx.fillText("⚠ BOSS CORE",w/2,20)}}
-function loop(now){if(!active||paused)return;const dt=Math.min(.03,(now-last)/1000||0);last=now;update(dt,now);draw();if(active&&!paused)raf=requestAnimationFrame(loop)}
+function loop(now){if(!active||paused)return;const dt=Math.min(.03,(now-last)/1000||0);last=now;update(dt*(window.ROLYFE_ARCADE_PROFILE?.getSpeed?.()||1),now);draw();if(active&&!paused)raf=requestAnimationFrame(loop)}
 function steer(e){const r=canvas.getBoundingClientRect();paddle.x=clamp(e.clientX-r.left,paddle.w/2,w-paddle.w/2)}
 canvas.addEventListener("pointerdown",e=>{if(!active||paused)return;canvas.setPointerCapture(e.pointerId);steer(e)});canvas.addEventListener("pointermove",e=>{if(e.buttons||e.pointerType==="touch")steer(e)});
 window.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")keys.left=true;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")keys.right=true;if(e.code==="Space")fire()});window.addEventListener("keyup",e=>{if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")keys.left=false;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")keys.right=false});
