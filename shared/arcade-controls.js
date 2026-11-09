@@ -32,7 +32,7 @@ const sizePanel=document.createElement("section");sizePanel.id="rolyfeArcadeSize
 document.body.appendChild(sizePanel);
 const heightInput=sizePanel.querySelector("input"),heightValue=sizePanel.querySelector("b");
 function gameSurface(){return document.querySelector("#poolTable")||document.querySelector("canvas")||document.querySelector(".stage")||document.querySelector(".arena-wrap")}
-function applyHeight(value,save){const target=gameSurface();if(!target)return;target.style.height=value+"px";heightValue.textContent=value+" px";if(save){try{localStorage.setItem("rolyfe_arcade_height_"+location.pathname,String(value))}catch(e){}}}
+function applyHeight(value,save){const target=gameSurface();if(!target)return;target.style.height=value+"px";heightValue.textContent=value+" px";if(save){try{localStorage.setItem("rolyfe_arcade_height_"+location.pathname,String(value))}catch(e){}}window.dispatchEvent(new Event("resize"))}
 try{const saved=Number(localStorage.getItem("rolyfe_arcade_height_"+location.pathname)||0);if(saved>=300&&saved<=820){heightInput.value=String(saved);applyHeight(saved,false)}else{const target=gameSurface();const initial=target?Math.round(target.getBoundingClientRect().height):520;heightInput.value=String(Math.max(300,Math.min(820,initial)));heightValue.textContent=heightInput.value+" px"}}catch(e){heightValue.textContent=heightInput.value+" px"}
 heightInput.addEventListener("input",()=>applyHeight(Number(heightInput.value),true));
 size.addEventListener("click",()=>{panel.hidden=true;sizePanel.hidden=!sizePanel.hidden});
