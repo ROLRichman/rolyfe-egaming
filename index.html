@@ -124,5 +124,6 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
  sound.addEventListener('click',()=>{enabled=!enabled;sound.setAttribute('aria-pressed',String(enabled));sound.textContent=enabled?'🔊 Sound':'🔇 Sound';if(enabled){try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const osc=audio.createOscillator(),gain=audio.createGain();osc.frequency.value=660;gain.gain.value=.035;osc.connect(gain);gain.connect(audio.destination);osc.start();osc.stop(audio.currentTime+.09)}catch(e){}}});
 })();
 </script>
+<script src="./shared/arcade-controls.js"></script>
 </body>
 </html>
