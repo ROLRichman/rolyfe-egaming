@@ -3847,6 +3847,14 @@ function setAimAngle(
     state.gameOver =
       true;
 
+    if (winner === 0) {
+      window.ROLYFE_ARCADE_PROFILE?.award("Classic RO’Lyfe");
+      if (state.shotCount <= 12) window.ROLYFE_ARCADE_PROFILE?.award("Ace");
+      if (state.gameType === "9ball") window.ROLYFE_ARCADE_PROFILE?.award("EMG");
+      if (state.aiLevel >= 4) window.ROLYFE_ARCADE_PROFILE?.award("RJ C&D");
+      if (state.challengeScore >= 1000) window.ROLYFE_ARCADE_PROFILE?.award("7Figures");
+    }
+
     state.shooting =
       false;
 
