@@ -16,13 +16,13 @@ style.textContent=`
 document.head.appendChild(style);
 const dock=document.createElement("nav");dock.id="rolyfeArcadeDock";dock.setAttribute("aria-label","Arcade quick controls");
 const top=document.createElement("button");top.type="button";top.textContent="↑ TOP";top.setAttribute("aria-label","Scroll to top");top.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
-const mid=document.createElement("button");mid.type="button";mid.textContent="↕ GAME";mid.setAttribute("aria-label","Scroll to game");mid.addEventListener("click",()=>{const target=document.querySelector("canvas")||document.querySelector("main")||document.querySelector(".arena-wrap")||document.querySelector(".stage");if(target)target.scrollIntoView({behavior:"smooth",block:"center"})});
+const mid=document.createElement("button");mid.type="button";mid.textContent="↕ GAME";mid.setAttribute("aria-label","Scroll to game");mid.addEventListener("click",()=>{const target=document.querySelector("canvas")||document.querySelector("#games")||document.querySelector("main")||document.querySelector(".arena-wrap")||document.querySelector(".stage");if(target)target.scrollIntoView({behavior:"smooth",block:"center"})});
 const ai=document.createElement("button");ai.type="button";ai.textContent="🧠 AI";ai.setAttribute("aria-label","Open Atlas game guide");
 dock.append(top,mid,ai);
 const panel=document.createElement("section");panel.id="rolyfeArcadePanel";panel.hidden=true;panel.innerHTML='<header><span>🧠 RO’Lyfe Arcade Guide</span><button type="button" aria-label="Close guide">×</button></header><p></p>';
 const close=panel.querySelector("button"),copy=panel.querySelector("p");
 function updateHint(){
- const source=document.querySelector("#guideTip,#atlasTip,#aiStatus,.guide");
+ const source=document.querySelector("#guideTip,#atlasTip,#aiStatus,.guide,.aihint");
  const hint=source&&source.textContent.trim();
  copy.textContent=hint||"Read the game controls, watch the level pattern, and save special abilities for the toughest waves. Live cross-game Atlas chat is a separate integration.";
 }
