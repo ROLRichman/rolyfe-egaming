@@ -5,7 +5,10 @@ const style=document.createElement("style");
 style.textContent=`
 #rolyfeArcadeDock{position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:99999;display:grid;gap:7px;width:62px}
 #rolyfeArcadeDock button{min-height:44px;border:1px solid #47718c;border-radius:13px;background:linear-gradient(145deg,#102a40,#071727);color:#eaf8ff;font:800 11px system-ui;box-shadow:0 5px 18px #0008;touch-action:manipulation}
-#rolyfeArcadeDock button:active{transform:scale(.96)}\n#rolyfeArcadeDock .dock-toggle{display:none}\n#rolyfeArcadeDock.collapsed button:not(.dock-toggle){display:none}\n#rolyfeArcadeDock.collapsed{width:54px}
+#rolyfeArcadeDock button:active{transform:scale(.96)}
+#rolyfeArcadeDock .dock-toggle{display:none}
+#rolyfeArcadeDock.collapsed button:not(.dock-toggle){display:none}
+#rolyfeArcadeDock.collapsed{width:54px}
 #rolyfeArcadePanel{position:fixed;right:82px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:99999;width:min(290px,calc(100vw - 104px));padding:14px;border:1px solid #4b819b;border-radius:15px;background:linear-gradient(145deg,#102c43,#071523);color:#effaff;box-shadow:0 12px 38px #000b;font:13px/1.5 system-ui}
 #rolyfeArcadePanel[hidden]{display:none}
 #rolyfeArcadePanel header{display:flex;justify-content:space-between;gap:8px;align-items:center;font-weight:900;color:#74e5ef;margin-bottom:7px}
@@ -17,16 +20,20 @@ style.textContent=`
 #rolyfeArcadeSizePanel input{width:100%;accent-color:#5de6f4}
 #rolyfeArcadeSizePanel small{color:#c1d3e2}
 #rolyfeArcadeSizePanel .speedrow{margin-top:10px;padding-top:9px;border-top:1px solid #36566c}
-@media(max-width:760px){#rolyfeArcadeDock{right:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:54px;gap:5px}#rolyfeArcadeDock .dock-toggle{display:block;min-height:42px;background:linear-gradient(145deg,#1b536b,#10283d);font-size:15px}#rolyfeArcadeDock button{min-height:40px;font-size:10px}#rolyfeArcadeDock.collapsed{width:54px}#rolyfeArcadePanel,#rolyfeArcadeSizePanel{right:8px;bottom:calc(60px + env(safe-area-inset-bottom));width:min(300px,calc(100vw - 16px));max-height:55svh;overflow:auto}}\n@media(max-height:430px) and (orientation:landscape){#rolyfeArcadeDock{right:8px;bottom:8px;gap:4px;width:48px}#rolyfeArcadeDock button{min-height:32px;font-size:9px}#rolyfeArcadePanel,#rolyfeArcadeSizePanel{bottom:8px}}
+@media(max-width:760px){#rolyfeArcadeDock{right:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:54px;gap:5px}#rolyfeArcadeDock .dock-toggle{display:block;min-height:42px;background:linear-gradient(145deg,#1b536b,#10283d);font-size:15px}#rolyfeArcadeDock button{min-height:40px;font-size:10px}#rolyfeArcadeDock.collapsed{width:54px}#rolyfeArcadePanel,#rolyfeArcadeSizePanel{right:8px;bottom:calc(60px + env(safe-area-inset-bottom));width:min(300px,calc(100vw - 16px));max-height:55svh;overflow:auto}}
+@media(max-height:430px) and (orientation:landscape){#rolyfeArcadeDock{right:8px;bottom:8px;gap:4px;width:48px}#rolyfeArcadeDock button{min-height:32px;font-size:9px}#rolyfeArcadePanel,#rolyfeArcadeSizePanel{bottom:8px}}
 `;
 document.head.appendChild(style);
 const dock=document.createElement("nav");dock.id="rolyfeArcadeDock";dock.setAttribute("aria-label","Arcade quick controls");
-const toggle=document.createElement("button");toggle.type="button";toggle.className="dock-toggle";toggle.textContent="☰";toggle.setAttribute("aria-label","Show or hide arcade controls");\nconst top=document.createElement("button");top.type="button";top.textContent="↑ TOP";top.setAttribute("aria-label","Scroll to top");top.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
+const toggle=document.createElement("button");toggle.type="button";toggle.className="dock-toggle";toggle.textContent="☰";toggle.setAttribute("aria-label","Show or hide arcade controls");
+const top=document.createElement("button");top.type="button";top.textContent="↑ TOP";top.setAttribute("aria-label","Scroll to top");top.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
 const mid=document.createElement("button");mid.type="button";mid.textContent="↕ GAME";mid.setAttribute("aria-label","Scroll to game");mid.addEventListener("click",()=>{const target=document.querySelector("canvas")||document.querySelector("#games")||document.querySelector("main")||document.querySelector(".arena-wrap")||document.querySelector(".stage");if(target)target.scrollIntoView({behavior:"smooth",block:"center"})});
 const ai=document.createElement("button");ai.type="button";ai.textContent="🧠 AI";ai.setAttribute("aria-label","Open Atlas game guide");
 const trophy=document.createElement("button");trophy.type="button";trophy.textContent="🏆";trophy.setAttribute("aria-label","Open RO’Lyfe trophy case");
 const size=document.createElement("button");size.type="button";size.textContent="↕ SIZE";size.setAttribute("aria-label","Adjust game screen height");
-dock.append(toggle,top,mid,ai,trophy,size);\nif(window.matchMedia&&window.matchMedia("(max-width:760px)").matches)dock.classList.add("collapsed");\ntoggle.addEventListener("click",()=>{dock.classList.toggle("collapsed");toggle.textContent=dock.classList.contains("collapsed")?"☰":"×";});
+dock.append(toggle,top,mid,ai,trophy,size);
+if(window.matchMedia&&window.matchMedia("(max-width:760px)").matches)dock.classList.add("collapsed");
+toggle.addEventListener("click",()=>{dock.classList.toggle("collapsed");toggle.textContent=dock.classList.contains("collapsed")?"☰":"×";});
 const panel=document.createElement("section");panel.id="rolyfeArcadePanel";panel.hidden=true;panel.innerHTML='<header><span>🧠 RO’Lyfe Arcade Guide</span><button type="button" aria-label="Close guide">×</button></header><p></p>';
 const close=panel.querySelector("button"),copy=panel.querySelector("p");
 const sizePanel=document.createElement("section");sizePanel.id="rolyfeArcadeSizePanel";sizePanel.hidden=true;sizePanel.innerHTML='<label for="rolyfeArcadeHeight"><span>GAME SCREEN HEIGHT</span><b id="rolyfeArcadeHeightValue">—</b></label><input id="rolyfeArcadeHeight" type="range" min="300" max="820" step="20" value="520"><small>Adjust the playfield height. Scroll the page as needed.</small><div class="speedrow"><label for="rolyfeArcadeSpeed"><span>GAME SPEED</span><b id="rolyfeArcadeSpeedValue">1.0×</b></label><input id="rolyfeArcadeSpeed" type="range" min="0.5" max="1.8" step="0.1" value="1"><small>Slow the action down or speed the game up.</small></div>';
@@ -61,7 +68,8 @@ ai.addEventListener("click",()=>{sizePanel.hidden=true;panel.querySelector("head
 trophy.addEventListener("click",()=>{sizePanel.hidden=true;
  const all=readTrophies(),names=Object.keys(all).filter(k=>all[k]);
  panel.querySelector("header span").textContent="🏆 RO’Lyfe Trophy Case";
- const catalog=["Classic RO’Lyfe","Ace","EMG","RJ C&D","7Figures"];\n copy.textContent=catalog.map(n=>(all[n]?"🏆 ":"🔒 ")+n).join("  ·  ")+"  |  Saved on this browser only.";
+ const catalog=["Classic RO’Lyfe","Ace","EMG","RJ C&D","7Figures"];
+ copy.textContent=catalog.map(n=>(all[n]?"🏆 ":"🔒 ")+n).join("  ·  ")+"  |  Saved on this browser only.";
  panel.hidden=!panel.hidden;
 });
 close.addEventListener("click",()=>panel.hidden=true);
