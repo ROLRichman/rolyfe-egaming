@@ -34,7 +34,9 @@ const canvas=document.getElementById("table"),ctx=canvas.getContext("2d"),$=id=>
 let w=0,h=0,dpr=1,raf=0,last=0,active=false,paused=false,over=false,sound=false,audio=null;
 let playerScore=0,opponentScore=0,mode="ai",level=2,playerSide="left",p1=0,p2=0,ball={x:0,y:0,vx:0,vy:0,r:7},paddleH=76,paddleW=11,paddleX=24,opponentX=0,serveWait=0,keys={},dragSide=null;
 const winAt=7;
-function clamp(v,min,max){return Math.max(min,Math.min(max,v))}\nfunction leftY(){return playerSide==="left"?p1:p2}\nfunction rightY(){return playerSide==="right"?p1:p2}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function leftY(){return playerSide==="left"?p1:p2}
+function rightY(){return playerSide==="right"?p1:p2}
 function beep(freq=420,dur=.06){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();let o=audio.createOscillator(),g=audio.createGain();o.frequency.value=freq;g.gain.setValueAtTime(.04,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+dur)}catch(e){}}
 function resize(){const oldW=w,oldH=h,r=canvas.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));ctx.setTransform(dpr,0,0,dpr,0,0);w=r.width;h=r.height;paddleH=clamp(h*.18,58,92);if(oldW&&oldH){ball.x=clamp(ball.x/oldW*w,ball.r,w-ball.r);ball.y=clamp(ball.y/oldH*h,ball.r,h-ball.r);p1=clamp(p1/oldH*h,paddleH/2,h-paddleH/2);p2=clamp(p2/oldH*h,paddleH/2,h-paddleH/2)}else{p1=p2=h/2;resetBall(1)}paddleX=20;opponentX=w-20;draw()}
 function setOverlay(show,title,text,button){$("overlay").hidden=!show;$("overlayTitle").textContent=title;$("overlayText").textContent=text;$("startBtn").textContent=button}
