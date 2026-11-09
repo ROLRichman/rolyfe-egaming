@@ -36,7 +36,7 @@
   </div>
 </section>
 <div class="toolbar">
-  <button id="pauseBtn">Ⅱ Pause</button><button id="soundBtn">🔇 Sound off</button><button id="restartBtn" class="primary">↻ New run</button>
+  <button id="pauseBtn">Ⅱ Pause</button><button id="soundBtn">🔇 Sound off</button><button id="restartBtn" class="primary">↻ New run</button><button id="fireLockBtn" aria-pressed="false">🔒 FIRE LOCK OFF</button>
 </div>
 <div class="mobile-controls" aria-label="Touch game controls">
   <button id="leftBtn" aria-label="Move left">◀ LEFT</button><button id="fireBtn" class="fire" aria-label="Fire energy bolts">✦ FIRE</button><button id="rightBtn" aria-label="Move right">RIGHT ▶</button>
@@ -54,7 +54,7 @@ const canvas=document.getElementById("arena"),ctx=canvas.getContext("2d");
 const el=id=>document.getElementById(id);
 let w=0,h=0,dpr=1,raf=0,last=0,active=false,paused=false,over=false,sound=false,audio=null;
 let score=0,wave=1,lives=3,player={x:0,y:0,r:13,speed:0},shots=[],enemyShots=[],orbs=[],particles=[],stars=[];
-let fireHeld=false,moveLeft=false,moveRight=false,lastFire=0,lastEnemyFire=0,guideIndex=0;
+let fireHeld=false,fireLocked=false,moveLeft=false,moveRight=false,lastFire=0,lastEnemyFire=0,guideIndex=0;
 const tips=["Keep moving between shots. A moving target is harder to surround.","Clear a side lane before the orb group crowds the arena.","Watch the enemy glow: a bright pulse usually means a shot is coming.","Save your last shield. Do not chase a single orb into a corner."];
 const bestKey="rolyfe_orbital_blitz_best_v1";
 let best=0;try{best=Number(localStorage.getItem(bestKey)||0)||0}catch(e){}
@@ -74,7 +74,7 @@ function hitPlayer(){lives--;spawnBurst(player.x,player.y,"#ff6e83");beep(180,.2
 function update(dt,now){
 const direction=(moveRight?1:0)-(moveLeft?1:0);if(direction)player.x+=direction*330*dt;
 player.x=clamp(player.x,player.r+6,w-player.r-6);
-if(fireHeld)shoot(now);
+if(fireHeld||fireLocked)shoot(now);
 for(const s of shots)s.y+=s.vy*dt;shots=shots.filter(s=>s.y>-20);
 for(const s of enemyShots){s.y+=s.vy*dt;s.x+=s.vx*dt}
 enemyShots=enemyShots.filter(s=>s.y<h+20);
@@ -108,7 +108,7 @@ canvas.addEventListener("pointermove",e=>{if(e.buttons===0&&e.pointerType!=="tou
 ["pointerup","pointercancel","lostpointercapture"].forEach(evt=>canvas.addEventListener(evt,()=>setMove("fire",false)));
 window.addEventListener("keydown",e=>{if(["ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault();if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")moveLeft=true;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")moveRight=true;if(e.code==="Space")fireHeld=true;if(e.key.toLowerCase()==="p")pause()});
 window.addEventListener("keyup",e=>{if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")moveLeft=false;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")moveRight=false;if(e.code==="Space")fireHeld=false});
-el("startBtn").addEventListener("click",start);el("restartBtn").addEventListener("click",()=>{reset();start()});el("pauseBtn").addEventListener("click",pause);el("soundBtn").addEventListener("click",()=>{sound=!sound;el("soundBtn").textContent=sound?"🔊 Sound on":"🔇 Sound off";beep()});
+el("startBtn").addEventListener("click",start);el("restartBtn").addEventListener("click",()=>{reset();start()});el("pauseBtn").addEventListener("click",pause);el("soundBtn").addEventListener("click",()=>{sound=!sound;el("soundBtn").textContent=sound?"🔊 Sound on":"🔇 Sound off";beep()});\nel("fireLockBtn").addEventListener("click",()=>{fireLocked=!fireLocked;el("fireLockBtn").textContent=fireLocked?"🔒 FIRE LOCK ON":"🔒 FIRE LOCK OFF";el("fireLockBtn").setAttribute("aria-pressed",String(fireLocked));el("guideTip").textContent=fireLocked?"Auto-fire locked on. Steer LEFT or RIGHT while energy shots continue automatically.":"Fire lock is off. Hold FIRE to shoot manually."});
 window.addEventListener("resize",resize);document.addEventListener("visibilitychange",()=>{if(document.hidden&&active&&!paused)pause()});
 resize();reset();updateHud();
 })();
