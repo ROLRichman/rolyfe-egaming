@@ -220,7 +220,7 @@
     const country = countrySelect.value || "ALL";
     try {
       const found = [];
-      const tagsToTry = genre.tags.slice(0, country === "ALL" ? 5 : 4);
+      const tagsToTry = genre.id === "caribbean" ? genre.tags : genre.tags.slice(0, country === "ALL" ? 5 : 4);
       for (const tag of tagsToTry) {
         const params = { action: "search", tag, limit: "30", order: "clicktrend" };
         if (country !== "ALL" && country !== "GLOBAL") params.country = country;
@@ -301,9 +301,23 @@
     setStatus("Connecting to " + (station.name || "station") + "…");
     renderStations();
     try {
-      const candidates = await resolveStationUrl(station);
-      if (!candidates.length) throw new Error("No secure stream was returned for this station. Try another station.");
-      const streamUrl = await tryPlayUrl(candidates);
+      // Try the resolved HTTPS stream immediately inside the user's tap.
+      // Waiting for the separate click-tracking request first can lose mobile
+      // browser audio activation, especially on iOS/Safari.
+      const directCandidates = [station.url_resolved, station.url]
+        .filter((url, index, all) => url && /^https:\/\//i.test(url) && all.indexOf(url) === index);
+      let streamUrl = null;
+      let directError = null;
+      if (directCandidates.length) {
+        try { streamUrl = await tryPlayUrl(directCandidates); }
+        catch (error) { directError = error; }
+      }
+      if (!streamUrl) {
+        const resolvedCandidates = await resolveStationUrl(station);
+        const fallbackCandidates = resolvedCandidates.filter(url => !directCandidates.includes(url));
+        if (!fallbackCandidates.length) throw directError || new Error("No secure stream was returned for this station.");
+        streamUrl = await tryPlayUrl(fallbackCandidates);
+      }
       prefs.lastStation = {
         stationuuid: station.stationuuid,
         name: station.name || "Live radio",
@@ -332,16 +346,22 @@
     stationTitle.textContent = last.name || "Last station";
     setStatus("Reconnecting to " + (last.name || "your last station") + "…");
     try {
-      const candidates = [];
-      if (last.stationuuid) {
-        try {
-          const clicked = await request({ action: "url", uuid: last.stationuuid });
-          if (clicked?.url && /^https:\/\//i.test(clicked.url)) candidates.push(clicked.url);
-        } catch (_) {}
+      // Resume the saved HTTPS URL first so the user's tap directly starts audio.
+      const direct = last.streamUrl && /^https:\/\//i.test(last.streamUrl) ? [last.streamUrl] : [];
+      try {
+        if (!direct.length) throw new Error("No saved stream URL.");
+        await tryPlayUrl(direct);
+      } catch (_) {
+        const fallback = [];
+        if (last.stationuuid) {
+          try {
+            const clicked = await request({ action: "url", uuid: last.stationuuid });
+            if (clicked?.url && /^https:\/\//i.test(clicked.url)) fallback.push(clicked.url);
+          } catch (_) {}
+        }
+        if (!fallback.length) throw new Error("The saved station no longer has a secure stream.");
+        await tryPlayUrl(fallback);
       }
-      if (last.streamUrl && /^https:\/\//i.test(last.streamUrl) && !candidates.includes(last.streamUrl)) candidates.push(last.streamUrl);
-      if (!candidates.length) throw new Error("The saved station no longer has a secure stream.");
-      await tryPlayUrl(candidates);
       playButton.textContent = "Ⅱ Pause";
       setStatus("LIVE · " + (last.country || "Caribbean") + " · resumed on this page");
       return true;
