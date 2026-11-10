@@ -85,10 +85,13 @@
   let stations = [];
   let currentIndex = -1;
   let busy = false;
+  let stationLoadSeq = 0;
+  let stationController = null;
+  let playSequence = 0;
 
   const style = document.createElement("style");
   style.textContent = `
-    #rolRadioRoot{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:99990;font:14px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;color:#f4fff8}
+    #rolRadioRoot{position:fixed;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:99990;font:14px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;color:#f4fff8}
     #rolRadioRoot *{box-sizing:border-box}
     #rolRadioLauncher{display:flex;align-items:center;gap:8px;border:1px solid #63dca0aa;border-radius:999px;padding:11px 15px;background:linear-gradient(135deg,#123d31,#142b3e);color:#f4fff8;font-weight:850;box-shadow:0 8px 28px #0008;cursor:pointer}
     #rolRadioLauncher .rol-radio-dot{width:9px;height:9px;border-radius:50%;background:#67efaa;box-shadow:0 0 12px #67efaa}
@@ -113,7 +116,7 @@
     .rol-radio-station span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rol-radio-station small{margin-left:auto;color:#9cb7a7;white-space:nowrap;font-size:10px}
     #rolRadioRoot button:focus-visible,#rolRadioRoot select:focus-visible,#rolRadioRoot input:focus-visible{outline:2px solid #9affc3;outline-offset:2px}
-    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(340px,calc(100vw - 20px));max-height:68vh;padding:13px}#rolRadioLauncher{padding:10px 13px}}
+    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(82px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(340px,calc(100vw - 20px));max-height:68vh;padding:13px}#rolRadioLauncher{padding:10px 13px}}
     @media(prefers-reduced-motion:reduce){#rolRadioRoot *{scroll-behavior:auto!important;transition:none!important}}
   `;
   document.head.appendChild(style);
@@ -207,9 +210,9 @@
       list.appendChild(button);
     });
   }
-  async function request(params) {
+  async function request(params, signal) {
     const url = API + "?" + new URLSearchParams(params).toString();
-    const response = await fetch(url, { headers: { "apikey": API_KEY, "Accept": "application/json" }, cache: "no-store" });
+    const response = await fetch(url, { headers: { "apikey": API_KEY, "Accept": "application/json" }, cache: "no-store", signal });
     const payload = await response.json();
     if (!response.ok || payload.error) throw new Error(payload.error || "Radio directory unavailable.");
     return payload.data;
@@ -222,8 +225,10 @@
   }
 
   async function loadStations() {
-    if (busy) return;
-    busy = true;
+    const seq = ++stationLoadSeq;
+    if (stationController) stationController.abort();
+    stationController = new AbortController();
+    const signal = stationController.signal;
     setStatus("Finding " + currentGenre().label + " stations…");
     list.innerHTML = '<div class="rol-radio-sub">Searching island and station directories…</div>';
     const genre = currentGenre();
@@ -234,7 +239,8 @@
       for (const tag of tagsToTry) {
         const params = { action: "search", tag, limit: "30", order: "clicktrend" };
         if (country !== "ALL" && country !== "GLOBAL") params.countrycode = country;
-        const data = await request(params);
+        const data = await request(params, signal);
+        if (seq !== stationLoadSeq) return;
         if (Array.isArray(data)) {
           const scoped = country === "ALL" ? data.filter(isCaribbeanStation) : data;
           found.push(...scoped);
@@ -242,6 +248,7 @@
         const uniqueCount = new Set(found.map(s => s?.stationuuid).filter(Boolean)).size;
         if (uniqueCount >= (country === "ALL" ? 10 : 12)) break;
       }
+      if (seq !== stationLoadSeq) return;
       const seen = new Set();
       stations = found.filter(s => {
         if (!s || !s.stationuuid || !(s.url_resolved || s.url)) return false;
@@ -265,10 +272,13 @@
         playButton.textContent = "▶ Resume";
       }
     } catch (error) {
+      if (seq !== stationLoadSeq || error?.name === "AbortError") return;
       stations = [];
       renderStations();
       setStatus(error.message || "Could not load stations. Check your connection and retry.");
-    } finally { busy = false; }
+    } finally {
+      if (seq === stationLoadSeq) stationController = null;
+    }
   }
   async function resolveStationUrl(station) {
     const candidates = [];
@@ -303,7 +313,8 @@
   }
 
   async function playStation(index) {
-    if (!stations[index] || busy) return;
+    if (!stations[index]) return;
+    const seq = ++playSequence;
     const station = stations[index];
     busy = true;
     currentIndex = index;
@@ -321,13 +332,16 @@
       if (directCandidates.length) {
         try { streamUrl = await tryPlayUrl(directCandidates); }
         catch (error) { directError = error; }
+        if (seq !== playSequence) return;
       }
       if (!streamUrl) {
         const resolvedCandidates = await resolveStationUrl(station);
+        if (seq !== playSequence) return;
         const fallbackCandidates = resolvedCandidates.filter(url => !directCandidates.includes(url));
         if (!fallbackCandidates.length) throw directError || new Error("No secure stream was returned for this station.");
         streamUrl = await tryPlayUrl(fallbackCandidates);
       }
+      if (seq !== playSequence) return;
       prefs.lastStation = {
         stationuuid: station.stationuuid,
         name: station.name || "Live radio",
@@ -346,12 +360,13 @@
         ? "Tap Play again to allow audio in this browser."
         : "This station's stream could not play in this browser. Try Next or another island station.";
       setStatus(detail);
-    } finally { busy = false; }
+    } finally { if (seq === playSequence) busy = false; }
   }
 
   async function resumeLastStation() {
     const last = prefs.lastStation;
-    if (!last || busy) return false;
+    if (!last) return false;
+    const seq = ++playSequence;
     busy = true;
     stationTitle.textContent = last.name || "Last station";
     setStatus("Reconnecting to " + (last.name || "your last station") + "…");
@@ -361,17 +376,20 @@
       try {
         if (!direct.length) throw new Error("No saved stream URL.");
         await tryPlayUrl(direct);
+        if (seq !== playSequence) return false;
       } catch (_) {
         const fallback = [];
         if (last.stationuuid) {
           try {
             const clicked = await request({ action: "url", uuid: last.stationuuid });
+            if (seq !== playSequence) return false;
             if (clicked?.url && /^https:\/\//i.test(clicked.url)) fallback.push(clicked.url);
           } catch (_) {}
         }
         if (!fallback.length) throw new Error("The saved station no longer has a secure stream.");
         await tryPlayUrl(fallback);
       }
+      if (seq !== playSequence) return false;
       playButton.textContent = "Ⅱ Pause";
       setStatus("LIVE · " + (last.country || "Caribbean") + " · resumed on this page");
       return true;
@@ -379,7 +397,7 @@
       setStatus("Your last station could not reconnect. Choose a station or press Next.");
       playButton.textContent = "▶ Play";
       return false;
-    } finally { busy = false; }
+    } finally { if (seq === playSequence) busy = false; }
   }
 
   $("rolRadioLauncher").addEventListener("click", () => openPanel(!panel.classList.contains("open")));
