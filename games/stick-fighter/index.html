@@ -67,4 +67,5 @@ $("restartBtn").addEventListener("click",reset);$("soundBtn").addEventListener("
 $("difficulty").addEventListener("change",()=>difficulty=Number($("difficulty").value));$("roundLength").addEventListener("change",()=>timeLeft=$("roundLength").value==="infinity"?Infinity:Number($("roundLength").value));
 window.addEventListener("resize",resize);document.addEventListener("visibilitychange",()=>{if(document.hidden&&active&&!paused){paused=true}});resize();reset();
 })();
-</script><script src="../../shared/arcade-controls.js"></script></body></html>
+</script><script src="../../shared/arcade-controls.js"></script><script src="../../shared/radio-player.js"></script>
+</body></html>
