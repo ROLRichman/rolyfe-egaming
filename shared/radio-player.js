@@ -140,7 +140,15 @@
     </section>
     <button id="rolRadioLauncher" type="button" aria-expanded="false" aria-controls="rolRadioPanel"><span class="rol-radio-dot"></span><span>Radio</span><span aria-hidden="true">♫</span></button>
   `;
-  document.body.appendChild(root);
+  function mountRadioRoot() {
+    // Fullscreen APIs only display descendants of the active fullscreen element.
+    // Move the radio controls into that element so they remain visible over a game.
+    const target = document.fullscreenElement || document.body;
+    if (root.parentElement !== target) target.appendChild(root);
+  }
+  mountRadioRoot();
+  document.addEventListener("fullscreenchange", mountRadioRoot);
+  document.addEventListener("webkitfullscreenchange", mountRadioRoot);
 
   const $ = (id) => document.getElementById(id);
   const panel = $("rolRadioPanel");
