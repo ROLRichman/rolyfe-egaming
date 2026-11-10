@@ -67,4 +67,5 @@ $("tableSelect").addEventListener("change",()=>{level=Number($("tableSelect").va
 $("launch").addEventListener("click",launch);$("pause").addEventListener("click",()=>{if(!active)return;paused=!paused;if(!paused){last=performance.now();raf=requestAnimationFrame(loop)}});$("restart").addEventListener("click",reset);$("sound").addEventListener("click",()=>{sound=!sound;$("sound").textContent=sound?"🔊 Sound on":"🔇 Sound off"});
 window.addEventListener("resize",resize);document.addEventListener("visibilitychange",()=>{if(document.hidden&&active)paused=true});resize();reset();
 })();
-</script><script src="../../shared/arcade-controls.js"></script></body></html>
+</script><script src="../../shared/arcade-controls.js"></script><script src="../../shared/radio-player.js"></script>
+</body></html>
