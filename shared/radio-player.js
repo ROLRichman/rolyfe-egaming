@@ -169,7 +169,7 @@
       let streamUrl = station.url_resolved || station.url;
       try {
         const clicked = await request({ action: "url", uuid: station.stationuuid });
-        if (clicked && clicked.url) streamUrl = clicked.url;
+        if (clicked && clicked.url && clicked.url.startsWith("https://")) streamUrl = clicked.url;
       } catch (_) {
         // Fall back to the resolved station URL when the click endpoint is unavailable.
       }
