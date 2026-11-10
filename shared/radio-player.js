@@ -28,39 +28,39 @@
   const countries = [
     { value: "ALL", label: "All Caribbean Islands" },
     { value: "GLOBAL", label: "Global / Diaspora" },
-    { value: "Anguilla", label: "Anguilla" },
-    { value: "Antigua and Barbuda", label: "Antigua & Barbuda" },
-    { value: "Aruba", label: "Aruba" },
-    { value: "Bahamas", label: "Bahamas" },
-    { value: "Barbados", label: "Barbados" },
-    { value: "Belize", label: "Belize" },
-    { value: "Bermuda", label: "Bermuda" },
-    { value: "Bonaire, Sint Eustatius and Saba", label: "Bonaire & Caribbean Netherlands" },
-    { value: "British Virgin Islands", label: "British Virgin Islands" },
-    { value: "Cayman Islands", label: "Cayman Islands" },
-    { value: "Cuba", label: "Cuba" },
-    { value: "Curaçao", label: "Curaçao" },
-    { value: "Dominica", label: "Dominica" },
-    { value: "Dominican Republic", label: "Dominican Republic" },
-    { value: "French Guiana", label: "French Guiana" },
-    { value: "Grenada", label: "Grenada" },
-    { value: "Guadeloupe", label: "Guadeloupe" },
-    { value: "Guyana", label: "Guyana" },
-    { value: "Haiti", label: "Haiti" },
-    { value: "Jamaica", label: "Jamaica" },
-    { value: "Martinique", label: "Martinique" },
-    { value: "Montserrat", label: "Montserrat" },
-    { value: "Puerto Rico", label: "Puerto Rico" },
-    { value: "Saint Barthélemy", label: "Saint Barthélemy" },
-    { value: "Saint Kitts and Nevis", label: "Saint Kitts & Nevis" },
-    { value: "Saint Lucia", label: "Saint Lucia" },
-    { value: "Saint Martin", label: "Saint Martin" },
-    { value: "Saint Vincent and the Grenadines", label: "Saint Vincent & the Grenadines" },
-    { value: "Sint Maarten", label: "Sint Maarten" },
-    { value: "Suriname", label: "Suriname" },
-    { value: "Trinidad and Tobago", label: "Trinidad & Tobago" },
-    { value: "Turks and Caicos Islands", label: "Turks & Caicos Islands" },
-    { value: "United States Virgin Islands", label: "U.S. Virgin Islands" }
+    { value: "AI", label: "Anguilla" },
+    { value: "AG", label: "Antigua & Barbuda" },
+    { value: "AW", label: "Aruba" },
+    { value: "BS", label: "Bahamas" },
+    { value: "BB", label: "Barbados" },
+    { value: "BZ", label: "Belize" },
+    { value: "BM", label: "Bermuda" },
+    { value: "BQ", label: "Bonaire & Caribbean Netherlands" },
+    { value: "VG", label: "British Virgin Islands" },
+    { value: "KY", label: "Cayman Islands" },
+    { value: "CU", label: "Cuba" },
+    { value: "CW", label: "Curaçao" },
+    { value: "DM", label: "Dominica" },
+    { value: "DO", label: "Dominican Republic" },
+    { value: "GF", label: "French Guiana" },
+    { value: "GD", label: "Grenada" },
+    { value: "GP", label: "Guadeloupe" },
+    { value: "GY", label: "Guyana" },
+    { value: "HT", label: "Haiti" },
+    { value: "JM", label: "Jamaica" },
+    { value: "MQ", label: "Martinique" },
+    { value: "MS", label: "Montserrat" },
+    { value: "PR", label: "Puerto Rico" },
+    { value: "BL", label: "Saint Barthélemy" },
+    { value: "KN", label: "Saint Kitts & Nevis" },
+    { value: "LC", label: "Saint Lucia" },
+    { value: "MF", label: "Saint Martin" },
+    { value: "VC", label: "Saint Vincent & the Grenadines" },
+    { value: "SX", label: "Sint Maarten" },
+    { value: "SR", label: "Suriname" },
+    { value: "TT", label: "Trinidad & Tobago" },
+    { value: "TC", label: "Turks & Caicos Islands" },
+    { value: "VI", label: "U.S. Virgin Islands" }
   ];
 
   const CARIBBEAN_CODES = new Set([
@@ -68,7 +68,15 @@
     "GP","GF","GY","HT","JM","MQ","MS","PR","BL","KN","LC","MF","VC","SX","TT",
     "TC","VI","SR"
   ]);
-  const CARIBBEAN_COUNTRIES = new Set(countries.map(c => c.value.toLowerCase()).filter(v => !["all","global"].includes(v)));
+  const CARIBBEAN_COUNTRIES = new Set([
+    "anguilla","antigua and barbuda","aruba","bahamas","barbados","belize","bermuda",
+    "bonaire, sint eustatius and saba","british virgin islands","cayman islands","cuba",
+    "curaçao","curacao","dominica","dominican republic","french guiana","grenada",
+    "guadeloupe","guyana","haiti","jamaica","martinique","montserrat","puerto rico",
+    "saint barthélemy","saint barthelemy","saint kitts and nevis","saint lucia","saint martin",
+    "saint vincent and the grenadines","sint maarten","suriname","trinidad and tobago",
+    "turks and caicos islands","united states virgin islands","u.s. virgin islands"
+  ]);
 
   let prefs = { volume: 0.28, muted: false, genre: "caribbean", country: "ALL", lastStation: null };
   try { prefs = { ...prefs, ...JSON.parse(localStorage.getItem(PREF_KEY) || "{}") }; } catch (_) {}
@@ -223,7 +231,7 @@
       const tagsToTry = genre.id === "caribbean" ? genre.tags : genre.tags.slice(0, country === "ALL" ? 5 : 4);
       for (const tag of tagsToTry) {
         const params = { action: "search", tag, limit: "30", order: "clicktrend" };
-        if (country !== "ALL" && country !== "GLOBAL") params.country = country;
+        if (country !== "ALL" && country !== "GLOBAL") params.countrycode = country;
         const data = await request(params);
         if (Array.isArray(data)) {
           const scoped = country === "ALL" ? data.filter(isCaribbeanStation) : data;
