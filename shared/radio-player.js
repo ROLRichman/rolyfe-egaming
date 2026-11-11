@@ -115,7 +115,7 @@
     #rolRadioSaveStation{display:block;width:100%;margin-top:8px;border:1px solid #4d8d63;border-radius:10px;background:#153522;color:#d9ffe3;padding:9px 12px;font-weight:900;font-size:11px;cursor:pointer}
     #rolRadioSaveStation[aria-pressed="true"]{background:#23452e;color:#9ff4b9;border-color:#86dda0}
     #rolRadioSaveStation:disabled,#rolRadioSetDefault:disabled{opacity:.55;cursor:not-allowed}
-    #rolRadioSetDefault{display:block;width:100%;margin-top:6px;border:1px solid #49694f;border-radius:10px;background:#121f17;color:#bfdcc5;padding:8px 12px;font-weight:850;font-size:11px;cursor:pointer}
+    #rolRadioSetDefault{display:block;width:100%;max-width:100%;margin-top:6px;border:1px solid #49694f;border-radius:10px;background:#121f17;color:#bfdcc5;padding:8px 12px;font-weight:850;font-size:11px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     #rolRadioSetDefault[aria-pressed="true"]{border-color:#89d99a;background:#183b28;color:#a9f4bb}
     .rol-radio-guest-note{margin:-5px 0 10px;color:#89a895;font-size:9px;line-height:1.45}
     .rol-radio-seek-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:7px 0 3px}
@@ -340,7 +340,9 @@
     saveCurrentButton.textContent = exists ? "♥ Station saved · Remove" : "♡ Save current station";
     saveCurrentButton.setAttribute("aria-pressed", String(exists));
     setDefaultButton.disabled = !station;
-    setDefaultButton.textContent = isDefault ? "★ Default station · This device" : "☆ Set as Default";
+    const stationName = station?.name || "this station";
+    setDefaultButton.textContent = isDefault ? "★ Default: " + stationName : "☆ Set " + stationName + " as Default";
+    setDefaultButton.setAttribute("aria-label", isDefault ? stationName + " is your default station on this device" : "Set " + stationName + " as the default station on this device");
     setDefaultButton.setAttribute("aria-pressed", String(isDefault));
   }
   function renderSavedStations() {
@@ -499,15 +501,17 @@
       const seen = new Set(countries.map(item => item.value));
       const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
       const worldwide = (Array.isArray(rows) ? rows : [])
-        .map(item => String(item?.name || "").toUpperCase())
-        .filter(code => /^[A-Z]{2}$/.test(code) && !seen.has(code))
-        .map(code => ({ value: code, label: displayNames.of(code) || code }))
-        .filter(item => item.label && item.label !== item.value)
+        .map(item => {
+          const code = String(item?.iso_3166_1 || item?.countrycode || item?.name || "").toUpperCase();
+          const count = Math.max(0, Number(item?.stationcount || 0) || 0);
+          return { value: code, label: displayNames.of(code) || code, count };
+        })
+        .filter(item => /^[A-Z]{2}$/.test(item.value) && !seen.has(item.value) && item.label && item.label !== item.value)
         .sort((a,b) => a.label.localeCompare(b.label));
       if (worldwide.length) {
         const worldGroup = document.createElement("optgroup");
         worldGroup.label = "Explore stations by country";
-        worldwide.forEach(item => worldGroup.appendChild(makeOption(item.value, item.label)));
+        worldwide.forEach(item => worldGroup.appendChild(makeOption(item.value, item.count ? item.label + " · " + item.count.toLocaleString() + " stations" : item.label)));
         countrySelect.appendChild(worldGroup);
       }
       const valid = new Set([...countries.map(item => item.value), ...worldwide.map(item => item.value), "ALL", "GLOBAL"]);
