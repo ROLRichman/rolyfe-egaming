@@ -141,7 +141,7 @@
   root.innerHTML = `
     <section id="rolRadioPanel" aria-label="RO'Lyfe Gaming Radio" aria-hidden="true">
       <div class="rol-radio-head">
-        <div><div class="rol-radio-title">🎧 RO’Lyfe Radio</div><div class="rol-radio-sub">Island stations, Hip-Hop and more · Play while you play</div></div>
+        <div><div class="rol-radio-title">🎧 RO’Lyfe Music Stations</div><div class="rol-radio-sub">Island stations, Hip-Hop, R&B and more · Save favorites & listen while you play</div></div>
         <button class="rol-radio-close" id="rolRadioClose" type="button" aria-label="Close radio">×</button>
       </div>
       <label class="rol-radio-sub" for="rolRadioGenre">CHOOSE YOUR SOUND</label>
