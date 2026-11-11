@@ -24,7 +24,8 @@
     { id: "kompa-zouk", label: "Kompa / Zouk", tags: ["kompa", "konpa", "compas", "zouk"] },
     { id: "afrobeats", label: "Afrobeats", tags: ["afrobeats", "afrobeat"] },
     { id: "lofi", label: "Lo-Fi / Chill", tags: ["lofi", "lo-fi", "chillout"] },
-    { id: "smooth-jazz", label: "Smooth Jazz", tags: ["smooth jazz", "smooth-jazz", "jazz"] }
+    { id: "smooth-jazz", label: "Smooth Jazz", tags: ["smooth jazz", "smooth-jazz", "jazz"] },
+    { id: "country", label: "Country Music", tags: ["country", "country music", "classic country", "nashville", "bluegrass", "americana"] }
   ];
 
   const countries = [
@@ -80,7 +81,7 @@
     "turks and caicos islands","united states virgin islands","u.s. virgin islands"
   ]);
 
-  let prefs = { volume: 0.28, muted: false, genre: "caribbean", country: "ALL", lastStation: null };
+  let prefs = { volume: 0.28, muted: false, genre: "caribbean", country: "ALL", lastStation: null, defaultStationId: null };
   try { prefs = { ...prefs, ...JSON.parse(localStorage.getItem(PREF_KEY) || "{}") }; } catch (_) {}
   if (!Array.isArray(prefs.savedStations)) prefs.savedStations = [];
   let stations = [];
@@ -113,7 +114,16 @@
     #rolRadioVolume{width:100%;accent-color:#63e49c}
     #rolRadioSaveStation{display:block;width:100%;margin-top:8px;border:1px solid #4d8d63;border-radius:10px;background:#153522;color:#d9ffe3;padding:9px 12px;font-weight:900;font-size:11px;cursor:pointer}
     #rolRadioSaveStation[aria-pressed="true"]{background:#23452e;color:#9ff4b9;border-color:#86dda0}
-    #rolRadioSaveStation:disabled{opacity:.55;cursor:not-allowed}
+    #rolRadioSaveStation:disabled,#rolRadioSetDefault:disabled{opacity:.55;cursor:not-allowed}
+    #rolRadioSetDefault{display:block;width:100%;margin-top:6px;border:1px solid #49694f;border-radius:10px;background:#121f17;color:#bfdcc5;padding:8px 12px;font-weight:850;font-size:11px;cursor:pointer}
+    #rolRadioSetDefault[aria-pressed="true"]{border-color:#89d99a;background:#183b28;color:#a9f4bb}
+    .rol-radio-guest-note{margin:-5px 0 10px;color:#89a895;font-size:9px;line-height:1.45}
+    .rol-radio-seek-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:7px 0 3px}
+    .rol-radio-seek-controls button{border:1px solid #385c45;border-radius:9px;background:#12271a;color:#d9f2df;padding:8px 5px;font-size:10px;font-weight:850}
+    .rol-radio-seek-controls button:disabled{opacity:.38;cursor:not-allowed;filter:saturate(.4)}
+    .rol-radio-seek-hint{min-height:17px;margin:2px 0 7px;color:#91aa99;font-size:9px;line-height:1.4}
+    .rol-radio-default{flex:none;border:1px solid #466b4d;border-radius:8px;background:#12251a;color:#afd9b6;padding:6px 7px;font-size:9px;font-weight:850;white-space:nowrap;cursor:pointer}
+    .rol-radio-default[aria-pressed="true"]{border-color:#88d99a;background:#193b27;color:#a6f2b8}
     .rol-radio-saved-section{margin:10px 0 12px;padding:10px;border:1px solid #315641;border-radius:12px;background:#0d1913}
     .rol-radio-saved-title{display:flex;align-items:center;justify-content:space-between}
     #rolRadioSavedCount{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#1b3b2a;color:#a7f0bd;font-size:10px;font-weight:900}
@@ -131,7 +141,7 @@
     .rol-radio-station span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rol-radio-station small{margin-left:auto;color:#9cb7a7;white-space:nowrap;font-size:10px}
     #rolRadioRoot button:focus-visible,#rolRadioRoot select:focus-visible,#rolRadioRoot input:focus-visible{outline:2px solid #9affc3;outline-offset:2px}
-    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(360px,calc(100vw - 20px));max-height:78vh;max-height:78dvh;padding:14px}#rolRadioLauncher{padding:10px 13px}}
+    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(380px,calc(100vw - 20px));max-height:84vh;max-height:84dvh;padding:14px}#rolRadioLauncher{padding:10px 13px}}
     @media(prefers-reduced-motion:reduce){#rolRadioRoot *{scroll-behavior:auto!important;transition:none!important}}
   `;
   document.head.appendChild(style);
@@ -148,10 +158,13 @@
       <select id="rolRadioGenre" aria-label="Radio genre">
         ${genres.map(g => `<option value="${g.id}">${g.label}</option>`).join("")}
       </select>
-      <label class="rol-radio-sub" for="rolRadioCountry">CHOOSE ISLAND / REGION</label>
-      <select id="rolRadioCountry" aria-label="Caribbean island or radio region">
-        ${countries.map(c => `<option value="${c.value}">${c.label}</option>`).join("")}
+      <label class="rol-radio-sub" for="rolRadioCountry">EXPLORE BY COUNTRY</label>
+      <select id="rolRadioCountry" aria-label="Explore radio stations by country">
+        <option value="ALL">All Caribbean Islands</option>
+        <option value="GLOBAL">Global / Diaspora</option>
+        ${countries.filter(c => !["ALL","GLOBAL"].includes(c.value)).map(c => `<option value="${c.value}">${c.label}</option>`).join("")}
       </select>
+      <div class="rol-radio-guest-note">Guest listening · No account required. Your station choices stay on this device. Third-party stations may carry their own advertising.</div>
       <div id="rolRadioNow">
         <div id="rolRadioStation">Choose a station to begin</div>
         <div id="rolRadioStatus" role="status" aria-live="polite">Radio is off until you press Play.</div>
@@ -162,7 +175,14 @@
         <button class="rol-radio-btn" id="rolRadioNext" type="button">⏭ Next</button>
         <button class="rol-radio-btn" id="rolRadioMute" type="button" aria-pressed="false">🔊 Mute</button>
       </div>
+      <div class="rol-radio-seek-controls" aria-label="Live catch-up controls">
+        <button id="rolRadioRewind" type="button" disabled>↶ 30s</button>
+        <button id="rolRadioForward" type="button" disabled>30s ↷</button>
+        <button id="rolRadioGoLive" type="button" disabled>● Go Live</button>
+      </div>
+      <div id="rolRadioSeekHint" class="rol-radio-seek-hint" aria-live="polite">Rewind and forward work when this station provides a catch-up buffer.</div>
       <button id="rolRadioSaveStation" type="button" aria-pressed="false" disabled>♡ Save current station</button>
+      <button id="rolRadioSetDefault" type="button" aria-pressed="false" disabled>☆ Set as Default</button>
       <label class="rol-radio-volume"><span>VOL</span><input id="rolRadioVolume" type="range" min="0" max="1" step=".01" aria-label="Background radio volume"><span id="rolRadioVolumeValue">28%</span></label>
       <div class="rol-radio-saved-section"><div class="rol-radio-sub rol-radio-saved-title">♡ SAVED STATIONS <span id="rolRadioSavedCount">0</span></div><div id="rolRadioSavedList"><div class="rol-radio-sub">Tap ♡ beside a station to keep it here.</div></div></div>
       <div class="rol-radio-sub">AVAILABLE STATIONS</div>
@@ -190,6 +210,11 @@
   const savedList = $("rolRadioSavedList");
   const savedCount = $("rolRadioSavedCount");
   const saveCurrentButton = $("rolRadioSaveStation");
+  const setDefaultButton = $("rolRadioSetDefault");
+  const rewindButton = $("rolRadioRewind");
+  const forwardButton = $("rolRadioForward");
+  const goLiveButton = $("rolRadioGoLive");
+  const seekHint = $("rolRadioSeekHint");
   const genreSelect = $("rolRadioGenre");
   const countrySelect = $("rolRadioCountry");
   const playButton = $("rolRadioPlay");
@@ -207,6 +232,89 @@
     const playing = !audio.paused;
     quickPauseButton.textContent = playing ? "Ⅱ Pause" : (prefs.lastStation ? "▶ Resume" : "▶ Play");
     quickPauseButton.setAttribute("aria-pressed", String(playing));
+  }
+  function getSeekableBounds() {
+    try {
+      const ranges = audio.seekable;
+      if (!ranges || !ranges.length) return null;
+      const last = ranges.length - 1;
+      const start = ranges.start(last);
+      const end = ranges.end(last);
+      if (!Number.isFinite(start) || !Number.isFinite(end) || end - start < 2) return null;
+      return { start, end };
+    } catch (_) { return null; }
+  }
+  function syncSeekControls() {
+    const bounds = getSeekableBounds();
+    const current = Number(audio.currentTime);
+    const ready = Boolean(bounds && Number.isFinite(current));
+    const rewindAvailable = ready && current > bounds.start + 0.75;
+    const forwardAvailable = ready && current < bounds.end - 1.5;
+    const liveAvailable = ready && bounds.end - current > 2;
+    rewindButton.disabled = !rewindAvailable;
+    forwardButton.disabled = !forwardAvailable;
+    goLiveButton.disabled = !liveAvailable;
+    if (!ready) {
+      seekHint.textContent = "Live-only stream · this station does not provide a rewind buffer.";
+    } else {
+      const behind = Math.max(0, Math.round(bounds.end - current));
+      const windowSeconds = Math.max(0, Math.round(bounds.end - bounds.start));
+      seekHint.textContent = behind > 2
+        ? "Catch-up available · " + behind + "s behind live · " + Math.round(windowSeconds / 60) + " min window"
+        : "Catch-up buffer available · You are at the live edge.";
+    }
+  }
+  function seekLiveOffset(seconds) {
+    const bounds = getSeekableBounds();
+    if (!bounds) {
+      setStatus("This station is live-only. Its broadcaster has not supplied a catch-up buffer.");
+      syncSeekControls();
+      return false;
+    }
+    const current = Number.isFinite(Number(audio.currentTime)) ? Number(audio.currentTime) : bounds.end;
+    const target = Math.max(bounds.start, Math.min(bounds.end - 0.5, current + seconds));
+    try {
+      audio.currentTime = target;
+      setStatus(seconds < 0 ? "Rewinding within this station's available catch-up window…" : "Moving forward within this station's catch-up window…");
+      syncSeekControls();
+      return true;
+    } catch (_) {
+      setStatus("This station does not allow seeking in its current stream.");
+      syncSeekControls();
+      return false;
+    }
+  }
+  function goToLiveEdge() {
+    const bounds = getSeekableBounds();
+    if (!bounds) {
+      setStatus("This station is live-only and has no catch-up buffer.");
+      syncSeekControls();
+      return false;
+    }
+    try {
+      audio.currentTime = Math.max(bounds.start, bounds.end - 0.5);
+      setStatus("Back at the live edge.");
+      syncSeekControls();
+      return true;
+    } catch (_) {
+      setStatus("This station does not expose a live seek window.");
+      syncSeekControls();
+      return false;
+    }
+  }
+  function setDefaultStation(station) {
+    if (!station?.stationuuid) {
+      setStatus("Choose a station first, then set it as your default.");
+      return false;
+    }
+    if (!stationIsSaved(station)) toggleSavedStation(station);
+    prefs.defaultStationId = station.stationuuid;
+    if (prefs.lastStation?.stationuuid && prefs.lastStation.stationuuid !== station.stationuuid) prefs.lastStation = null;
+    savePrefs();
+    renderSavedStations();
+    renderCurrentSaveButton();
+    setStatus((station.name || "Station") + " is now your default station on this device.");
+    return true;
   }
   function currentGenre() { return genres.find(g => g.id === prefs.genre) || genres[0]; }
   function openPanel(open) {
@@ -227,9 +335,13 @@
     if (!saveCurrentButton) return;
     const station = currentStationForSave();
     const exists = stationIsSaved(station);
+    const isDefault = Boolean(station && prefs.defaultStationId === station.stationuuid);
     saveCurrentButton.disabled = !station;
     saveCurrentButton.textContent = exists ? "♥ Station saved · Remove" : "♡ Save current station";
     saveCurrentButton.setAttribute("aria-pressed", String(exists));
+    setDefaultButton.disabled = !station;
+    setDefaultButton.textContent = isDefault ? "★ Default station · This device" : "☆ Set as Default";
+    setDefaultButton.setAttribute("aria-pressed", String(isDefault));
   }
   function renderSavedStations() {
     savedList.replaceChildren();
@@ -258,6 +370,13 @@
         const index = stations.findIndex(item => item.stationuuid === station.stationuuid);
         playStationRecord(station, index);
       });
+      const setDefault = document.createElement("button");
+      setDefault.type = "button";
+      setDefault.className = "rol-radio-default";
+      const isDefault = prefs.defaultStationId === station.stationuuid;
+      setDefault.textContent = isDefault ? "★ Default" : "Set default";
+      setDefault.setAttribute("aria-pressed", String(isDefault));
+      setDefault.addEventListener("click", () => setDefaultStation(station));
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "rol-radio-saved-remove";
@@ -265,11 +384,12 @@
       remove.setAttribute("aria-label", "Remove " + (station.name || "station") + " from saved stations");
       remove.addEventListener("click", () => {
         prefs.savedStations = favorites.filter(item => item.stationuuid !== station.stationuuid);
+        if (prefs.defaultStationId === station.stationuuid) prefs.defaultStationId = null;
         savePrefs();
         renderSavedStations();
         renderStations();
       });
-      row.append(play, remove);
+      row.append(play, setDefault, remove);
       savedList.appendChild(row);
     });
     renderCurrentSaveButton();
@@ -358,6 +478,46 @@
     return CARIBBEAN_COUNTRIES.has(name);
   }
 
+  let countryOptionsLoaded = false;
+  async function loadCountryOptions() {
+    if (countryOptionsLoaded) return;
+    countryOptionsLoaded = true;
+    const selected = prefs.country || countrySelect.value || "ALL";
+    const makeOption = (value, label) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      return option;
+    };
+    countrySelect.replaceChildren(makeOption("ALL", "All Caribbean Islands"), makeOption("GLOBAL", "Global / Diaspora"));
+    const caribbeanGroup = document.createElement("optgroup");
+    caribbeanGroup.label = "Caribbean islands & territories";
+    countries.filter(item => !["ALL","GLOBAL"].includes(item.value)).forEach(item => caribbeanGroup.appendChild(makeOption(item.value, item.label)));
+    countrySelect.appendChild(caribbeanGroup);
+    try {
+      const rows = await request({ action: "countries", limit: "300" });
+      const seen = new Set(countries.map(item => item.value));
+      const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
+      const worldwide = (Array.isArray(rows) ? rows : [])
+        .map(item => String(item?.name || "").toUpperCase())
+        .filter(code => /^[A-Z]{2}$/.test(code) && !seen.has(code))
+        .map(code => ({ value: code, label: displayNames.of(code) || code }))
+        .filter(item => item.label && item.label !== item.value)
+        .sort((a,b) => a.label.localeCompare(b.label));
+      if (worldwide.length) {
+        const worldGroup = document.createElement("optgroup");
+        worldGroup.label = "Explore stations by country";
+        worldwide.forEach(item => worldGroup.appendChild(makeOption(item.value, item.label)));
+        countrySelect.appendChild(worldGroup);
+      }
+      const valid = new Set([...countries.map(item => item.value), ...worldwide.map(item => item.value), "ALL", "GLOBAL"]);
+      countrySelect.value = valid.has(selected) ? selected : "ALL";
+    } catch (_) {
+      countrySelect.value = countries.some(item => item.value === selected) || ["ALL","GLOBAL"].includes(selected) ? selected : "ALL";
+      setStatus("Caribbean countries are ready. The worldwide country list could not be refreshed.");
+    }
+  }
+
   async function loadStations() {
     const seq = ++stationLoadSeq;
     if (stationController) stationController.abort();
@@ -369,7 +529,7 @@
     const country = countrySelect.value || "ALL";
     try {
       const found = [];
-      const tagsToTry = genre.id === "caribbean" ? genre.tags : genre.tags.slice(0, country === "ALL" ? 5 : 4);
+      const tagsToTry = genre.id === "caribbean" ? genre.tags : genre.tags.slice(0, country === "ALL" ? 5 : 6);
       for (const tag of tagsToTry) {
         const params = { action: "search", tag, limit: "30", order: "clicktrend" };
         if (country !== "ALL" && country !== "GLOBAL") params.countrycode = country;
@@ -394,7 +554,8 @@
       currentIndex = -1;
       renderStations();
       if (stations.length) {
-        const scope = country === "ALL" ? "across the Caribbean" : country === "GLOBAL" ? "worldwide" : "in " + country;
+        const countryLabel = countrySelect.selectedOptions?.[0]?.textContent || country;
+        const scope = country === "ALL" ? "across the Caribbean" : country === "GLOBAL" ? "worldwide" : "in " + countryLabel;
         setStatus(stations.length + " stations found " + scope + ". Choose one to play.");
       } else if (country === "ALL") {
         setStatus("No Caribbean stations matched this sound yet. Choose an island or Global / Diaspora.");
@@ -554,8 +715,13 @@
     }
     toggleSavedStation(station);
   });
+  setDefaultButton.addEventListener("click", () => setDefaultStation(currentStationForSave()));
+  rewindButton.addEventListener("click", () => seekLiveOffset(-30));
+  forwardButton.addEventListener("click", () => seekLiveOffset(30));
+  goLiveButton.addEventListener("click", goToLiveEdge);
   genreSelect.value = genres.some(g => g.id === prefs.genre) ? prefs.genre : "caribbean";
-  countrySelect.value = countries.some(c => c.value === prefs.country) ? prefs.country : "ALL";
+  countrySelect.value = countries.some(c => c.value === prefs.country) ? prefs.country : (["ALL","GLOBAL"].includes(prefs.country) ? prefs.country : "ALL");
+  loadCountryOptions();
   genreSelect.addEventListener("change", () => {
     prefs.genre = genreSelect.value;
     savePrefs();
@@ -584,6 +750,14 @@
     }
     if (prefs.lastStation && await resumeLastStation()) return;
     if (!stations.length) await loadStations();
+    if (prefs.defaultStationId) {
+      const preset = prefs.savedStations.find(item => item.stationuuid === prefs.defaultStationId);
+      if (preset) {
+        const index = stations.findIndex(item => item.stationuuid === preset.stationuuid);
+        await playStationRecord(preset, index);
+        return;
+      }
+    }
     if (stations.length) await playStation(0);
   });
   $("rolRadioPrevious").addEventListener("click", async () => {
@@ -621,7 +795,11 @@
   });
   renderSavedStations();
   renderCurrentSaveButton();
-  if (prefs.lastStation && prefs.lastStation.name) {
+  const defaultStation = prefs.savedStations.find(item => item.stationuuid === prefs.defaultStationId);
+  if (defaultStation && !prefs.lastStation) {
+    stationTitle.textContent = defaultStation.name || "Default station";
+    setStatus("Default station · " + (defaultStation.name || "Station") + ". Tap Play to start.");
+  } else if (prefs.lastStation && prefs.lastStation.name) {
     stationTitle.textContent = prefs.lastStation.name;
     playButton.textContent = "▶ Resume";
     setStatus("Last station saved. Tap Resume to continue listening on this page.");
@@ -629,12 +807,18 @@
   audio.addEventListener("playing", () => {
     playButton.textContent = "Ⅱ Pause";
     syncQuickPauseButton();
+    syncSeekControls();
   });
   audio.addEventListener("pause", () => {
     playButton.textContent = prefs.lastStation ? "▶ Resume" : "▶ Play";
     syncQuickPauseButton();
+    syncSeekControls();
+  });
+  ["timeupdate","progress","durationchange","loadedmetadata","seeked","seeking"].forEach(eventName => {
+    audio.addEventListener(eventName, syncSeekControls);
   });
   audio.addEventListener("error", () => {
+    syncSeekControls();
     const code = audio.error?.code;
     const reason = code === 3 || code === 4 ? "The station's audio format is not supported here." : "The stream was interrupted or blocked.";
     setStatus(reason + " Try Next or select another island station.");
@@ -642,4 +826,5 @@
     syncQuickPauseButton();
   });
   syncQuickPauseButton();
+  syncSeekControls();
 })();
