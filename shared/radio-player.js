@@ -96,7 +96,7 @@
     #rolRadioRoot *{box-sizing:border-box}
     #rolRadioLauncher{display:flex;align-items:center;gap:8px;border:1px solid #63dca0aa;border-radius:999px;padding:11px 15px;background:linear-gradient(135deg,#123d31,#142b3e);color:#f4fff8;font-weight:850;box-shadow:0 8px 28px #0008;cursor:pointer}
     #rolRadioLauncher .rol-radio-dot{width:9px;height:9px;border-radius:50%;background:#67efaa;box-shadow:0 0 12px #67efaa}
-    #rolRadioPanel{display:none;position:absolute;right:0;bottom:58px;width:min(350px,calc(100vw - 24px));max-height:min(72vh,560px);overflow:auto;border:1px solid #3b725b;border-radius:20px;background:linear-gradient(155deg,#10231b,#0a1317 72%);box-shadow:0 18px 55px #000b;padding:15px}
+    #rolRadioPanel{display:none;position:absolute;right:0;bottom:58px;width:min(350px,calc(100vw - 24px));max-height:min(82vh,680px);overflow:auto;border:1px solid #3b725b;border-radius:20px;background:linear-gradient(155deg,#10231b,#0a1317 72%);box-shadow:0 18px 55px #000b;padding:15px}
     #rolRadioPanel.open{display:block}
     .rol-radio-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
     .rol-radio-title{font-size:15px;font-weight:900;letter-spacing:.02em}.rol-radio-sub{font-size:11px;color:#a8c3b4;margin-top:2px}
@@ -131,7 +131,7 @@
     .rol-radio-station span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rol-radio-station small{margin-left:auto;color:#9cb7a7;white-space:nowrap;font-size:10px}
     #rolRadioRoot button:focus-visible,#rolRadioRoot select:focus-visible,#rolRadioRoot input:focus-visible{outline:2px solid #9affc3;outline-offset:2px}
-    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(340px,calc(100vw - 20px));max-height:68vh;padding:13px}#rolRadioLauncher{padding:10px 13px}}
+    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(360px,calc(100vw - 20px));max-height:78vh;max-height:78dvh;padding:14px}#rolRadioLauncher{padding:10px 13px}}
     @media(prefers-reduced-motion:reduce){#rolRadioRoot *{scroll-behavior:auto!important;transition:none!important}}
   `;
   document.head.appendChild(style);
@@ -157,6 +157,7 @@
         <div id="rolRadioStatus" role="status" aria-live="polite">Radio is off until you press Play.</div>
       </div>
       <div class="rol-radio-controls">
+        <button class="rol-radio-btn" id="rolRadioPrevious" type="button">⏮ Previous</button>
         <button class="rol-radio-btn primary" id="rolRadioPlay" type="button">▶ Play</button>
         <button class="rol-radio-btn" id="rolRadioNext" type="button">⏭ Next</button>
         <button class="rol-radio-btn" id="rolRadioMute" type="button" aria-pressed="false">🔊 Mute</button>
@@ -192,6 +193,7 @@
   const genreSelect = $("rolRadioGenre");
   const countrySelect = $("rolRadioCountry");
   const playButton = $("rolRadioPlay");
+  const quickPauseButton = $("quickPauseToggle");
   const muteButton = $("rolRadioMute");
   const volume = $("rolRadioVolume");
   const volumeValue = $("rolRadioVolumeValue");
@@ -200,6 +202,12 @@
     try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (_) {}
   }
   function setStatus(message) { status.textContent = message; }
+  function syncQuickPauseButton() {
+    if (!quickPauseButton) return;
+    const playing = !audio.paused;
+    quickPauseButton.textContent = playing ? "Ⅱ Pause" : (prefs.lastStation ? "▶ Resume" : "▶ Play");
+    quickPauseButton.setAttribute("aria-pressed", String(playing));
+  }
   function currentGenre() { return genres.find(g => g.id === prefs.genre) || genres[0]; }
   function openPanel(open) {
     panel.classList.toggle("open", open);
@@ -524,7 +532,9 @@
         await tryPlayUrl(fallback);
       }
       if (seq !== playSequence) return false;
+      currentIndex = stations.findIndex(item => item.stationuuid === last.stationuuid);
       playButton.textContent = "Ⅱ Pause";
+      syncQuickPauseButton();
       setStatus("LIVE · " + (last.country || "Caribbean") + " · resumed on this page");
       return true;
     } catch (_) {
@@ -576,6 +586,16 @@
     if (!stations.length) await loadStations();
     if (stations.length) await playStation(0);
   });
+  $("rolRadioPrevious").addEventListener("click", async () => {
+    if (!stations.length) await loadStations();
+    if (!stations.length) return;
+    let index = currentIndex;
+    if (index < 0 && prefs.lastStation?.stationuuid) {
+      index = stations.findIndex(item => item.stationuuid === prefs.lastStation.stationuuid);
+    }
+    const target = index < 0 ? stations.length - 1 : (index - 1 + stations.length) % stations.length;
+    await playStation(target);
+  });
   $("rolRadioNext").addEventListener("click", async () => {
     if (!stations.length) await loadStations();
     if (stations.length) await playStation((currentIndex + 1) % stations.length);
@@ -606,12 +626,20 @@
     playButton.textContent = "▶ Resume";
     setStatus("Last station saved. Tap Resume to continue listening on this page.");
   }
-  audio.addEventListener("playing", () => { playButton.textContent = "Ⅱ Pause"; });
-  audio.addEventListener("pause", () => { playButton.textContent = prefs.lastStation ? "▶ Resume" : "▶ Play"; });
+  audio.addEventListener("playing", () => {
+    playButton.textContent = "Ⅱ Pause";
+    syncQuickPauseButton();
+  });
+  audio.addEventListener("pause", () => {
+    playButton.textContent = prefs.lastStation ? "▶ Resume" : "▶ Play";
+    syncQuickPauseButton();
+  });
   audio.addEventListener("error", () => {
     const code = audio.error?.code;
     const reason = code === 3 || code === 4 ? "The station's audio format is not supported here." : "The stream was interrupted or blocked.";
     setStatus(reason + " Try Next or select another island station.");
     playButton.textContent = prefs.lastStation ? "▶ Resume" : "▶ Play";
+    syncQuickPauseButton();
   });
+  syncQuickPauseButton();
 })();
