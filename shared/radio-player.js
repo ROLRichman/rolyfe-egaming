@@ -111,6 +111,9 @@
     .rol-radio-btn[aria-pressed="true"]{border-color:#ffb15c;color:#ffca8b}
     .rol-radio-volume{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;margin:12px 0 10px;color:#bdd4c5;font-size:12px}
     #rolRadioVolume{width:100%;accent-color:#63e49c}
+    #rolRadioSaveStation{display:block;width:100%;margin-top:8px;border:1px solid #4d8d63;border-radius:10px;background:#153522;color:#d9ffe3;padding:9px 12px;font-weight:900;font-size:11px;cursor:pointer}
+    #rolRadioSaveStation[aria-pressed="true"]{background:#23452e;color:#9ff4b9;border-color:#86dda0}
+    #rolRadioSaveStation:disabled{opacity:.55;cursor:not-allowed}
     .rol-radio-saved-section{margin:10px 0 12px;padding:10px;border:1px solid #315641;border-radius:12px;background:#0d1913}
     .rol-radio-saved-title{display:flex;align-items:center;justify-content:space-between}
     #rolRadioSavedCount{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#1b3b2a;color:#a7f0bd;font-size:10px;font-weight:900}
@@ -128,7 +131,7 @@
     .rol-radio-station span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rol-radio-station small{margin-left:auto;color:#9cb7a7;white-space:nowrap;font-size:10px}
     #rolRadioRoot button:focus-visible,#rolRadioRoot select:focus-visible,#rolRadioRoot input:focus-visible{outline:2px solid #9affc3;outline-offset:2px}
-    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(82px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(340px,calc(100vw - 20px));max-height:68vh;padding:13px}#rolRadioLauncher{padding:10px 13px}}
+    @media(max-width:520px){#rolRadioRoot{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#rolRadioPanel{width:min(340px,calc(100vw - 20px));max-height:68vh;padding:13px}#rolRadioLauncher{padding:10px 13px}}
     @media(prefers-reduced-motion:reduce){#rolRadioRoot *{scroll-behavior:auto!important;transition:none!important}}
   `;
   document.head.appendChild(style);
@@ -158,6 +161,7 @@
         <button class="rol-radio-btn" id="rolRadioNext" type="button">⏭ Next</button>
         <button class="rol-radio-btn" id="rolRadioMute" type="button" aria-pressed="false">🔊 Mute</button>
       </div>
+      <button id="rolRadioSaveStation" type="button" aria-pressed="false" disabled>♡ Save current station</button>
       <label class="rol-radio-volume"><span>VOL</span><input id="rolRadioVolume" type="range" min="0" max="1" step=".01" aria-label="Background radio volume"><span id="rolRadioVolumeValue">28%</span></label>
       <div class="rol-radio-saved-section"><div class="rol-radio-sub rol-radio-saved-title">♡ SAVED STATIONS <span id="rolRadioSavedCount">0</span></div><div id="rolRadioSavedList"><div class="rol-radio-sub">Tap ♡ beside a station to keep it here.</div></div></div>
       <div class="rol-radio-sub">AVAILABLE STATIONS</div>
@@ -184,6 +188,7 @@
   const list = $("rolRadioList");
   const savedList = $("rolRadioSavedList");
   const savedCount = $("rolRadioSavedCount");
+  const saveCurrentButton = $("rolRadioSaveStation");
   const genreSelect = $("rolRadioGenre");
   const countrySelect = $("rolRadioCountry");
   const playButton = $("rolRadioPlay");
@@ -205,6 +210,19 @@
   function stationIsSaved(station) {
     return (prefs.savedStations || []).some(item => item.stationuuid === station?.stationuuid);
   }
+  function currentStationForSave() {
+    if (currentIndex >= 0 && stations[currentIndex]) return stations[currentIndex];
+    const last = prefs.lastStation;
+    return last?.stationuuid ? { ...last, url_resolved: last.streamUrl || last.url_resolved || "" } : null;
+  }
+  function renderCurrentSaveButton() {
+    if (!saveCurrentButton) return;
+    const station = currentStationForSave();
+    const exists = stationIsSaved(station);
+    saveCurrentButton.disabled = !station;
+    saveCurrentButton.textContent = exists ? "♥ Station saved · Remove" : "♡ Save current station";
+    saveCurrentButton.setAttribute("aria-pressed", String(exists));
+  }
   function renderSavedStations() {
     savedList.replaceChildren();
     const favorites = Array.isArray(prefs.savedStations) ? prefs.savedStations : [];
@@ -214,6 +232,7 @@
       empty.className = "rol-radio-sub";
       empty.textContent = "Tap ♡ beside any station to save it for next time.";
       savedList.appendChild(empty);
+      renderCurrentSaveButton();
       return;
     }
     favorites.forEach(station => {
@@ -245,6 +264,7 @@
       row.append(play, remove);
       savedList.appendChild(row);
     });
+    renderCurrentSaveButton();
   }
   function toggleSavedStation(station) {
     const id = String(station?.stationuuid || "").trim();
@@ -279,6 +299,7 @@
     savePrefs();
     renderSavedStations();
     renderStations();
+    renderCurrentSaveButton();
   }
   function renderStations() {
     list.replaceChildren();
@@ -287,6 +308,7 @@
       empty.className = "rol-radio-sub";
       empty.textContent = "No stations found for this tag. Try another genre.";
       list.appendChild(empty);
+      renderCurrentSaveButton();
       return;
     }
     stations.forEach((station, index) => {
@@ -312,6 +334,7 @@
       row.append(button, favorite);
       list.appendChild(row);
     });
+    renderCurrentSaveButton();
   }
   async function request(params, signal) {
     const url = API + "?" + new URLSearchParams(params).toString();
@@ -459,6 +482,7 @@
         renderSavedStations();
       }
       savePrefs();
+      renderCurrentSaveButton();
       playButton.textContent = "Ⅱ Pause";
       setStatus("LIVE · " + (station.country || "Caribbean") + (station.codec ? " · " + station.codec : ""));
     } catch (error) {
@@ -512,6 +536,14 @@
 
   $("rolRadioLauncher").addEventListener("click", () => openPanel(!panel.classList.contains("open")));
   $("rolRadioClose").addEventListener("click", () => openPanel(false));
+  saveCurrentButton.addEventListener("click", () => {
+    const station = currentStationForSave();
+    if (!station) {
+      setStatus("Choose or play a station first, then save it here.");
+      return;
+    }
+    toggleSavedStation(station);
+  });
   genreSelect.value = genres.some(g => g.id === prefs.genre) ? prefs.genre : "caribbean";
   countrySelect.value = countries.some(c => c.value === prefs.country) ? prefs.country : "ALL";
   genreSelect.addEventListener("change", () => {
@@ -568,6 +600,7 @@
     savePrefs();
   });
   renderSavedStations();
+  renderCurrentSaveButton();
   if (prefs.lastStation && prefs.lastStation.name) {
     stationTitle.textContent = prefs.lastStation.name;
     playButton.textContent = "▶ Resume";
