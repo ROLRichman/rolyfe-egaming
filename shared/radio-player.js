@@ -82,6 +82,7 @@
 
   let prefs = { volume: 0.28, muted: false, genre: "caribbean", country: "ALL", lastStation: null };
   try { prefs = { ...prefs, ...JSON.parse(localStorage.getItem(PREF_KEY) || "{}") }; } catch (_) {}
+  if (!Array.isArray(prefs.savedStations)) prefs.savedStations = [];
   let stations = [];
   let currentIndex = -1;
   let busy = false;
@@ -110,8 +111,19 @@
     .rol-radio-btn[aria-pressed="true"]{border-color:#ffb15c;color:#ffca8b}
     .rol-radio-volume{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;margin:12px 0 10px;color:#bdd4c5;font-size:12px}
     #rolRadioVolume{width:100%;accent-color:#63e49c}
+    .rol-radio-saved-section{margin:10px 0 12px;padding:10px;border:1px solid #315641;border-radius:12px;background:#0d1913}
+    .rol-radio-saved-title{display:flex;align-items:center;justify-content:space-between}
+    #rolRadioSavedCount{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#1b3b2a;color:#a7f0bd;font-size:10px;font-weight:900}
+    #rolRadioSavedList{display:grid;gap:6px;margin-top:8px;max-height:148px;overflow:auto;overscroll-behavior:contain}
+    .rol-radio-saved-row,.rol-radio-station-row{display:flex;align-items:stretch;gap:6px;min-width:0}
+    .rol-radio-saved-play{display:flex;flex:1;align-items:center;justify-content:space-between;gap:8px;min-width:0;text-align:left;border:1px solid #284b36;border-radius:9px;background:#10251a;color:#eafff1;padding:8px 9px;cursor:pointer}
+    .rol-radio-saved-play span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:850}
+    .rol-radio-saved-play small{flex:none;color:#9cb7a7;font-size:9px}
+    .rol-radio-saved-remove,.rol-radio-fav{flex:none;min-width:38px;border:1px solid #355947;border-radius:9px;background:#142b20;color:#eafff1;padding:7px 9px;cursor:pointer;font:inherit;font-size:14px}
+    .rol-radio-saved-remove{color:#d9b5aa}
+    .rol-radio-fav[aria-pressed="true"]{border-color:#63e49c;background:#173b28;color:#9ff4b9}
     #rolRadioList{display:grid;gap:6px;margin-top:9px}
-    .rol-radio-station{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:1px solid #263f32;border-radius:10px;background:#0d1a14;color:#eaf8ef;padding:9px;cursor:pointer;min-width:0}
+    .rol-radio-station{display:flex;flex:1;align-items:center;gap:9px;width:100%;min-width:0;text-align:left;border:1px solid #263f32;border-radius:10px;background:#0d1a14;color:#eaf8ef;padding:9px;cursor:pointer}
     .rol-radio-station[aria-current="true"]{border-color:#63e49c;background:#153322}
     .rol-radio-station span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rol-radio-station small{margin-left:auto;color:#9cb7a7;white-space:nowrap;font-size:10px}
@@ -147,6 +159,7 @@
         <button class="rol-radio-btn" id="rolRadioMute" type="button" aria-pressed="false">🔊 Mute</button>
       </div>
       <label class="rol-radio-volume"><span>VOL</span><input id="rolRadioVolume" type="range" min="0" max="1" step=".01" aria-label="Background radio volume"><span id="rolRadioVolumeValue">28%</span></label>
+      <div class="rol-radio-saved-section"><div class="rol-radio-sub rol-radio-saved-title">♡ SAVED STATIONS <span id="rolRadioSavedCount">0</span></div><div id="rolRadioSavedList"><div class="rol-radio-sub">Tap ♡ beside a station to keep it here.</div></div></div>
       <div class="rol-radio-sub">AVAILABLE STATIONS</div>
       <div id="rolRadioList"><div class="rol-radio-sub">Open a genre to find stations.</div></div>
       <audio id="rolRadioAudio" preload="none" playsinline></audio>
@@ -169,6 +182,8 @@
   const status = $("rolRadioStatus");
   const stationTitle = $("rolRadioStation");
   const list = $("rolRadioList");
+  const savedList = $("rolRadioSavedList");
+  const savedCount = $("rolRadioSavedCount");
   const genreSelect = $("rolRadioGenre");
   const countrySelect = $("rolRadioCountry");
   const playButton = $("rolRadioPlay");
@@ -187,6 +202,84 @@
     $("rolRadioLauncher").setAttribute("aria-expanded", String(open));
     if (open && !stations.length) loadStations();
   }
+  function stationIsSaved(station) {
+    return (prefs.savedStations || []).some(item => item.stationuuid === station?.stationuuid);
+  }
+  function renderSavedStations() {
+    savedList.replaceChildren();
+    const favorites = Array.isArray(prefs.savedStations) ? prefs.savedStations : [];
+    savedCount.textContent = String(favorites.length);
+    if (!favorites.length) {
+      const empty = document.createElement("div");
+      empty.className = "rol-radio-sub";
+      empty.textContent = "Tap ♡ beside any station to save it for next time.";
+      savedList.appendChild(empty);
+      return;
+    }
+    favorites.forEach(station => {
+      const row = document.createElement("div");
+      row.className = "rol-radio-saved-row";
+      const play = document.createElement("button");
+      play.type = "button";
+      play.className = "rol-radio-saved-play";
+      const name = document.createElement("span");
+      name.textContent = "▶ " + (station.name || "Saved station");
+      const meta = document.createElement("small");
+      meta.textContent = station.country || "Radio";
+      play.append(name, meta);
+      play.addEventListener("click", () => {
+        const index = stations.findIndex(item => item.stationuuid === station.stationuuid);
+        playStationRecord(station, index);
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "rol-radio-saved-remove";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "Remove " + (station.name || "station") + " from saved stations");
+      remove.addEventListener("click", () => {
+        prefs.savedStations = favorites.filter(item => item.stationuuid !== station.stationuuid);
+        savePrefs();
+        renderSavedStations();
+        renderStations();
+      });
+      row.append(play, remove);
+      savedList.appendChild(row);
+    });
+  }
+  function toggleSavedStation(station) {
+    const id = String(station?.stationuuid || "").trim();
+    if (!id) {
+      setStatus("This directory entry has no stable station ID, so it cannot be saved.");
+      return;
+    }
+    const index = prefs.savedStations.findIndex(item => item.stationuuid === id);
+    if (index >= 0) {
+      prefs.savedStations.splice(index, 1);
+      setStatus((station.name || "Station") + " removed from saved stations.");
+    } else {
+      const secureUrl = value => {
+        try { const parsed = new URL(String(value || "")); return parsed.protocol === "https:" ? parsed.href : ""; }
+        catch (_) { return ""; }
+      };
+      const currentStream = prefs.lastStation?.stationuuid === id ? prefs.lastStation.streamUrl : "";
+      prefs.savedStations.unshift({
+        stationuuid: id,
+        name: station.name || "Radio station",
+        country: station.country || "Caribbean",
+        countrycode: station.countrycode || "",
+        codec: station.codec || "",
+        bitrate: station.bitrate || 0,
+        url: secureUrl(station.url),
+        url_resolved: secureUrl(station.url_resolved) || secureUrl(currentStream),
+        savedAt: Date.now()
+      });
+      prefs.savedStations = prefs.savedStations.slice(0, 50);
+      setStatus((station.name || "Station") + " saved. Find it above in Saved Stations.");
+    }
+    savePrefs();
+    renderSavedStations();
+    renderStations();
+  }
   function renderStations() {
     list.replaceChildren();
     if (!stations.length) {
@@ -197,6 +290,8 @@
       return;
     }
     stations.forEach((station, index) => {
+      const row = document.createElement("div");
+      row.className = "rol-radio-station-row";
       const button = document.createElement("button");
       button.type = "button";
       button.className = "rol-radio-station";
@@ -207,7 +302,15 @@
       meta.textContent = [station.country, station.bitrate ? station.bitrate + " kbps" : ""].filter(Boolean).join(" · ");
       button.append(name, meta);
       button.addEventListener("click", () => playStation(index));
-      list.appendChild(button);
+      const favorite = document.createElement("button");
+      favorite.type = "button";
+      favorite.className = "rol-radio-fav";
+      favorite.textContent = stationIsSaved(station) ? "♥" : "♡";
+      favorite.setAttribute("aria-pressed", String(stationIsSaved(station)));
+      favorite.setAttribute("aria-label", (stationIsSaved(station) ? "Remove " : "Save ") + (station.name || "station"));
+      favorite.addEventListener("click", () => toggleSavedStation(station));
+      row.append(button, favorite);
+      list.appendChild(row);
     });
   }
   async function request(params, signal) {
@@ -312,10 +415,9 @@
     throw lastError || new Error("No playable secure stream URL was returned.");
   }
 
-  async function playStation(index) {
-    if (!stations[index]) return;
+  async function playStationRecord(station, index = -1) {
+    if (!station) return;
     const seq = ++playSequence;
-    const station = stations[index];
     busy = true;
     currentIndex = index;
     stationTitle.textContent = station.name || "Live radio";
@@ -326,7 +428,7 @@
       // Waiting for the separate click-tracking request first can lose mobile
       // browser audio activation, especially on iOS/Safari.
       const directCandidates = [station.url_resolved, station.url]
-        .filter((url, index, all) => url && /^https:\/\//i.test(url) && all.indexOf(url) === index);
+        .filter((url, candidateIndex, all) => url && /^https:\/\//i.test(url) && all.indexOf(url) === candidateIndex);
       let streamUrl = null;
       let directError = null;
       if (directCandidates.length) {
@@ -351,6 +453,11 @@
         streamUrl,
         savedAt: Date.now()
       };
+      const savedIndex = prefs.savedStations.findIndex(item => item.stationuuid === station.stationuuid);
+      if (savedIndex >= 0) {
+        prefs.savedStations[savedIndex] = { ...prefs.savedStations[savedIndex], url_resolved: streamUrl };
+        renderSavedStations();
+      }
       savePrefs();
       playButton.textContent = "Ⅱ Pause";
       setStatus("LIVE · " + (station.country || "Caribbean") + (station.codec ? " · " + station.codec : ""));
@@ -362,7 +469,10 @@
       setStatus(detail);
     } finally { if (seq === playSequence) busy = false; }
   }
-
+  async function playStation(index) {
+    if (!stations[index]) return;
+    return playStationRecord(stations[index], index);
+  }
   async function resumeLastStation() {
     const last = prefs.lastStation;
     if (!last) return false;
@@ -457,6 +567,7 @@
     volumeValue.textContent = Math.round(prefs.volume * 100) + "%";
     savePrefs();
   });
+  renderSavedStations();
   if (prefs.lastStation && prefs.lastStation.name) {
     stationTitle.textContent = prefs.lastStation.name;
     playButton.textContent = "▶ Resume";
