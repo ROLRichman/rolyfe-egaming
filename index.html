@@ -37,6 +37,7 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
 @media(max-width:900px){.game{grid-column:span 6}.game.featured{grid-column:span 12}.utility{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.topbar{padding:10px 13px}.nav{display:none}.menu{display:block}main{padding:12px}.hero{min-height:350px;border-radius:20px;padding:26px 20px}.hero:after{right:-5%;bottom:-16px;font-size:9rem}.grid{gap:11px}.game,.game.featured{grid-column:span 12;min-height:225px;padding:19px}.game.featured{min-height:270px}.utility{grid-template-columns:1fr}.platform{grid-template-columns:1fr}.section{margin-top:28px}.sectionhead{align-items:start;flex-direction:column}}
 </style>
+  <link rel="stylesheet" href="rol-engine-identity.css?v=20261113-1">
 </head>
 <body>
 <header class="topbar">
@@ -46,13 +47,14 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
 </header>
 <div class="drawerback" id="drawerBack"><nav class="drawer" aria-label="Mobile navigation"><button class="menu" id="closeMenu" type="button">✕ Close</button><a href="#games">Game Library</a><a href="#extras">More from RO'Lyfe</a><a href="#systems">Platform Systems</a><a href="#ai">AI Arena</a></nav></div>
 <main>
-<header class="hero">
+<header class="hero rol-engine-hero" data-rol-engine="gaming"><div class="rol-engine-visual" aria-hidden="true"><span class="rol-visual-halo"></span><span class="rol-visual-ring"></span><span class="rol-visual-ring ring-two"></span><span class="rol-visual-core" data-mark="✦"></span><span class="rol-visual-signal"></span><span class="rol-visual-caption">PLAY · COMPETE · CREATE</span></div>
   <div class="hero-copy">
     <div class="eyebrow" data-i18n="eyebrow">Play • Compete • Think • Build</div>
     <h1 data-i18n="heroTitle">Your next move<br>starts here.</h1>
     <p>Welcome to RO'Lyfe Gaming — a growing home for classic games, friendly competition, strategy and AI-powered play. Pick a table, challenge yourself and build your level.</p>
     <div class="hero-actions"><a class="button primary" href="#games">Explore the games ↓</a><a class="button" href="./games/pool/">Play RO'Lyfe Pool 🎱</a></div>
   </div>
+<button class="rol-motion-toggle" type="button" data-rol-motion-toggle aria-pressed="false">Pause motion</button>
 </header>
 
 <section class="section" id="games">
@@ -126,5 +128,6 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
 </script>
 <script src="./shared/arcade-controls.js"></script>
 <script src="./shared/radio-player.js"></script>
+<script>(()=>{const root=document.documentElement;document.querySelectorAll('[data-rol-motion-toggle]').forEach(button=>button.addEventListener('click',()=>{const paused=root.classList.toggle('rol-motion-paused');button.setAttribute('aria-pressed',String(paused));button.textContent=paused?'Resume motion':'Pause motion';}));})();</script>
 </body>
 </html>
