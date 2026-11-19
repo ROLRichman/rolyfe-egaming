@@ -224,6 +224,18 @@
 <script src="../../shared/physics-engine.js"></script>
 <script src="./themes.js"></script>
 <script src="./pool.js"></script>
+<script>
+/* Apply the Gaming hub's selected AI difficulty before Pool initializes. */
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("fromHub") !== "1") return;
+  const level = Number(params.get("aiLevel") || 3);
+  const mode = document.getElementById("poolMode");
+  const aiLevel = document.getElementById("poolAILevel");
+  if (mode) mode.value = "pvai";
+  if (aiLevel && Number.isInteger(level) && level >= 1 && level <= 5) aiLevel.value = String(level);
+})();
+</script>
 <script src="./pool-focus.js"></script>
 <script src="../../shared/arcade-controls.js"></script>
 <script src="../../shared/radio-player.js"></script>
