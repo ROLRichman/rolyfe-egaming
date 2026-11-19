@@ -38,6 +38,43 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
 @media(max-width:600px){.topbar{padding:10px 13px}.nav{display:none}.menu{display:block}main{padding:12px}.hero{min-height:350px;border-radius:20px;padding:26px 20px}.hero:after{right:-5%;bottom:-16px;font-size:9rem}.grid{gap:11px}.game,.game.featured{grid-column:span 12;min-height:225px;padding:19px}.game.featured{min-height:270px}.utility{grid-template-columns:1fr}.platform{grid-template-columns:1fr}.section{margin-top:28px}.sectionhead{align-items:start;flex-direction:column}}
 </style>
   <link rel="stylesheet" href="rol-engine-identity.css?v=20261113-1">
+<style id="rol-gaming-landscape-layout">
+/* Landscape phone and short-tablet layout: use the full width, shorten the
+   hero, and prevent the game library from looking like a narrow portrait page. */
+@media screen and (orientation:landscape) and (max-height:620px) {
+  main { padding:10px clamp(12px,2vw,24px) 20px; }
+  .hero.rol-engine-hero {
+    min-height:min(70dvh,255px);
+    padding:18px clamp(18px,3vw,40px);
+    border-radius:20px;
+  }
+  .rol-engine-hero[data-rol-engine="gaming"] .hero-copy { max-width:58%; }
+  .rol-engine-hero[data-rol-engine="gaming"] .rol-engine-visual {
+    left:auto; right:1.5%; top:4%; width:42%; height:92%; opacity:.78;
+  }
+  .hero h1 { font-size:clamp(2rem,5vw,3.5rem); margin:8px 0; }
+  .hero p {
+    max-width:560px;
+    font-size:.91rem;
+    line-height:1.4;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    overflow:hidden;
+  }
+  .hero-actions { gap:8px; margin-top:13px; }
+  .section { margin-top:23px; }
+  .sectionhead { margin-bottom:10px; }
+  .grid { gap:12px; }
+  .game { min-height:205px; padding:16px; }
+  .game.featured { grid-column:span 6; min-height:225px; }
+  .game h3 { font-size:1.22rem; }
+  .game p { font-size:.88rem; }
+  .airoom { grid-template-columns:1.1fr .9fr; gap:12px; }
+  .aipanel { padding:13px; }
+  .utility,.platform { gap:10px; }
+}
+</style>
 </head>
 <body>
 <header class="topbar">
