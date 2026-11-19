@@ -22,3 +22,11 @@ Live arcade hub: https://rolrichman.github.io/rolyfe-egaming/
 ## Project boundaries
 
 RO’Lyfe Gaming is the discovery and launch page for independent game rooms. Each playable room keeps its own source under `games/`. These are original browser-based prototypes and do not require an account or remote game API. A room should be called fully verified only after testing its controls and gameplay in a real browser on phone, tablet, and desktop.
+
+
+## Shared RO’Lyfe front-door preview access
+
+- This site's public front door uses the common remembered-device gateway key `rolyfe.shared.preview.access.v1`.
+- Entering once on any configured RO’Lyfe media front door on `rolrichman.github.io` lets visitors move among Entertainment, Live Sports, Gaming, Vision Hub and JUST LISTENING without another preview prompt on the same browser.
+- This is a convenience preview, not real authentication or a security barrier. It does not protect private content, APIs, or page source. Secure account sign-in / single sign-on is a later phase.
+- The welcome screen announces a planned first-three-months-free launch offer; confirm final commercial terms before accepting payments or publishing final pricing.
