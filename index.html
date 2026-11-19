@@ -125,7 +125,7 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
   </div>
 </section>
 
-<section class="section" id="ai"><div class="airoom"><div><div class="eyebrow">RO’LYFE INTELLIGENCE</div><h2>🧠 Meet your AI opponent.</h2><p>Challenge the Pool opponent, take on the Atlas paddle AI in Ping Pong, use tactical guidance in Orbital Blitz, and try Block Breaker, Pinball, Golf Quest and Stick Fighter. Atlas is the planned cross-game companion; each room currently uses its own local opponent logic or in-game tips.</p><div class="hero-actions"><a class="button primary" href="./games/pool/">Challenge the AI 🎱</a></div><p class="aihint">Pool AI · Ping Pong Atlas paddle AI · Orbital Blitz tactical tips · Arcade prototypes · Cross-game Atlas companion integration planned</p></div><div class="aipanel"><strong>Set your challenge</strong><label for="aiLevel">AI difficulty</label><select id="aiLevel"><option value="1">1 · START-UP — Beginner</option><option value="2">2 · START-UP+ — Casual</option><option value="3" selected>3 · INVESTOR — Skilled</option><option value="4">4 · INVESTOR+ — Advanced</option><option value="5">5 · 7FIGURES — Expert</option></select><label for="aiStyle">Opponent personality</label><select id="aiStyle"><option>Balanced Strategist</option><option>Patient Planner</option><option>Aggressive Challenger</option><option>Unpredictable</option></select><p class="aihint">Choose your style here, then open Pool to start a match. Game-specific controls remain inside the game.</p><div class="soundnote">🟠 Sound effects are optional. Use the sound control above to mute or enable hub feedback.</div></div></div></section>
+<section class="section" id="ai"><div class="airoom"><div><div class="eyebrow">RO’LYFE INTELLIGENCE</div><h2>🧠 Meet your AI opponent.</h2><p>Challenge the Pool opponent, take on the Atlas paddle AI in Ping Pong, use tactical guidance in Orbital Blitz, and try Block Breaker, Pinball, Golf Quest and Stick Fighter. Atlas is the planned cross-game companion; each room currently uses its own local opponent logic or in-game tips.</p><div class="hero-actions"><a class="button primary" id="challengePoolLink" href="./games/pool/?fromHub=1&amp;aiLevel=3">Challenge the AI 🎱</a></div><p class="aihint">Pool AI · Ping Pong Atlas paddle AI · Orbital Blitz tactical tips · Arcade prototypes · Cross-game Atlas companion integration planned</p></div><div class="aipanel"><strong>Set your challenge</strong><label for="aiLevel">AI difficulty</label><select id="aiLevel"><option value="1">1 · START-UP — Beginner</option><option value="2">2 · START-UP+ — Casual</option><option value="3" selected>3 · INVESTOR — Skilled</option><option value="4">4 · INVESTOR+ — Advanced</option><option value="5">5 · 7FIGURES — Expert</option></select><label for="aiStyle">Opponent personality</label><select id="aiStyle"><option>Balanced Strategist</option><option>Patient Planner</option><option>Aggressive Challenger</option><option>Unpredictable</option></select><p class="aihint">Your selected difficulty transfers into Pool and opens Player vs AI. Personality presets are planned; Pool currently uses its own game-specific opponent logic.</p><div class="soundnote">🟠 Sound effects are optional. Use the sound control above to mute or enable hub feedback.</div></div></div></section>
 <section class="section" id="extras">
   <div class="sectionhead"><div><h2>🧭 More from RO'Lyfe</h2><p>Keep the gaming hub connected without mixing separate products together.</p></div></div>
   <div class="utility">
@@ -159,6 +159,22 @@ footer{padding:34px 12px 18px;text-align:center;color:#82988a;font-size:.88rem}
  const lang=document.getElementById('languageSelect');
  function applyLanguage(code){const dict=translations[code]||translations.en;document.documentElement.lang=code;document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(dict[key])el.innerHTML=dict[key]});}
  lang.addEventListener('change',()=>applyLanguage(lang.value));
+ const aiLevel=document.getElementById('aiLevel');
+ const challengePoolLink=document.getElementById('challengePoolLink');
+ function syncPoolChallenge(){
+   if(!aiLevel||!challengePoolLink)return;
+   const level=Math.max(1,Math.min(5,Number(aiLevel.value)||3));
+   challengePoolLink.href='./games/pool/?fromHub=1&aiLevel='+encodeURIComponent(String(level));
+   try{localStorage.setItem('rolyfe_gaming_ai_level',String(level));}catch(e){}
+ }
+ if(aiLevel){
+   try{
+     const saved=Number(localStorage.getItem('rolyfe_gaming_ai_level')||0);
+     if(saved>=1&&saved<=5)aiLevel.value=String(saved);
+   }catch(e){}
+   aiLevel.addEventListener('change',syncPoolChallenge);
+   syncPoolChallenge();
+ }
  const sound=document.getElementById('soundToggle');let audio=null,enabled=false;
  sound.addEventListener('click',()=>{enabled=!enabled;sound.setAttribute('aria-pressed',String(enabled));sound.textContent=enabled?'🔊 Sound':'🔇 Sound';if(enabled){try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const osc=audio.createOscillator(),gain=audio.createGain();osc.frequency.value=660;gain.gain.value=.035;osc.connect(gain);gain.connect(audio.destination);osc.start();osc.stop(audio.currentTime+.09)}catch(e){}}});
 })();
