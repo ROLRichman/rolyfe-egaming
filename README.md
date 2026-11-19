@@ -14,7 +14,7 @@ Live arcade hub: https://rolrichman.github.io/rolyfe-egaming/
 
 ## Shared arcade interface
 
-- Floating quick controls for **Top**, **Game Focus**, **AI Guide**, **Trophy Case**, per-page **Game Screen Height**, and a shared **Game Speed** slider are injected by `shared/arcade-controls.js`. The speed setting is applied to each playable game loop, including Pool.
+- Floating quick controls for **Top**, **Game Focus**, **AI Guide**, **Trophy Case**, per-page **Game Screen Height**, and a shared **Game Speed** slider are injected by `shared/arcade-controls.js`. On short landscape screens, playfields automatically expand to use the available viewport; Pool uses the available landscape width and scrolls its focused controls vertically. The speed setting is applied to each playable game loop, including Pool.
 - The shared browser-local arcade profile exposes trophy awards and per-game save-point helpers. Local data is stored in the current browser profile and does not sync across devices.
 - The AI guide surfaces each room's local hint text. It does not claim a live cross-game conversational Atlas integration.
 - The Gaming hub links to playable rooms and keeps GitHub repository / internal resource-directory shortcuts out of visitor-facing buttons. The trading app link points to its live GitHub Pages destination.
@@ -30,3 +30,11 @@ RO’Lyfe Gaming is the discovery and launch page for independent game rooms. Ea
 - Entering once on any configured RO’Lyfe media front door on `rolrichman.github.io` lets visitors move among Entertainment, Live Sports, Gaming, Vision Hub and JUST LISTENING without another preview prompt on the same browser.
 - This is a convenience preview, not real authentication or a security barrier. It does not protect private content, APIs, or page source. Secure account sign-in / single sign-on is a later phase.
 - The welcome screen announces a planned first-three-months-free launch offer; confirm final commercial terms before accepting payments or publishing final pricing.
+
+
+## Gaming hub and AI launch
+
+- The hub is a single, scrollable front page with anchored sections for the Game Library, AI Arena, More from RO’Lyfe, Platform Systems and footer.
+- Each playable game card opens its own dedicated game room under `games/`. Coming-soon board-game cards are library placeholders, not playable rooms.
+- The AI difficulty selected on the hub is remembered in this browser and passed into Pool when the visitor selects **Challenge the AI**; that link opens Pool in Player vs AI mode at the selected level.
+- Opponent personality presets and a shared conversational Atlas companion remain planned; the Pool room currently uses its own local opponent logic.
